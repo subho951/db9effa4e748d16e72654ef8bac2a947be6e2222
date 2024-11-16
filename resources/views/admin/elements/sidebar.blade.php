@@ -15,102 +15,79 @@ if(!empty($parameters)){
     $pId2 = Helper::decoded($parameters['id2']);
   }
 }
+$user_type = session('type');
 ?>
-<div class="navbar-vertical-container">
-  <div class="navbar-vertical-footer-offset">
-    <!-- Logo -->
-    <a class="navbar-brand" href="<?=url('admin/dashboard')?>" aria-label="Front">
-      <img class="navbar-brand-logo" src="<?=env('UPLOADS_URL').$generalSetting->site_logo?>" alt="<?=$generalSetting->site_name?>" data-hs-theme-appearance="default" style="margin: 0 auto;">
-      <img class="navbar-brand-logo" src="<?=env('UPLOADS_URL').$generalSetting->site_logo?>" alt="<?=$generalSetting->site_name?>" data-hs-theme-appearance="dark" style="margin: 0 auto;">
-      <img class="navbar-brand-logo-mini" src="<?=env('UPLOADS_URL').$generalSetting->site_logo?>" alt="<?=$generalSetting->site_name?>" data-hs-theme-appearance="default" style="margin: 0 auto;">
-      <img class="navbar-brand-logo-mini" src="<?=env('UPLOADS_URL').$generalSetting->site_logo?>" alt="<?=$generalSetting->site_name?>" data-hs-theme-appearance="dark" style="margin: 0 auto;">
-    </a>
-    <!-- End Logo -->
-    <!-- Navbar Vertical Toggle -->
-    <button type="button" class="js-navbar-vertical-aside-toggle-invoker navbar-aside-toggler">
-      <i class="bi-arrow-bar-left navbar-toggler-short-align" data-bs-template='<div class="tooltip d-none d-md-block" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>' data-bs-toggle="tooltip" data-bs-placement="right" title="Collapse"></i>
-      <i class="bi-arrow-bar-right navbar-toggler-full-align" data-bs-template='<div class="tooltip d-none d-md-block" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>' data-bs-toggle="tooltip" data-bs-placement="right" title="Expand"></i>
-    </button>
-    <!-- End Navbar Vertical Toggle -->
-    <!-- Content -->
-    <div class="navbar-vertical-content">
-      <div id="navbarVerticalMenu" class="nav nav-pills nav-vertical card-navbar-nav">
-        <!-- dashboard -->
-          <div class="nav-item">
-            <a class="nav-link <?=(($pageSegment == 'dashboard')?'active':'')?>" href="<?=url('admin/dashboard')?>" data-placement="left">
-              <i class="fa fa-home nav-icon"></i>
-              <span class="nav-link-title">Dashboard</span>
-            </a>
-          </div>
-        <!-- End dashboard -->
-        <!-- access -->
-          <div class="nav-item">
-            <a class="nav-link dropdown-toggle active <?=(($pageSegment == 'module' || $pageSegment == 'sub-user' || $pageSegment == 'access')?'':'collapsed')?>" href="#navbarVerticalMenuAccess" role="button" data-bs-toggle="collapse" data-bs-target="#navbarVerticalMenuAccess" aria-expanded="<?=(($pageSegment == 'module' || $pageSegment == 'sub-user' || $pageSegment == 'access')?'true':'false')?>" aria-controls="navbarVerticalMenuAccess">
-              <i class="fa fa-lock nav-icon"></i>
-              <span class="nav-link-title">Access & Permission</span>
-            </a>
-            <div id="navbarVerticalMenuAccess" class="nav-collapse collapse <?=(($pageSegment == 'module' || $pageSegment == 'sub-user' || $pageSegment == 'access')?'show':'')?>" data-bs-parent="#navbarVerticalMenu">
-              <a class="nav-link <?=(($pageSegment == 'module')?'active':'')?>" href="<?=url('admin/module/list')?>">Modules</a>
-              <a class="nav-link <?=(($pageSegment == 'sub-user')?'active':'')?>" href="<?=url('admin/sub-user/list')?>">Sub Users</a>
-              <a class="nav-link <?=(($pageSegment == 'access')?'active':'')?>" href="<?=url('admin/access/list')?>">Give Access</a>
-            </div>
-          </div>
-        <!-- End access -->
-        <!-- masters -->
-          <div class="nav-item">
-            <a class="nav-link dropdown-toggle active <?=(($pageSegment == 'pol' || $pageSegment == 'pod' || $pageSegment == 'process-flow')?'':'collapsed')?>" href="#navbarVerticalMenuAccess2" role="button" data-bs-toggle="collapse" data-bs-target="#navbarVerticalMenuAccess2" aria-expanded="<?=(($pageSegment == 'pol' || $pageSegment == 'pod' || $pageSegment == 'process-flow')?'true':'false')?>" aria-controls="navbarVerticalMenuAccess2">
-              <i class="fa fa-database nav-icon"></i>
-              <span class="nav-link-title">Masters</span>
-            </a>
-            <div id="navbarVerticalMenuAccess2" class="nav-collapse collapse <?=(($pageSegment == 'pol' || $pageSegment == 'pod' || $pageSegment == 'process-flow')?'show':'')?>" data-bs-parent="#navbarVerticalMenu">
-              <a class="nav-link <?=(($pageSegment == 'pol')?'active':'')?>" href="<?=url('admin/pol/list')?>">POL</a>
-              <a class="nav-link <?=(($pageSegment == 'pod')?'active':'')?>" href="<?=url('admin/pod/list')?>">POD</a>
-              <a class="nav-link <?=(($pageSegment == 'process-flow')?'active':'')?>" href="<?=url('admin/process-flow/list')?>">Process Flow</a>
-            </div>
-          </div>
-        <!-- End masters -->
-        <!-- customer -->
-          <div class="nav-item">
-            <a class="nav-link <?=(($pageSegment == 'customer')?'active':'')?>" href="<?=url('admin/customer/list')?>" data-placement="left">
-              <i class="fa fa-users nav-icon"></i>
-              <span class="nav-link-title">Customers</span>
-            </a>
-          </div>
-        <!-- End customer -->
-        <!-- customer -->
-          <div class="nav-item">
-            <a class="nav-link <?=(($pageSegment == 'consignment')?'active':'')?>" href="<?=url('admin/consignment/list')?>" data-placement="left">
-              <i class="fa fa-list-alt nav-icon"></i>
-              <span class="nav-link-title">Consignments</span>
-            </a>
-          </div>
-        <!-- End customer -->
-        <!-- page -->
-          <!-- <div class="nav-item">
-            <a class="nav-link <?=(($pageSegment == 'page')?'active':'')?>" href="<?=url('admin/page/list')?>" data-placement="left">
-              <i class="fa fa-envelope nav-icon"></i>
-              <span class="nav-link-title">Pages</span>
-            </a>
-          </div> -->
-        <!-- End page -->
-        <!-- email logs -->
-          <div class="nav-item">
-            <a class="nav-link <?=(($pageSegment == 'email-logs')?'active':'')?>" href="<?=url('admin/email-logs')?>" data-placement="left">
-              <i class="fa fa-history nav-icon"></i>
-              <span class="nav-link-title">Email Logs</span>
-            </a>
-          </div>
-        <!-- End email logs -->
-        <!-- login logs -->
-          <div class="nav-item">
-            <a class="nav-link <?=(($pageSegment == 'login-logs')?'active':'')?>" href="<?=url('admin/login-logs')?>" data-placement="left">
-              <i class="fa fa-sign-in nav-icon"></i>
-              <span class="nav-link-title">Login Logs</span>
-            </a>
-          </div>
-        <!-- End login logs -->
-      </div>
-    </div>
-    <!-- End Content -->
-  </div>
+<div class="app-brand demo ">
+   <a href="index-2.html" class="app-brand-link">
+      <span class="app-brand-logo demo">
+         <img src="<?=env('UPLOADS_URL')?><?=$generalSetting->site_logo?>">
+      </span>
+      <!-- <span class="app-brand-text demo menu-text fw-bold ms-2"><?=$generalSetting->site_name?></span> -->
+   </a>
+   <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+   <i class="bx bx-chevron-left bx-sm align-middle"></i>
+   </a>
 </div>
+<div class="menu-inner-shadow"></div>
+<ul class="menu-inner py-1">
+   <!-- Dashboards -->
+   <li class="menu-item <?=(($pageSegment == 'dashboard')?'active':'')?>">
+      <a href="<?=url('admin/dashboard')?>" class="menu-link">
+         <i class="menu-icon tf-icons fa fa-home"></i>
+         <div data-i18n="Dashboard">Dashboard</div>
+      </a>
+   </li>
+   <!-- Masters -->
+   <li class="menu-item <?=(($pageSegment == 'locations' || $pageSegment == 'brands' || $pageSegment == 'suppliers' || $pageSegment == 'shipping-charges' || $pageSegment == 'coupons' || $pageSegment == 'fast-buttons')?'':'open')?>">
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
+         <i class="menu-icon tf-icons fa fa-database"></i>
+         <div data-i18n="Masters">Masters</div>
+      </a>
+      <ul class="menu-sub">
+         <li class="menu-item <?=(($pageSegment == 'locations')?'active':'')?>">
+            <a href="javascript:void(0);" class="menu-link">
+               <div data-i18n="Locations">Locations</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'brands')?'active':'')?>">
+            <a href="<?=url('admin/brands/list')?>" class="menu-link">
+               <div data-i18n="Brands">Brands</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'suppliers')?'active':'')?>">
+            <a href="javascript:void(0);" class="menu-link">
+               <div data-i18n="Suppliers">Suppliers</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'shipping-charges')?'active':'')?>">
+            <a href="javascript:void(0);" class="menu-link">
+               <div data-i18n="Shipping Charges">Shipping Charges</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'coupons')?'active':'')?>">
+            <a href="javascript:void(0);" class="menu-link">
+               <div data-i18n="Discount Coupons">Discount Coupons</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'fast-buttons')?'active':'')?>">
+            <a href="javascript:void(0);" class="menu-link">
+               <div data-i18n="Configuure Fast Buttons">Configuure Fast Buttons</div>
+            </a>
+         </li>
+      </ul>
+   </li>
+   <!-- Login Logs -->
+   <li class="menu-item <?=(($pageSegment == 'login-logs')?'active':'')?>">
+      <a href="<?=url('admin/login-logs')?>" class="menu-link">
+         <i class="menu-icon tf-icons fa fa-home"></i>
+         <div data-i18n="Login Logs">Login Logs</div>
+      </a>
+   </li>
+   <!-- Email Logs -->
+   <li class="menu-item <?=(($pageSegment == 'email-logs')?'active':'')?>">
+      <a href="<?=url('admin/email-logs')?>" class="menu-link">
+         <i class="menu-icon tf-icons fa fa-home"></i>
+         <div data-i18n="Email Logs">Email Logs</div>
+      </a>
+   </li>
+</ul>

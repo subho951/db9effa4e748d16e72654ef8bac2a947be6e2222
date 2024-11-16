@@ -1,34 +1,14 @@
 <?php
 use App\Helpers\Helper;
+$current_url = url()->current();
 ?>
-<div class="pagetitle">
-  <h1><?=$page_header?></h1>
-  <nav>
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="<?=url('admin/dashboard')?>">Home</a></li>
-      <li class="breadcrumb-item active"><?=$page_header?></li>
-    </ol>
-  </nav>
-</div><!-- End Page Title -->
-<section class="section">
+<div class="container-xxl flex-grow-1 container-p-y">
+  <h4 class="py-3 mb-4">
+    <span class="text-muted fw-light"><a href="<?=url('admin/dashboard')?>">Dashboard</a> /</span> <?=$page_header?>
+  </h4>
   <div class="row">
-    <div class="col-xl-12">
-      @if(session('success_message'))
-        <div class="alert alert-success bg-success text-light border-0 alert-dismissible fade show autohide" role="alert">
-          {{ session('success_message') }}
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      @endif
-      @if(session('error_message'))
-        <div class="alert alert-danger bg-danger text-light border-0 alert-dismissible fade show autohide" role="alert">
-          {{ session('error_message') }}
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      @endif
-    </div>
-    <div class="col-lg-12">
-      <div class="card">
-        <div class="card-body">
+    <div class="col-md-12">
+       <div class="nav-align-top mb-4">
           <ul class="nav nav-tabs nav-tabs-bordered">
             <li class="nav-item">
               <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab2">Success Login</button>
@@ -58,7 +38,7 @@ use App\Helpers\Helper;
                     </tr>
                   </thead>
                   <tbody>
-                    <?php if($rows2){ $sl=1; foreach($rows2 as $row){?>
+                    <?php if(count($rows2) > 0){ $sl=1; foreach($rows2 as $row){?>
                       <tr>
                         <th scope="row"><?=$sl++?></th>
                         <td><?=$row->user_type?></td>
@@ -78,7 +58,11 @@ use App\Helpers\Helper;
                         </td>
                         <td><?=$row->platform_type?></td>
                       </tr>
-                    <?php } }?>
+                    <?php } } else {?>
+                      <tr>
+                        <td colspan="9" style="color:red; text-align: center;">No Records Found !!!</td>
+                      </tr>
+                    <?php }?>
                   </tbody>
                 </table>
               </div>
@@ -100,7 +84,7 @@ use App\Helpers\Helper;
                     </tr>
                   </thead>
                   <tbody>
-                    <?php if($rows1){ $sl=1; foreach($rows1 as $row){?>
+                    <?php if(count($rows1) > 0){ $sl=1; foreach($rows1 as $row){?>
                       <tr>
                         <th scope="row"><?=$sl++?></th>
                         <td><?=$row->user_type?></td>
@@ -120,7 +104,11 @@ use App\Helpers\Helper;
                         </td>
                         <td><?=$row->platform_type?></td>
                       </tr>
-                    <?php } }?>
+                    <?php } } else {?>
+                      <tr>
+                        <td colspan="9" style="color:red; text-align: center;">No Records Found !!!</td>
+                      </tr>
+                    <?php }?>
                   </tbody>
                 </table>
               </div>
@@ -142,7 +130,7 @@ use App\Helpers\Helper;
                     </tr>
                   </thead>
                   <tbody>
-                    <?php if($rows3){ $sl=1; foreach($rows3 as $row){?>
+                    <?php if(count($rows3) > 0){ $sl=1; foreach($rows3 as $row){?>
                       <tr>
                         <th scope="row"><?=$sl++?></th>
                         <td><?=$row->user_type?></td>
@@ -162,15 +150,17 @@ use App\Helpers\Helper;
                         </td>
                         <td><?=$row->platform_type?></td>
                       </tr>
-                    <?php } }?>
+                    <?php } } else {?>
+                      <tr>
+                        <td colspan="9" style="color:red; text-align: center;">No Records Found !!!</td>
+                      </tr>
+                    <?php }?>
                   </tbody>
                 </table>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
+       </div>
     </div>
   </div>
-</section>
+</div>

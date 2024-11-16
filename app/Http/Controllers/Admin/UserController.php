@@ -21,6 +21,7 @@ use PDF;
 use Session;
 use Helper;
 use Hash;
+use DB;
 
 class UserController extends Controller
 {
@@ -29,17 +30,26 @@ class UserController extends Controller
             if($request->isMethod('post')){
                 $postData = $request->all();
                 $rules = [
-                            'email'     => 'required|email|max:255',
-                            'password'  => 'required|max:30',
+                            'username'  => 'required|max:15',
+                            'otp1'      => 'required|max:1',
+                            'otp2'      => 'required|max:1',
+                            'otp3'      => 'required|max:1',
+                            'otp4'      => 'required|max:1',
                         ];
                 if($this->validate($request, $rules)){
-                    if(Auth::guard('admin')->attempt(['email' => $postData['email'], 'password' => $postData['password'], 'status' => 1])){
-                        // Helper::pr(Auth::guard('admin')->user());put
+                    $otp1           = $postData['otp1'];
+                    $otp2           = $postData['otp2'];
+                    $otp3           = $postData['otp3'];
+                    $otp4           = $postData['otp4'];
+                    $password       = ($otp1.$otp2.$otp3.$otp4);
+                    if(Auth::guard('admin')->attempt(['username' => $postData['username'], 'password' => $password, 'status' => 1])){
+                        // Helper::pr(Auth::guard('admin')->user());
                         $sessionData = Auth::guard('admin')->user();
                         $request->session()->put('user_id', $sessionData->id);
                         $request->session()->put('name', $sessionData->name);
                         $request->session()->put('type', $sessionData->type);
                         $request->session()->put('email', $sessionData->email);
+                        $request->session()->put('username', $sessionData->username);
                         $request->session()->put('is_admin_login', 1);
 
                         /* user activity */
@@ -49,7 +59,7 @@ class UserController extends Controller
                                 'user_type'         => 'ADMIN',
                                 'ip_address'        => $request->ip(),
                                 'activity_type'     => 1,
-                                'activity_details'  => 'Login Success !!!',
+                                'activity_details'  => 'SignIn Success !!!',
                                 'platform_type'     => 'WEB',
                             ];
                             UserActivity::insert($activityData);
@@ -59,17 +69,17 @@ class UserController extends Controller
                     } else {
                         /* user activity */
                             $activityData = [
-                                'user_email'        => $postData['email'],
-                                'user_name'         => 'Super Admin',
+                                'user_email'        => $postData['username'],
+                                'user_name'         => 'Master Admin',
                                 'user_type'         => 'ADMIN',
                                 'ip_address'        => $request->ip(),
                                 'activity_type'     => 0,
-                                'activity_details'  => 'Invalid Email Or Password !!!',
+                                'activity_details'  => 'Invalid Username Or PIN !!!',
                                 'platform_type'     => 'WEB',
                             ];
                             UserActivity::insert($activityData);
                         /* user activity */
-                        return redirect()->back()->with('error_message', 'Invalid Email Or Password !!!');
+                        return redirect()->back()->with('error_message', 'Invalid Username Or PIN !!!');
                     }
                 } else {
                     return redirect()->back()->with('error_message', 'All Fields Required !!!');
@@ -84,31 +94,31 @@ class UserController extends Controller
             if($request->isMethod('post')){
                 $postData = $request->all();
                 $rules = [
-                            'email' => 'required|email|max:255',
+                            'username' => 'required|max:255',
                         ];
                 if($this->validate($request, $rules)){
-                    $checkEmail                   = Admin::where('email','=',$postData['email'])->get();
+                    $checkEmail                   = Admin::where('username','=',$postData['username'])->get();
                     if(count($checkEmail) > 0){
-                        $row     =  Admin::where('email', '=', $postData['email'])->first();
+                        $row     =  Admin::where('username', '=', $postData['username'])->first();
                         $otp     =  rand(999,10000);
                         $fields  =  [
                                         'remember_token' => $otp
                                     ];
                         Admin::where('id', '=', $row->id)->update($fields);
                         $to = $row->email;
-                        $subject = "Reset Password";
-                        $message = "Your Reset Password is :" . $otp;
+                        $subject = "Reset PIN";
+                        $message = "Your Reset PIN is :" . $otp;
                         // $this->sendMail('avijit@keylines.net',$subject,$message);
                         return redirect('/admin/validateOtp/'.Helper::encoded($row->id))->with('success_message', 'OTP Sent To Your Registered Email !!!');
                     }else{
-                        return redirect()->back()->with('error_message', 'We Don\'t Recognized Your Email !!!');
+                        return redirect()->back()->with('error_message', 'We Don\'t Recognized Your Username !!!');
                     }
                 } else {
                     return redirect()->back()->with('error_message', 'All Fields Required !!!');
                 }
             }
             $data                           = [];
-            $title                          = 'Forgot Password';
+            $title                          = 'Forgot PIN';
             $page_name                      = 'forgot-password';
             echo $this->admin_before_login_layout($title,$page_name,$data);
         }
@@ -141,7 +151,7 @@ class UserController extends Controller
                                             'remember_token'        => '',
                                         ];
                             Admin::where('id', '=', $checkUser->id)->update($postData);
-                            return redirect('/admin/changePassword/'.Helper::encoded($checkUser->id))->with('success_message', 'OTP Validated. Just Reset Your Password !!!');
+                            return redirect('/admin/changePassword/'.Helper::encoded($checkUser->id))->with('success_message', 'OTP Validated. Just Reset Your PIN !!!');
                         } else {
                             return redirect()->back()->with('error_message', 'OTP Mismatched !!!');
                         }
@@ -159,7 +169,7 @@ class UserController extends Controller
         public function resendOtp(Request $request, $email){
             $email                          = Helper::decoded($email);
             $checkEmail                     = Admin::where('email','=',$email)->first();
-            if(count($checkEmail) > 0){
+            if($checkEmail){
                 $row     =  Admin::where('email', '=', $email)->first();
                 $otp     =  rand(999,10000);
                 $fields  =  [
@@ -167,8 +177,8 @@ class UserController extends Controller
                             ];
                 Admin::where('id', '=', $row->id)->update($fields);
                 $to = $row->email;
-                $subject = "Reset Password";
-                $message = "Your Reset Password is :" . $otp;
+                $subject = "Reset PIN";
+                $message = "Your Reset PIN is :" . $otp;
                 // $this->sendMail('avijit@keylines.net',$subject,$message);
                 return redirect('/admin/validateOtp/'.Helper::encoded($row->id))->with('success_message', 'OTP Resend To Your Registered Email !!!');
             }else{
@@ -181,21 +191,21 @@ class UserController extends Controller
                 $postData = $request->all();
                 $getAdmin                     = Admin::where('id','=',$ID)->first();
                 if($postData['new_password'] != $postData['confirm_password'] ){
-                    return redirect()->back()->with('error_message', 'Password Doesn\'t match !!!');
+                    return redirect()->back()->with('error_message', 'PIN Doesn\'t match !!!');
                 } else {
                     if(!Hash::check($postData['new_password'], $getAdmin->password)){
                         $postData = [
                                         'password'        => Hash::make($postData['new_password']),
                                     ];
                         Admin::where('id', '=', $ID)->update($postData);
-                        return redirect('/admin')->with('success_message', 'Password Reset Successfully. Please Sign In !!!');
+                        return redirect('/admin')->with('success_message', 'PIN Reset Successfully. Please Sign In !!!');
                     } else {
-                        return redirect()->back()->with('error_message', 'New Password Can\'t Be Same With Existing Password !!!');
+                        return redirect()->back()->with('error_message', 'New PIN Can\'t Be Same With Old PIN !!!');
                     }
                 }
             }
             $data                           = [];
-            $title                          = 'Reset Password';
+            $title                          = 'Reset PIN';
             $page_name                      = 'reset-password';
             echo $this->admin_before_login_layout($title,$page_name,$data);
         }
@@ -231,6 +241,7 @@ class UserController extends Controller
     /* settings */
         public function settings(Request $request){
             $uId                            = $request->session()->get('user_id');
+            $data['uId']                    = $uId;
             $data['setting']                = GeneralSetting::where('id', '=', 1)->first();
             $data['admin']                  = Admin::where('id', '=', $uId)->first();
             $title                          = 'Settings';
@@ -243,6 +254,7 @@ class UserController extends Controller
             $postData   = $request->all();
             $rules      = [
                 'name'            => 'required',
+                'username'        => 'required',
                 'mobile'          => 'required',
                 'email'           => 'required',
             ];
@@ -263,6 +275,7 @@ class UserController extends Controller
                 /* profile image */
                 $fields = [
                     'name'                  => $postData['name'],
+                    'username'              => $postData['username'],
                     'mobile'                => $postData['mobile'],
                     'email'                 => $postData['email'],
                     'image'                 => $image
@@ -332,17 +345,17 @@ class UserController extends Controller
                     'site_name'                         => $postData['site_name'],
                     'site_phone'                        => $postData['site_phone'],
                     'site_phone2'                       => $postData['site_phone2'],
+                    'whatsapp_no'                       => $postData['whatsapp_no'],
                     'site_mail'                         => $postData['site_mail'],
                     'system_email'                      => $postData['system_email'],
                     'site_url'                          => $postData['site_url'],
                     'description'                       => $postData['description'],
+                    'become_partner_text'               => $postData['become_partner_text'],
                     'copyright_statement'               => $postData['copyright_statement'],
                     'google_map_api_code'               => $postData['google_map_api_code'],
                     'google_analytics_code'             => $postData['google_analytics_code'],
                     'google_pixel_code'                 => $postData['google_pixel_code'],
                     'facebook_tracking_code'            => $postData['facebook_tracking_code'],
-                    'theme_color'                       => $postData['theme_color'],
-                    'font_color'                        => $postData['font_color'],
                     'twitter_profile'                   => $postData['twitter_profile'],
                     'facebook_profile'                  => $postData['facebook_profile'],
                     'instagram_profile'                 => $postData['instagram_profile'],
@@ -364,9 +377,9 @@ class UserController extends Controller
             $adminData  = Admin::where('id', '=', $uId)->first();
             $postData   = $request->all();
             $rules      = [
-                'old_password'            => 'required',
-                'new_password'            => 'required',
-                'confirm_password'        => 'required',
+                'old_password'            => 'required|max:4|min:4',
+                'new_password'            => 'required|max:4|min:4',
+                'confirm_password'        => 'required|max:4|min:4',
             ];
             if($this->validate($request, $rules)){
                 $old_password       = $postData['old_password'];
@@ -374,16 +387,20 @@ class UserController extends Controller
                 $confirm_password   = $postData['confirm_password'];
                 if(Hash::check($old_password, $adminData->password)){
                     if($new_password == $confirm_password){
-                        $fields = [
-                            'password'            => Hash::make($new_password)
-                        ];
-                        Admin::where('id', '=', $uId)->update($fields);
-                        return redirect()->back()->with('success_message', 'Password Changed Successfully !!!');
+                        if(!Hash::check($postData['new_password'], $adminData->password)){
+                            $fields = [
+                                'password'            => Hash::make($new_password)
+                            ];
+                            Admin::where('id', '=', $uId)->update($fields);
+                            return redirect()->back()->with('success_message', 'PIN Changed Successfully !!!');
+                        } else {
+                            return redirect()->back()->with('error_message', 'New PIN Can\'t Be Same With Old PIN !!!');
+                        }
                     } else {
-                        return redirect()->back()->with('error_message', 'New & Confirm Password Does Not Matched !!!');
+                        return redirect()->back()->with('error_message', 'New & Confirm PIN Does Not Matched !!!');
                     }
                 } else {
-                    return redirect()->back()->with('error_message', 'Current Password Is Incorrect !!!');
+                    return redirect()->back()->with('error_message', 'Current PIN Is Incorrect !!!');
                 }
             } else {
                 return redirect()->back()->with('error_message', 'All Fields Required !!!');
@@ -453,6 +470,23 @@ class UserController extends Controller
                 ];
                 GeneralSetting::where('id', '=', 1)->update($fields);
                 return redirect()->back()->with('success_message', 'SMS Settings Updated Successfully !!!');
+            } else {
+                return redirect()->back()->with('error_message', 'All Fields Required !!!');
+            }
+        }
+        public function color_settings(Request $request){
+            $postData = $request->all();
+            $rules = [
+                'header_color'            => 'required',
+                'sidebar_color'           => 'required',
+            ];
+            if($this->validate($request, $rules)){
+                $fields = [
+                    'header_color'            => $postData['header_color'],
+                    'sidebar_color'           => $postData['sidebar_color'],
+                ];
+                GeneralSetting::where('id', '=', 1)->update($fields);
+                return redirect()->back()->with('success_message', 'Color Settings Updated Successfully !!!');
             } else {
                 return redirect()->back()->with('error_message', 'All Fields Required !!!');
             }
@@ -577,37 +611,6 @@ class UserController extends Controller
                 return redirect()->back()->with('error_message', 'All Fields Required !!!');
             }
         }
-        public function color_settings(Request $request){
-            $postData = $request->all();
-            $rules = [
-                'color_theme'               => 'required',
-                'color_button'              => 'required',
-                'color_title'               => 'required',
-                'color_panel_bg'            => 'required',
-                'color_panel_text'          => 'required',
-                'color_accept_button'       => 'required',
-                'color_reject_button'       => 'required',
-                'color_transfer_button'     => 'required',
-                'color_complete_button'     => 'required',
-            ];
-            if($this->validate($request, $rules)){
-                $fields = [
-                    'color_theme'                       => $postData['color_theme'],
-                    'color_button'                      => $postData['color_button'],
-                    'color_title'                       => $postData['color_title'],
-                    'color_panel_bg'                    => $postData['color_panel_bg'],
-                    'color_panel_text'                  => $postData['color_panel_text'],
-                    'color_accept_button'               => $postData['color_accept_button'],
-                    'color_reject_button'               => $postData['color_reject_button'],
-                    'color_transfer_button'             => $postData['color_transfer_button'],
-                    'color_complete_button'             => $postData['color_complete_button'],
-                ];
-                GeneralSetting::where('id', '=', 1)->update($fields);
-                return redirect()->back()->with('success_message', 'Color Settings Updated Successfully !!!');
-            } else {
-                return redirect()->back()->with('error_message', 'All Fields Required !!!');
-            }
-        }
         public function signature_settings(Request $request){
             $postData = $request->all();
             /* signature */
@@ -654,4 +657,12 @@ class UserController extends Controller
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
     /* login logs */
+    public function commonDeleteImage($pageLink, $tableName, $fieldName, $primaryField, $refId){
+        $postData = [$fieldName => ''];
+        $pageLink = Helper::decoded($pageLink);
+        DB::table($tableName)
+                ->where($primaryField, '=', $refId)
+                ->update($postData);
+        return redirect()->to($pageLink)->with('success_message', 'Image Deleted Successfully !!!');
+    }
 }

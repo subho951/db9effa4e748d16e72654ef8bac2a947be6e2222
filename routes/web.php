@@ -81,7 +81,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('email-logs', 'UserController@emailLogs');
             Route::match(['get','post'],'/email-logs/details/{email}', 'UserController@emailLogsDetails');
             Route::get('login-logs', 'UserController@loginLogs');
-           
+            Route::match(['get','post'], '/common-delete-image/{id1}/{id2}/{id3}/{id4}/{id5}', 'UserController@commonDeleteImage');
             /* setting */
                 Route::get('settings', 'UserController@settings');
                 Route::post('profile-settings', 'UserController@profile_settings');
@@ -90,10 +90,12 @@ use Illuminate\Support\Facades\Route;
                 Route::post('email-settings', 'UserController@email_settings');
                 Route::post('email-template', 'UserController@email_template');
                 Route::post('sms-settings', 'UserController@sms_settings');
-                Route::post('footer-settings', 'UserController@footer_settings');
+                Route::post('application-settings', 'UserController@sms_settings');
+                Route::post('color-settings', 'UserController@color_settings');
                 Route::post('seo-settings', 'UserController@seo_settings');
-                Route::post('payment-settings', 'UserController@payment_settings');
-                Route::post('signature-settings', 'UserController@signature_settings');
+                // Route::post('footer-settings', 'UserController@footer_settings');
+                // Route::post('payment-settings', 'UserController@payment_settings');
+                // Route::post('signature-settings', 'UserController@signature_settings');
             /* setting */
             /* access & permission */
                 /* module */
@@ -118,6 +120,50 @@ use Illuminate\Support\Facades\Route;
                     Route::get('access/change-status/{id}', 'AccessController@change_status');
                 /* give access */
             /* access & permission */
+            /* masters */
+                /* locations */
+                    Route::get('locations/list', 'LocationController@list');
+                    Route::match(['get', 'post'], 'locations/add', 'LocationController@add');
+                    Route::match(['get', 'post'], 'locations/edit/{id}', 'LocationController@edit');
+                    Route::get('locations/delete/{id}', 'LocationController@delete');
+                    Route::get('locations/change-status/{id}', 'LocationController@change_status');
+                /* locations */
+                /* brands */
+                    Route::get('brands/list', 'BrandController@list');
+                    Route::match(['get', 'post'], 'brands/add', 'BrandController@add');
+                    Route::match(['get', 'post'], 'brands/edit/{id}', 'BrandController@edit');
+                    Route::get('brands/delete/{id}', 'BrandController@delete');
+                    Route::get('brands/change-status/{id}', 'BrandController@change_status');
+                /* brands */
+                /* suppliers */
+                    Route::get('suppliers/list', 'SupplierController@list');
+                    Route::match(['get', 'post'], 'suppliers/add', 'SupplierController@add');
+                    Route::match(['get', 'post'], 'suppliers/edit/{id}', 'SupplierController@edit');
+                    Route::get('suppliers/delete/{id}', 'SupplierController@delete');
+                    Route::get('suppliers/change-status/{id}', 'SupplierController@change_status');
+                /* suppliers */
+                /* shipping charges */
+                    Route::get('shipping-charges/list', 'ShippingChargeController@list');
+                    Route::match(['get', 'post'], 'shipping-charges/add', 'ShippingChargeController@add');
+                    Route::match(['get', 'post'], 'shipping-charges/edit/{id}', 'ShippingChargeController@edit');
+                    Route::get('shipping-charges/delete/{id}', 'ShippingChargeController@delete');
+                    Route::get('shipping-charges/change-status/{id}', 'ShippingChargeController@change_status');
+                /* shipping charges */
+                /* coupons */
+                    Route::get('coupons/list', 'CouponController@list');
+                    Route::match(['get', 'post'], 'coupons/add', 'CouponController@add');
+                    Route::match(['get', 'post'], 'coupons/edit/{id}', 'CouponController@edit');
+                    Route::get('coupons/delete/{id}', 'CouponController@delete');
+                    Route::get('coupons/change-status/{id}', 'CouponController@change_status');
+                /* coupons */
+                /* fast buttons */
+                    Route::get('fast-buttons/list', 'FastButtonController@list');
+                    Route::match(['get', 'post'], 'fast-buttons/add', 'FastButtonController@add');
+                    Route::match(['get', 'post'], 'fast-buttons/edit/{id}', 'FastButtonController@edit');
+                    Route::get('fast-buttons/delete/{id}', 'FastButtonController@delete');
+                    Route::get('fast-buttons/change-status/{id}', 'FastButtonController@change_status');
+                /* fast buttons */
+            /* masters */
             /* customer */
                 Route::get('customer/list', 'CustomerController@list');
                 Route::match(['get', 'post'], 'customer/add', 'CustomerController@add');
@@ -132,36 +178,6 @@ use Illuminate\Support\Facades\Route;
                 Route::get('page/delete/{id}', 'PageController@delete');
                 Route::get('page/change-status/{id}', 'PageController@change_status');
             /* page */
-            /* pol */
-                Route::get('pol/list', 'PolController@list');
-                Route::match(['get', 'post'], 'pol/add', 'PolController@add');
-                Route::match(['get', 'post'], 'pol/edit/{id}', 'PolController@edit');
-                Route::get('pol/delete/{id}', 'PolController@delete');
-                Route::get('pol/change-status/{id}', 'PolController@change_status');
-            /* pol */
-            /* pod */
-                Route::get('pod/list', 'PodController@list');
-                Route::match(['get', 'post'], 'pod/add', 'PodController@add');
-                Route::match(['get', 'post'], 'pod/edit/{id}', 'PodController@edit');
-                Route::get('pod/delete/{id}', 'PodController@delete');
-                Route::get('pod/change-status/{id}', 'PodController@change_status');
-            /* pod */
-            /* process flow */
-                Route::get('process-flow/list', 'ProcessFlowController@list');
-                Route::match(['get', 'post'], 'process-flow/add', 'ProcessFlowController@add');
-                Route::match(['get', 'post'], 'process-flow/edit/{id}', 'ProcessFlowController@edit');
-                Route::get('process-flow/delete/{id}', 'ProcessFlowController@delete');
-                Route::get('process-flow/change-status/{id}', 'ProcessFlowController@change_status');
-            /* process flow */
-            /* consignment */
-                Route::get('consignment/list', 'ConsignmentController@list');
-                Route::match(['get', 'post'], 'consignment/add', 'ConsignmentController@add');
-                Route::match(['get', 'post'], 'consignment/edit/{id}', 'ConsignmentController@edit');
-                Route::get('consignment/delete/{id}', 'ConsignmentController@delete');
-                Route::get('consignment/change-status/{id}', 'ConsignmentController@change_status');
-                Route::post('consignment/get-process-flow', 'ConsignmentController@getProcessFlow');
-                Route::match(['get', 'post'], 'consignment/process-flow-details/{id}', 'ConsignmentController@process_flow_details');
-            /* consignment */
         });
     });
 /* Admin Panel */

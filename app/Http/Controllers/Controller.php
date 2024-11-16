@@ -163,8 +163,8 @@ class Controller extends BaseController
                 } else {
                     $imageFileType1 = pathinfo($imge, PATHINFO_EXTENSION);
                     if($uploadType == 'image') {
-                        if($imageFileType1 != "jpg" && $imageFileType1 != "png" && $imageFileType1 != "jpeg" && $imageFileType1 != "gif" && $imageFileType1 != "JPG" && $imageFileType1 != "PNG" && $imageFileType1 != "JPEG" && $imageFileType1 != "GIF" && $imageFileType1 != "ico" && $imageFileType1 != "ICO") {
-                            $message = 'Sorry, only JPG, JPEG, ICO, PNG & GIF files are allowed';
+                        if($imageFileType1 != "jpg" && $imageFileType1 != "png" && $imageFileType1 != "jpeg" && $imageFileType1 != "gif" && $imageFileType1 != "JPG" && $imageFileType1 != "PNG" && $imageFileType1 != "JPEG" && $imageFileType1 != "GIF" && $imageFileType1 != "ico" && $imageFileType1 != "ICO" && $imageFileType1 != "svg" && $imageFileType1 != "SVG" && $imageFileType1 != "avif" && $imageFileType1 != "AVIF") {
+                            $message = 'Sorry, only JPG, JPEG, ICO, PNG, GIF, SVG, AVIF files are allowed';
                             $status = 0;
                         } else {
                             $message = 'Upload ok';
@@ -278,7 +278,7 @@ class Controller extends BaseController
         $data['title']              = $title.' :: '.$data['generalSetting']->site_name;
         $data['page_header']        = $title;
 
-        $data['head']               = view('admin.elements.head', $data);
+        $data['head']               = view('admin.elements.head-before-login', $data);
         $data['maincontent']        = view('admin.maincontents.'.$page_name, $data);
         return view('admin.layout-before-login', $data);
     }

@@ -1,7 +1,6 @@
 <?php
 use App\Helpers\Helper;
-$controllerRoute      = $module['controller_route'];
-$current_url          = url()->current();
+$controllerRoute = $module['controller_route'];
 ?>
 <div class="container-xxl flex-grow-1 container-p-y">
   <h4 class="py-3 mb-4">
@@ -20,14 +19,22 @@ $current_url          = url()->current();
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col">Name</th>
+                  <th scope="col">Contact Person Name</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Phone</th>
+                  <th scope="col">Address</th>
                   <th scope="col">Action</th>
                 </tr>
               </thead>
               <tbody>
                 <?php if(count($rows)>0){ $sl=1; foreach($rows as $row){?>
                   <tr>
-                    <th scope="row"><?=$sl++?></th>
+                    <td scope="row"><?=$sl++?></td>
                     <td><?=$row->name?></td>
+                    <td><?=$row->contact_person_name?></td>
+                    <td><?=$row->email?></td>
+                    <td><?=$row->phone?></td>
+                    <td><?=$row->address?></td>
                     <td>
                       <a href="<?=url('admin/' . $controllerRoute . '/edit/'.Helper::encoded($row->id))?>" class="btn btn-outline-primary btn-sm" title="Edit <?=$module['title']?>"><i class="fa fa-edit"></i></a>
                       <a href="<?=url('admin/' . $controllerRoute . '/delete/'.Helper::encoded($row->id))?>" class="btn btn-outline-danger btn-sm" title="Delete <?=$module['title']?>" onclick="return confirm('Do You Want To Delete This <?=$module['title']?>');"><i class="fa fa-trash"></i></a>

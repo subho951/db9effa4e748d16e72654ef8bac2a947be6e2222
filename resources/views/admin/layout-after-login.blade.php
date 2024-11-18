@@ -4,25 +4,72 @@
    $pageName     = explode("/", $routeName->uri());
    $pageSegment  = $pageName[1];
    $pageFunction = ((count($pageName)>2)?$pageName[2]:'');
-   ?>
+?>
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed layout-compact " dir="ltr" data-theme="theme-default" data-assets-path="../assets/" data-template="vertical-menu-template-free">
    <head>
       <?=$head?>
+      <style type="text/css">
+          #simpletable_filter{
+            float: right;
+          }
+          .simpletable_length label {
+            display: inline-flex;
+            padding: 10px;
+          }
+          .dt-buttons button{
+            padding: 2px 20px;
+            background-color: #04163d;
+            color: #FFF;
+            border-radius: 50px;
+            border:2px solid #04163d;
+            transition: all .3s ease-in-out;
+            box-shadow: 0 9px 20px -10px #a5a5a5;
+          }
+          .dt-buttons button:hover{
+            background: transparent;
+            color: #FFF;
+            border:2px solid #04163d;
+          }
+          .dataTables_length label,
+          .dataTables_filter label{
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 10px;
+          }
+          .dataTables_length label select{
+            margin: 0 10px;
+          }
+          .dataTables_filter label input{
+            margin-left: 10px;
+          }
+          .pagination{
+            justify-content: end;
+          }
+          .sidebar-nav .nav-content a:hover, .sidebar-nav .nav-content a.active{
+            color: #dc3545
+          }
+          .passeye {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translate(0, -50%);
+          }
+      </style>
    </head>
    <body>
       <!-- Layout wrapper -->
       <div class="layout-wrapper layout-content-navbar">
          <div class="layout-container">
             <!-- Menu -->
-            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme" style="background-color: <?=$generalSetting->header_color?> !important;">
+            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme" style="background-color: <?=$generalSetting->sidebar_color?> !important;">
                <?=$sidebar?>
             </aside>
             <!-- / Menu -->
             <!-- Layout container -->
             <div class="layout-page">
                <!-- Navbar -->
-               <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar" style="background-color: <?=$generalSetting->sidebar_color?> !important;">
+               <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar" style="background-color: <?=$generalSetting->header_color?> !important;">
                   <?=$header?>
                </nav>
                <!-- / Navbar -->
@@ -74,6 +121,20 @@
       <script src="<?=env('ADMIN_ASSETS_URL')?>/assets/js/dashboards-analytics.js"></script>
       <!-- Place this tag in your head or just before your close body tag. -->
       <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+      <script src="<?=env('ADMIN_ASSETS_URL')?>assets/js/pages/data-basic-custom.js"></script>
+
+      <link href="https://cdn.datatables.net/v/dt/dt-2.0.3/datatables.min.css" rel="stylesheet">
+      <script src="https://cdn.datatables.net/v/dt/dt-2.0.3/datatables.min.js"></script>
+      <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+      <script src="https://cdn.datatables.net/buttons/3.0.1/js/dataTables.buttons.js"></script>
+      <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.dataTables.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+      <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.html5.min.js"></script>
+      <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.print.min.js"></script>
+
+  
       <script>
          $(function(){
             $('.autohide').delay(5000).fadeOut('slow');

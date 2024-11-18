@@ -38,14 +38,14 @@ $user_type = session('type');
       </a>
    </li>
    <!-- Masters -->
-   <li class="menu-item <?=(($pageSegment == 'locations' || $pageSegment == 'brands' || $pageSegment == 'suppliers' || $pageSegment == 'shipping-charges' || $pageSegment == 'coupons' || $pageSegment == 'fast-buttons')?'':'open')?>">
+   <li class="menu-item <?=(($pageSegment == 'locations' || $pageSegment == 'brands' || $pageSegment == 'suppliers' || $pageSegment == 'shipping-charges' || $pageSegment == 'coupons' || $pageSegment == 'fast-buttons')?'open':'')?>">
       <a href="javascript:void(0);" class="menu-link menu-toggle">
          <i class="menu-icon tf-icons fa fa-database"></i>
          <div data-i18n="Masters">Masters</div>
       </a>
       <ul class="menu-sub">
          <li class="menu-item <?=(($pageSegment == 'locations')?'active':'')?>">
-            <a href="javascript:void(0);" class="menu-link">
+            <a href="<?=url('admin/locations/list')?>" class="menu-link">
                <div data-i18n="Locations">Locations</div>
             </a>
          </li>
@@ -55,12 +55,12 @@ $user_type = session('type');
             </a>
          </li>
          <li class="menu-item <?=(($pageSegment == 'suppliers')?'active':'')?>">
-            <a href="javascript:void(0);" class="menu-link">
+            <a href="<?=url('admin/suppliers/list')?>" class="menu-link">
                <div data-i18n="Suppliers">Suppliers</div>
             </a>
          </li>
          <li class="menu-item <?=(($pageSegment == 'shipping-charges')?'active':'')?>">
-            <a href="javascript:void(0);" class="menu-link">
+            <a href="<?=url('admin/shipping-charges/list')?>" class="menu-link">
                <div data-i18n="Shipping Charges">Shipping Charges</div>
             </a>
          </li>

@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
+Route::get('/env-test', function () {
+    return env('APP_NAME', 'Default Name');
+});
 /* Front Panel */
     // before login
         Route::match(['get', 'post'], '/', 'App\Http\Controllers\FrontController@home');

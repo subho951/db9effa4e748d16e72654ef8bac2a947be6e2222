@@ -7,19 +7,21 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Models\GeneralSetting;
 use App\Models\Module;
+use App\Models\Role;
+
 use Auth;
 use Session;
 use Helper;
 use Hash;
 
-class ModuleController extends Controller
+class RoleController extends Controller
 {
     public function __construct()
     {        
         $this->data = array(
-            'title'             => 'Module',
-            'controller'        => 'ModuleController',
-            'controller_route'  => 'modules',
+            'title'             => 'Role',
+            'controller'        => 'RoleController',
+            'controller_route'  => 'roles',
             'primary_key'       => 'id',
         );
     }
@@ -27,8 +29,8 @@ class ModuleController extends Controller
         public function list(){
             $data['module']                 = $this->data;
             $title                          = $this->data['title'].' List';
-            $page_name                      = 'module.list';
-            $data['rows']                   = Module::where('status', '!=', 3)->orderBy('id', 'DESC')->get();
+            $page_name                      = 'role.list';
+            $data['rows']                   = Role::where('status', '!=', 3)->orderBy('id', 'DESC')->get();
             // Helper::pr($data['rows']);
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
@@ -42,12 +44,13 @@ class ModuleController extends Controller
                     'name'             => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkValue = Module::where('name', '=', $postData['name'])->count();
+                    $checkValue = Role::where('name', '=', $postData['name'])->count();
                     if($checkValue <= 0){
                         $fields = [
-                            'name'           => $postData['name']
+                            'name'           => $postData['name'],
+                            'module_id'               => json_encode($postData['module_id']),
                         ];
-                        Module::insert($fields);
+                        Role::insert($fields);
                         return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Inserted Successfully !!!');
                     } else {
                         return redirect()->back()->with('error_message', $this->data['title'].' Already Exists !!!');
@@ -58,8 +61,9 @@ class ModuleController extends Controller
             }
             $data['module']                 = $this->data;
             $title                          = $this->data['title'].' Add';
-            $page_name                      = 'module.add-edit';
+            $page_name                      = 'role.add-edit';
             $data['row']                    = [];
+            $data['modules']                = Module::select('id', 'name')->where('status', '=', 1)->get();
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
     /* add */
@@ -68,22 +72,23 @@ class ModuleController extends Controller
             $data['module']                 = $this->data;
             $id                             = Helper::decoded($id);
             $title                          = $this->data['title'].' Update';
-            $page_name                      = 'module.add-edit';
-            $data['row']                    = Module::where($this->data['primary_key'], '=', $id)->first();
-
+            $page_name                      = 'role.add-edit';
+            $data['row']                    = Role::where($this->data['primary_key'], '=', $id)->first();
+            $data['modules']                = Module::select('id', 'name')->where('status', '=', 1)->get();
             if($request->isMethod('post')){
                 $postData = $request->all();
                 $rules = [
                     'name'             => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkValue = Module::where('name', '=', $postData['name'])->where('id', '!=', $id)->count();
+                    $checkValue = Role::where('name', '=', $postData['name'])->where('id', '!=', $id)->count();
                     if($checkValue <= 0){
                         $fields = [
                             'name'                  => $postData['name'],
+                            'module_id'             => json_encode($postData['module_id']),
                             'updated_at'            => date('Y-m-d H:i:s')
                         ];
-                        Module::where($this->data['primary_key'], '=', $id)->update($fields);
+                        Role::where($this->data['primary_key'], '=', $id)->update($fields);
                         return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Updated Successfully !!!');
                     } else {
                         return redirect()->back()->with('error_message', $this->data['title'].' Already Exists !!!');
@@ -101,14 +106,14 @@ class ModuleController extends Controller
             $fields = [
                 'status'             => 3
             ];
-            Module::where($this->data['primary_key'], '=', $id)->update($fields);
+            Role::where($this->data['primary_key'], '=', $id)->update($fields);
             return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Deleted Successfully !!!');
         }
     /* delete */
     /* change status */
         public function change_status(Request $request, $id){
             $id                             = Helper::decoded($id);
-            $model                          = Module::find($id);
+            $model                          = Role::find($id);
             if ($model->status == 1)
             {
                 $model->status  = 0;

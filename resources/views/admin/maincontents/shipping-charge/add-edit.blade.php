@@ -77,5 +77,3 @@ $controllerRoute                = $module['controller_route'];
     </div>
   </div>
 </div>
-<?php $google_map_api_code = $generalSetting->google_map_api_code; ?>
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=<?=$google_map_api_code?>&libraries=places&callback=initAutocomplete&libraries=places&v=weekly"></script>

@@ -1,4 +1,5 @@
 <?php
+use App\Models\Module;
 use App\Helpers\Helper;
 $controllerRoute                = $module['controller_route'];
 ?>
@@ -12,9 +13,11 @@ $controllerRoute                = $module['controller_route'];
     <?php
     if($row){
       $name         = $row->name;
+      $module_id    = (($row->module_id != '')?json_decode($row->module_id):[]);
       $status       = $row->status;
     } else {
       $name         = '';
+      $module_id    = [];
       $status       = '';
     }
     ?>
@@ -45,6 +48,21 @@ $controllerRoute                = $module['controller_route'];
                 </div>
               </div>
            </div>
+           <div class="row mb-5">
+              <label class="col-md-2 col-lg-2 col-form-label">Modules</label>
+              <div class="col-md-10 col-lg-10">
+                <div class="row">
+                  <?php if($modules){ foreach($modules as $module){?>
+                    <div class="col-md-4 col-lg-4">
+                      <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="module_id[]" value="<?=$module->id?>" id="module<?=$module->id?>" <?=((in_array($module->id, $module_id))?'checked':'')?>>
+                        <label class="form-check-label" for="module<?=$module->id?>"><?=$module->name?></label>
+                      </div>
+                    </div>
+                  <?php } }?>
+                </div>
+              </div>
+            </div>
            <div class="mt-2">
               <button type="submit" class="btn btn-primary me-2"><?=(($row)?'Save':'Add')?></button>
            </div>

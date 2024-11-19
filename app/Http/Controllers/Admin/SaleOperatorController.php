@@ -14,14 +14,14 @@ use Session;
 use Helper;
 use Hash;
 use DB;
-class SubUserController extends Controller
+class SaleOperatorController extends Controller
 {
     public function __construct()
     {        
         $this->data = array(
-            'title'             => 'Sub User',
-            'controller'        => 'SubUserController',
-            'controller_route'  => 'sub-users',
+            'title'             => 'Sale Operator',
+            'controller'        => 'SaleOperatorController',
+            'controller_route'  => 'sale-operators',
             'primary_key'       => 'id',
         );
     }
@@ -29,13 +29,13 @@ class SubUserController extends Controller
         public function list(){
             $data['module']                 = $this->data;
             $title                          = $this->data['title'].' List';
-            $page_name                      = 'sub-user.list';
+            $page_name                      = 'sale-operator.list';
             $sessionType                    = Session::get('type');
             $data['rows']                   = DB::table('admins')
                                                 ->join('roles', 'admins.role_id', '=', 'roles.id')
                                                 ->select('admins.*', 'roles.name as role_name')
                                                 ->where('admins.status', '!=', 3)
-                                                ->where('admins.type', '=', 'SU')
+                                                ->where('admins.type', '=', 'SO')
                                                 ->orderBy('admins.id', 'DESC')
                                                 ->get();
             echo $this->admin_after_login_layout($title,$page_name,$data);
@@ -65,7 +65,7 @@ class SubUserController extends Controller
                                 if($checkValue4 <= 0){
                                     $fields = [
                                         'role_id'           => $postData['role_id'],
-                                        'type'              => 'SU',
+                                        'type'              => 'SO',
                                         'name'              => $postData['name'],
                                         'mobile'            => $postData['mobile'],
                                         'email'             => $postData['email'],
@@ -93,9 +93,9 @@ class SubUserController extends Controller
             }
             $data['module']                 = $this->data;
             $title                          = $this->data['title'].' Add';
-            $page_name                      = 'sub-user.add-edit';
+            $page_name                      = 'sale-operator.add-edit';
             $data['row']                    = [];
-            $data['roles']                  = Role::select('id', 'name')->where('status', '=', 1)->where('id', '=', 6)->get();
+            $data['roles']                  = Role::select('id', 'name')->where('status', '=', 1)->where('id', '=', 5)->get();
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
     /* add */
@@ -104,9 +104,9 @@ class SubUserController extends Controller
             $data['module']                 = $this->data;
             $id                             = Helper::decoded($id);
             $title                          = $this->data['title'].' Update';
-            $page_name                      = 'sub-user.add-edit';
+            $page_name                      = 'sale-operator.add-edit';
             $data['row']                    = Admin::where($this->data['primary_key'], '=', $id)->first();
-            $data['roles']                  = Role::select('id', 'name')->where('status', '=', 1)->where('id', '=', 6)->get();
+            $data['roles']                  = Role::select('id', 'name')->where('status', '=', 1)->where('id', '=', 5)->get();
             if($request->isMethod('post')){
                 $postData = $request->all();
                 $rules = [

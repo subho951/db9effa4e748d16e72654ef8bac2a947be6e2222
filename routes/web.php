@@ -99,26 +99,33 @@ use Illuminate\Support\Facades\Route;
             /* setting */
             /* access & permission */
                 /* module */
-                    Route::get('module/list', 'ModuleController@list');
-                    Route::match(['get', 'post'], 'module/add', 'ModuleController@add');
-                    Route::match(['get', 'post'], 'module/edit/{id}', 'ModuleController@edit');
-                    Route::get('module/delete/{id}', 'ModuleController@delete');
-                    Route::get('module/change-status/{id}', 'ModuleController@change_status');
+                    Route::get('modules/list', 'ModuleController@list');
+                    Route::match(['get', 'post'], 'modules/add', 'ModuleController@add');
+                    Route::match(['get', 'post'], 'modules/edit/{id}', 'ModuleController@edit');
+                    Route::get('modules/delete/{id}', 'ModuleController@delete');
+                    Route::get('modules/change-status/{id}', 'ModuleController@change_status');
+                /* module */
+                /* role */
+                    Route::get('roles/list', 'RoleController@list');
+                    Route::match(['get', 'post'], 'roles/add', 'RoleController@add');
+                    Route::match(['get', 'post'], 'roles/edit/{id}', 'RoleController@edit');
+                    Route::get('roles/delete/{id}', 'RoleController@delete');
+                    Route::get('roles/change-status/{id}', 'RoleController@change_status');
                 /* module */
                 /* sub users */
-                    Route::get('sub-user/list', 'SubUserController@list');
-                    Route::match(['get', 'post'], 'sub-user/add', 'SubUserController@add');
-                    Route::match(['get', 'post'], 'sub-user/edit/{id}', 'SubUserController@edit');
-                    Route::get('sub-user/delete/{id}', 'SubUserController@delete');
-                    Route::get('sub-user/change-status/{id}', 'SubUserController@change_status');
+                    Route::get('sub-users/list', 'SubUserController@list');
+                    Route::match(['get', 'post'], 'sub-users/add', 'SubUserController@add');
+                    Route::match(['get', 'post'], 'sub-users/edit/{id}', 'SubUserController@edit');
+                    Route::get('sub-users/delete/{id}', 'SubUserController@delete');
+                    Route::get('sub-users/change-status/{id}', 'SubUserController@change_status');
                 /* sub users */
-                /* give access */
-                    Route::get('access/list', 'AccessController@list');
-                    Route::match(['get', 'post'], 'access/add', 'AccessController@add');
-                    Route::match(['get', 'post'], 'access/edit/{id}', 'AccessController@edit');
-                    Route::get('access/delete/{id}', 'AccessController@delete');
-                    Route::get('access/change-status/{id}', 'AccessController@change_status');
-                /* give access */
+                /* sale operator */
+                    Route::get('sale-operators/list', 'SaleOperatorController@list');
+                    Route::match(['get', 'post'], 'sale-operators/add', 'SaleOperatorController@add');
+                    Route::match(['get', 'post'], 'sale-operators/edit/{id}', 'SaleOperatorController@edit');
+                    Route::get('sale-operators/delete/{id}', 'SaleOperatorController@delete');
+                    Route::get('sale-operators/change-status/{id}', 'SaleOperatorController@change_status');
+                /* sale operator */
             /* access & permission */
             /* masters */
                 /* locations */

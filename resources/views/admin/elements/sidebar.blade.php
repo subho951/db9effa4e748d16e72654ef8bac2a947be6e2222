@@ -37,6 +37,35 @@ $user_type = session('type');
          <div data-i18n="Dashboard">Dashboard</div>
       </a>
    </li>
+   <!-- Access & Permission -->
+   <li class="menu-item <?=(($pageSegment == 'modules' || $pageSegment == 'roles' || $pageSegment == 'sub-users' || $pageSegment == 'sale-operators')?'open':'')?>">
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
+         <i class="menu-icon tf-icons fa fa-lock"></i>
+         <div data-i18n="Access & Permission">Access & Permission</div>
+      </a>
+      <ul class="menu-sub">
+         <li class="menu-item <?=(($pageSegment == 'modules')?'active':'')?>">
+            <a href="<?=url('admin/modules/list')?>" class="menu-link">
+               <div data-i18n="Modules">Modules</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'roles')?'active':'')?>">
+            <a href="<?=url('admin/roles/list')?>" class="menu-link">
+               <div data-i18n="Roles">Roles</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'sub-users')?'active':'')?>">
+            <a href="<?=url('admin/sub-users/list')?>" class="menu-link">
+               <div data-i18n="Sub Users">Sub Users</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'sale-operators')?'active':'')?>">
+            <a href="<?=url('admin/sale-operators/list')?>" class="menu-link">
+               <div data-i18n="Sale Operators">Sale Operators</div>
+            </a>
+         </li>
+      </ul>
+   </li>
    <!-- Masters -->
    <li class="menu-item <?=(($pageSegment == 'locations' || $pageSegment == 'brands' || $pageSegment == 'suppliers' || $pageSegment == 'shipping-charges' || $pageSegment == 'coupons' || $pageSegment == 'fast-buttons')?'open':'')?>">
       <a href="javascript:void(0);" class="menu-link menu-toggle">

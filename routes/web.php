@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Route;
 // });
 Route::get('/env-test', function () {
     return env('APP_NAME', 'Default Name');
+    return env('DB_DATABASE', 'Default Name');
+    return env('DB_USERNAME', 'Default Name');
 });
 /* Front Panel */
     // before login

@@ -58,11 +58,7 @@ $current_url = url()->current();
                         </td>
                         <td><?=$row->platform_type?></td>
                       </tr>
-                    <?php } } else {?>
-                      <tr>
-                        <td colspan="9" style="color:red; text-align: center;">No Records Found !!!</td>
-                      </tr>
-                    <?php }?>
+                    <?php } }?>
                   </tbody>
                 </table>
               </div>
@@ -104,11 +100,7 @@ $current_url = url()->current();
                         </td>
                         <td><?=$row->platform_type?></td>
                       </tr>
-                    <?php } } else {?>
-                      <tr>
-                        <td colspan="9" style="color:red; text-align: center;">No Records Found !!!</td>
-                      </tr>
-                    <?php }?>
+                    <?php } }?>
                   </tbody>
                 </table>
               </div>
@@ -150,11 +142,7 @@ $current_url = url()->current();
                         </td>
                         <td><?=$row->platform_type?></td>
                       </tr>
-                    <?php } } else {?>
-                      <tr>
-                        <td colspan="9" style="color:red; text-align: center;">No Records Found !!!</td>
-                      </tr>
-                    <?php }?>
+                    <?php } }?>
                   </tbody>
                 </table>
               </div>

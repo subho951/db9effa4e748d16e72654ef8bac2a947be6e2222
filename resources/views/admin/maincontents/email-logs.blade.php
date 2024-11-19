@@ -34,11 +34,7 @@ $current_url = url()->current();
                       <a class="btn btn-info btn-sm" href="<?=url('admin/email-logs/details/'.Helper::encoded($row->id))?>"><i class="fa fa-eye"></i> Details</a>
                     </td>
                   </tr>
-                <?php } } else {?>
-                  <tr>
-                    <td colspan="6" style="color:red; text-align: center;">No Records Found !!!</td>
-                  </tr>
-                <?php }?>
+                <?php } }?>
               </tbody>
             </table>
           </div>

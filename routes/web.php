@@ -19,6 +19,14 @@ Route::get('/env-test', function () {
     return env('DB_DATABASE', 'Default Name');
     // return env('DB_USERNAME', 'Default Name');
 });
+Route::get('/db-test', function () {
+    try {
+        DB::connection()->getPdo();
+        return 'Database connection is successful!';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
 /* Front Panel */
     // before login
         Route::match(['get', 'post'], '/', 'App\Http\Controllers\FrontController@home');

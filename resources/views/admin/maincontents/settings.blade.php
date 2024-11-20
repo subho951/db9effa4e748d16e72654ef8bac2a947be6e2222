@@ -19,9 +19,9 @@ $current_url = url()->current();
                <li class="nav-item">
                   <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab3" aria-controls="tab3" aria-selected="false">Change PIN</button>
                </li>
-               <li class="nav-item">
+               <!-- <li class="nav-item">
                   <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab4" aria-controls="tab4" aria-selected="false">Application</button>
-               </li>
+               </li> -->
                <li class="nav-item">
                   <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab5" aria-controls="tab5" aria-selected="false">Email</button>
                </li>

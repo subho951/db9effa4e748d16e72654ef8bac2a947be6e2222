@@ -184,6 +184,13 @@ Route::get('/db-test', function () {
                     Route::get('fast-buttons/change-status/{id}', 'FastButtonController@change_status');
                 /* fast buttons */
             /* masters */
+            /* products */
+                Route::get('products/list', 'ProductController@list');
+                Route::match(['get', 'post'], 'products/add', 'ProductController@add');
+                Route::match(['get', 'post'], 'products/edit/{id}', 'ProductController@edit');
+                Route::get('products/delete/{id}', 'ProductController@delete');
+                Route::get('products/change-status/{id}', 'ProductController@change_status');
+            /* customer */
             /* customer */
                 Route::get('customer/list', 'CustomerController@list');
                 Route::match(['get', 'post'], 'customer/add', 'CustomerController@add');

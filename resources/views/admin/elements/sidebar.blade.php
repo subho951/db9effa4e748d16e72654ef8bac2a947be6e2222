@@ -94,16 +94,23 @@ $user_type = session('type');
             </a>
          </li>
          <li class="menu-item <?=(($pageSegment == 'coupons')?'active':'')?>">
-            <a href="javascript:void(0);" class="menu-link">
+            <a href="<?=url('admin/coupons/list')?>" class="menu-link">
                <div data-i18n="Discount Coupons">Discount Coupons</div>
             </a>
          </li>
          <li class="menu-item <?=(($pageSegment == 'fast-buttons')?'active':'')?>">
             <a href="javascript:void(0);" class="menu-link">
-               <div data-i18n="Configuure Fast Buttons">Configuure Fast Buttons</div>
+               <div data-i18n="Configuure Fast Buttons">Configure Fast Buttons</div>
             </a>
          </li>
       </ul>
+   </li>
+   <!-- Products -->
+   <li class="menu-item <?=(($pageSegment == 'products')?'active':'')?>">
+      <a href="<?=url('admin/products/list')?>" class="menu-link">
+         <i class="menu-icon tf-icons fa fa-list-alt"></i>
+         <div data-i18n="Products">Products</div>
+      </a>
    </li>
    <!-- Login Logs -->
    <li class="menu-item <?=(($pageSegment == 'login-logs')?'active':'')?>">

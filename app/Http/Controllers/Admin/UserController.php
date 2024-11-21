@@ -45,27 +45,43 @@ class UserController extends Controller
                     if(Auth::guard('admin')->attempt(['username' => $postData['username'], 'password' => $password, 'status' => 1])){
                         // Helper::pr(Auth::guard('admin')->user());
                         $sessionData = Auth::guard('admin')->user();
-                        $request->session()->put('user_id', $sessionData->id);
-                        $request->session()->put('name', $sessionData->name);
-                        $request->session()->put('type', $sessionData->type);
-                        $request->session()->put('email', $sessionData->email);
-                        $request->session()->put('username', $sessionData->username);
-                        $request->session()->put('is_admin_login', 1);
+                        if($sessionData->type != 'SO'){
+                            $request->session()->put('user_id', $sessionData->id);
+                            $request->session()->put('name', $sessionData->name);
+                            $request->session()->put('type', $sessionData->type);
+                            $request->session()->put('email', $sessionData->email);
+                            $request->session()->put('username', $sessionData->username);
+                            $request->session()->put('is_admin_login', 1);
 
-                        /* user activity */
-                            $activityData = [
-                                'user_email'        => $sessionData->email,
-                                'user_name'         => $sessionData->name,
-                                'user_type'         => 'ADMIN',
-                                'ip_address'        => $request->ip(),
-                                'activity_type'     => 1,
-                                'activity_details'  => 'SignIn Success !!!',
-                                'platform_type'     => 'WEB',
-                            ];
-                            UserActivity::insert($activityData);
-                        /* user activity */
-                        // Helper::pr($request->session());
-                        return redirect('admin/dashboard');
+                            /* user activity */
+                                $activityData = [
+                                    'user_email'        => $sessionData->email,
+                                    'user_name'         => $sessionData->name,
+                                    'user_type'         => 'ADMIN',
+                                    'ip_address'        => $request->ip(),
+                                    'activity_type'     => 1,
+                                    'activity_details'  => 'SignIn Success !!!',
+                                    'platform_type'     => 'WEB',
+                                ];
+                                UserActivity::insert($activityData);
+                            /* user activity */
+                            // Helper::pr($request->session());
+                            return redirect('admin/dashboard');
+                        } else {
+                            /* user activity */
+                                $activityData = [
+                                    'user_email'        => $postData['username'],
+                                    'user_name'         => 'Master Admin',
+                                    'user_type'         => 'ADMIN',
+                                    'ip_address'        => $request->ip(),
+                                    'activity_type'     => 0,
+                                    'activity_details'  => 'You Are Not Authorized To SignIn Here !!!',
+                                    'platform_type'     => 'WEB',
+                                ];
+                                UserActivity::insert($activityData);
+                            /* user activity */
+                            return redirect()->back()->with('error_message', 'You Are Not Authorize To SignIn Here !!!');
+                        }
                     } else {
                         /* user activity */
                             $activityData = [

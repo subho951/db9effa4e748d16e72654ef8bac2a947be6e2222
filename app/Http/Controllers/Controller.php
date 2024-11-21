@@ -285,7 +285,6 @@ class Controller extends BaseController
     // admin after login layout
     public function admin_after_login_layout($title, $page_name, $data)
     {
-        // Helper::pr(session()->all());
         $data['generalSetting']     = GeneralSetting::find('1');
         $data['title']              = $title.' :: '.$data['generalSetting']->site_name;
         $data['page_header']        = $title;
@@ -304,6 +303,39 @@ class Controller extends BaseController
         $data['sidebar']            = view('admin.elements.sidebar', $data);
         $data['maincontent']        = view('admin.maincontents.'.$page_name, $data);
         return view('admin.layout-after-login', $data);
+    }
+    // sale operator authentication layout
+    public function user_before_login_layout($title, $page_name, $data)
+    {
+        $data['generalSetting']     = GeneralSetting::find('1');
+        $data['title']              = $title.' :: '.$data['generalSetting']->site_name;
+        $data['page_header']        = $title;
+
+        $data['head']               = view('front.elements.head-before-login', $data);
+        $data['maincontent']        = view('front.maincontents.'.$page_name, $data);
+        return view('front.layout-before-login', $data);
+    }
+    // sale operator after login layout
+    public function user_after_login_layout($title, $page_name, $data)
+    {
+        $data['generalSetting']     = GeneralSetting::find('1');
+        $data['title']              = $title.' :: '.$data['generalSetting']->site_name;
+        $data['page_header']        = $title;
+        $user_id                    = session('user_id');
+        $data['admin']              = Admin::find($user_id);
+        $userAccess                 = UserAccess::where('user_id', '=', $user_id)->where('status', '=', 1)->first();
+        if($userAccess) {
+            $data['module_id']      = json_decode($userAccess->module_id);
+        } else {
+            $data['module_id']      = [];
+        }
+
+        $data['head']               = view('front.elements.head', $data);
+        $data['header']             = view('front.elements.header', $data);
+        // $data['footer']             = view('front.elements.footer', $data);
+        // $data['sidebar']            = view('front.elements.sidebar', $data);
+        $data['maincontent']        = view('front.maincontents.'.$page_name, $data);
+        return view('front.layout-after-login', $data);
     }
     // currency converter
     public function convertCurrency($amount, $from, $to)

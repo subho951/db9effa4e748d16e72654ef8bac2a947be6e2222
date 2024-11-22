@@ -35,7 +35,7 @@ $current_url                    = url()->current();
     } else {
       $name                             = '';
       $main_product                     = '';
-      $discount_nature                  = '';
+      $discount_nature                  = 'Voucher';
       $bundle_products                  = [];
       $discount_type                    = '';
       $discount_amount                  = '';
@@ -81,7 +81,11 @@ $current_url                    = url()->current();
                   </label>
                 </div>
               </div>
-              <div class="mb-3 col-md-6">
+              <div class="mb-3 col-md-6" id="voucher_nature">
+                 <label for="voucher_code" class="form-label">Voucher Code <small class="text-danger">*</small></label>
+                 <input class="form-control no-space" type="text" id="voucher_code" name="voucher_code" value="<?=$voucher_code?>" />
+              </div>
+              <div class="mb-3 col-md-6" id="bundled_nature" style="display: none;">
                  <label for="choices-multiple-remove-button" class="form-label">Bundled Products</label>
                  <select name="bundle_products[]" class="form-control" id="choices-multiple-remove-button" multiple>
                   <?php if($products){ foreach($products as $product){?>
@@ -110,10 +114,15 @@ $current_url                    = url()->current();
                  <input class="form-control no-space" type="text" id="discount_amount" name="discount_amount" value="<?=$discount_amount?>" required />
               </div>
               
-              <div class="mb-3 col-md-6">
-                 <label for="voucher_code" class="form-label">Voucher Code <small class="text-danger">*</small></label>
-                 <input class="form-control no-space" type="text" id="voucher_code" name="voucher_code" value="<?=$voucher_code?>" required />
+              <div class="mb-3 col-md-3">
+                <label for="from_date" class="form-label">From Date <small class="text-danger">*</small></label>
+                <input class="form-control" type="date" id="from_date" name="from_date" value="<?=$from_date?>" min="<?=date('Y-m-d')?>" required />
               </div>
+              <div class="mb-3 col-md-3">
+                <label for="to_date" class="form-label">To Date <small class="text-danger">*</small></label>
+                <input class="form-control" type="date" id="to_date" name="to_date" value="<?=$to_date?>" min="<?=date('Y-m-d')?>" required />
+              </div>
+
               <div class="mb-3 col-md-6">
                 <label for="username" class="form-label d-block">Status <small class="text-danger">*</small></label>
                 <div class="form-check form-check-inline mt-3">
@@ -128,15 +137,6 @@ $current_url                    = url()->current();
                     Deactive
                   </label>
                 </div>
-              </div>
-
-              <div class="mb-3 col-md-6">
-                <label for="from_date" class="form-label">From Date <small class="text-danger">*</small></label>
-                <input class="form-control" type="date" id="from_date" name="from_date" value="<?=$from_date?>" min="<?=date('Y-m-d')?>" required />
-              </div>
-              <div class="mb-3 col-md-6">
-                <label for="to_date" class="form-label">To Date <small class="text-danger">*</small></label>
-                <input class="form-control" type="date" id="to_date" name="to_date" value="<?=$to_date?>" min="<?=date('Y-m-d')?>" required />
               </div>
 
            </div>
@@ -171,12 +171,39 @@ $current_url                    = url()->current();
   });
 </script>
 <script type="text/javascript">
-    $(document).ready(function(){    
-        var multipleCancelButton = new Choices('#choices-multiple-remove-button', {
-            removeItemButton: true,
-            maxItemCount:30,
-            searchResultLimit:30,
-            renderChoiceLimit:30
-        });     
+  $(document).ready(function(){    
+    var multipleCancelButton = new Choices('#choices-multiple-remove-button', {
+        removeItemButton: true,
+        maxItemCount:30,
+        searchResultLimit:30,
+        renderChoiceLimit:30
     });
+  });
+</script>
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+  $(document).ready(function () {
+    // Function to toggle the div based on the selected radio button
+    function toggleDiv() {
+      const selectedValue = $('input[name="discount_nature"]:checked').val(); // Get the selected radio button value
+      if (selectedValue === 'Voucher') {
+        $('#voucher_nature').show(); // Show the div
+        $('#bundled_nature').hide(); // Hide the div
+        $('#voucher_code').attr('required', true);
+        $('#choices-multiple-remove-button').attr('required', false);
+      } else {
+        $('#bundled_nature').show(); // Show the div
+        $('#voucher_nature').hide(); // Hide the div
+        $('#voucher_code').attr('required', false);
+        $('#choices-multiple-remove-button').attr('required', true);
+      }
+    }
+
+    // Call toggleDiv on page load
+    toggleDiv();
+
+    // Attach the onchange event to the radio buttons
+    $('input[name="discount_nature"]').on('change', toggleDiv);
+  });
 </script>

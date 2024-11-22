@@ -18,44 +18,20 @@ $controllerRoute = $module['controller_route'];
             <table id="simpletable" class="table table-striped table-bordered nowrap">
               <thead>
                 <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Main Product</th>
-                  <th scope="col">Discount Nature</th>
-                  <th scope="col">Voucher Code</th>
-                  <th scope="col">Bundled Products</th>
-                  <th scope="col">Discount Type<br>Discount Amount</th>
-                  <th scope="col">From Date<br>To Date</th>
-                  <th scope="col">Action</th>
+                  <th scope="col" style="text-align: center;">#</th>
+                  <th scope="col" style="text-align: center;">Product Name</th>
+                  <th scope="col" style="text-align: center;">Product Price</th>
+                  <th scope="col" style="text-align: center;">Product Quantity</th>
+                  <th scope="col" style="text-align: center;">Action</th>
                 </tr>
               </thead>
               <tbody>
                 <?php if(count($rows)>0){ $sl=1; foreach($rows as $row){?>
                   <tr>
                     <td scope="row"><?=$sl++?></td>
-                    <td><?=$row->name?></td>
-                    <td><?=$row->main_product_name?></td>
-                    <td><?=$row->discount_nature?></td>
-                    <td><?=$row->voucher_code?></td>
-                    <td>
-                      <ul>
-                        <?php
-                        $bundle_products = json_decode($row->bundle_products);
-                        if(count($bundle_products)>0){ for($k=0;$k<count($bundle_products);$k++){
-                          $getProduct = Product::select('name', 'sku')->where('id', '=', $bundle_products[$k])->first();
-                        ?>
-                          <li><?=(($getProduct)?$getProduct->name.' ('.$getProduct->sku.')':'')?></li>
-                        <?php } }?>
-                      </ul>
-                    </td>
-                    <td>
-                      <?=$row->discount_type?><br>
-                      <?=(($row->discount_type == 'Flat')?'$'.number_format($row->discount_amount,2):number_format($row->discount_amount,2).'%')?>
-                    </td>
-                    <td>
-                      <?=date_format(date_create($row->from_date), "M d, Y")?><br>
-                      <?=date_format(date_create($row->to_date), "M d, Y")?>
-                    </td>
+                    <td style="text-align: center;"><?=$row->name?></td>
+                    <td style="text-align: center;">$<?=number_format($row->price,2)?></td>
+                    <td style="text-align: center;"><?=$row->qty?></td>
                     <td>
                       <a href="<?=url('admin/' . $controllerRoute . '/edit/'.Helper::encoded($row->id))?>" class="btn btn-outline-primary btn-sm" title="Edit <?=$module['title']?>"><i class="fa fa-edit"></i></a>
                       <a href="<?=url('admin/' . $controllerRoute . '/delete/'.Helper::encoded($row->id))?>" class="btn btn-outline-danger btn-sm" title="Delete <?=$module['title']?>" onclick="return confirm('Do You Want To Delete This <?=$module['title']?>');"><i class="fa fa-trash"></i></a>

@@ -18,11 +18,11 @@ if(!empty($parameters)){
 $user_type = session('type');
 ?>
 <div class="app-brand demo ">
-   <a href="index-2.html" class="app-brand-link">
-      <span class="app-brand-logo demo">
+   <a href="<?=url('admin/dashboard')?>" class="app-brand-link">
+      <!-- <span class="app-brand-logo demo">
          <img src="<?=env('UPLOADS_URL')?><?=$generalSetting->site_logo?>">
-      </span>
-      <!-- <span class="app-brand-text demo menu-text fw-bold ms-2"><?=$generalSetting->site_name?></span> -->
+      </span> -->
+      <span class="app-brand-text demo menu-text fw-bold ms-2" style="text-transform: uppercase;font-size: 23px;"><?=$generalSetting->site_name?></span>
    </a>
    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
    <i class="bx bx-chevron-left bx-sm align-middle"></i>
@@ -99,7 +99,7 @@ $user_type = session('type');
             </a>
          </li>
          <li class="menu-item <?=(($pageSegment == 'fast-buttons')?'active':'')?>">
-            <a href="javascript:void(0);" class="menu-link">
+            <a href="<?=url('admin/fast-buttons/list')?>" class="menu-link">
                <div data-i18n="Configuure Fast Buttons">Configure Fast Buttons</div>
             </a>
          </li>

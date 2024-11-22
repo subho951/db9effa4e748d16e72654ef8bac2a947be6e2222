@@ -50,7 +50,7 @@ class CouponController extends Controller
                     'discount_nature'           => 'required',
                     'discount_type'             => 'required',
                     'discount_amount'           => 'required',
-                    'voucher_code'              => 'required',
+                    // 'voucher_code'              => 'required',
                     'from_date'                 => 'required',
                     'to_date'                   => 'required'
                 ];
@@ -102,7 +102,7 @@ class CouponController extends Controller
                     'discount_nature'           => 'required',
                     'discount_type'             => 'required',
                     'discount_amount'           => 'required',
-                    'voucher_code'              => 'required',
+                    // 'voucher_code'              => 'required',
                     'from_date'                 => 'required',
                     'to_date'                   => 'required'
                 ];

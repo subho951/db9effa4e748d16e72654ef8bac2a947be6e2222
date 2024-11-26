@@ -9,6 +9,8 @@ use App\Models\GeneralSetting;
 use App\Models\Product;
 use App\Models\Brand;
 use App\Models\Supplier;
+use App\Models\Unit;
+use App\Models\Size;
 
 use Auth;
 use Session;
@@ -106,6 +108,12 @@ class ProductController extends Controller
             $data['row']                    = [];
             $data['brands']                 = Brand::select('id', 'name')->where('status', '=', 1)->get();
             $data['suppliers']              = Supplier::select('id', 'name')->where('status', '=', 1)->get();
+            $data['sizes']                  = DB::table('sizes')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->select('sizes.*', 'units.name as unit_name')
+                                                ->where('sizes.status', '=', 1)
+                                                ->orderBy('sizes.id', 'ASC')
+                                                ->get();
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
     /* add */
@@ -118,6 +126,12 @@ class ProductController extends Controller
             $data['row']                    = Product::where($this->data['primary_key'], '=', $id)->first();
             $data['brands']                 = Brand::select('id', 'name')->where('status', '=', 1)->get();
             $data['suppliers']              = Supplier::select('id', 'name')->where('status', '=', 1)->get();
+            $data['sizes']                  = DB::table('sizes')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->select('sizes.*', 'units.name as unit_name')
+                                                ->where('sizes.status', '=', 1)
+                                                ->orderBy('sizes.id', 'ASC')
+                                                ->get();
             if($request->isMethod('post')){
                 $postData = $request->all();
                 $rules = [

@@ -146,6 +146,20 @@ Route::get('/db-test', function () {
                     Route::get('fast-buttons/delete/{id}', 'FastButtonController@delete');
                     Route::get('fast-buttons/change-status/{id}', 'FastButtonController@change_status');
                 /* fast buttons */
+                /* units */
+                    Route::get('units/list', 'UnitController@list');
+                    Route::match(['get', 'post'], 'units/add', 'UnitController@add');
+                    Route::match(['get', 'post'], 'units/edit/{id}', 'UnitController@edit');
+                    Route::get('units/delete/{id}', 'UnitController@delete');
+                    Route::get('units/change-status/{id}', 'UnitController@change_status');
+                /* units */
+                /* sizes */
+                    Route::get('sizes/list', 'SizeController@list');
+                    Route::match(['get', 'post'], 'sizes/add', 'SizeController@add');
+                    Route::match(['get', 'post'], 'sizes/edit/{id}', 'SizeController@edit');
+                    Route::get('sizes/delete/{id}', 'SizeController@delete');
+                    Route::get('sizes/change-status/{id}', 'SizeController@change_status');
+                /* sizes */
             /* masters */
             /* products */
                 Route::get('products/list', 'ProductController@list');

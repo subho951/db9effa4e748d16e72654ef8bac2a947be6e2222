@@ -1,6 +1,7 @@
 <?php
 use App\Helpers\Helper;
-$controllerRoute = $module['controller_route'];
+$controllerRoute      = $module['controller_route'];
+$current_url          = url()->current();
 ?>
 <div class="container-xxl flex-grow-1 container-p-y">
   <h4 class="py-3 mb-4">
@@ -19,32 +20,14 @@ $controllerRoute = $module['controller_route'];
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col">Name</th>
-                  <!-- <th scope="col">SKU ID</th>
-                  <th scope="col">Receipt Short Name</th>
-                  <th scope="col">Shelf Tag Short Name</th> -->
-                  <th scope="col">Barcode</th>
-                  <th scope="col">Brand</th>
-                  <th scope="col">Supplier</th>
-                  <th scope="col">Cost Price Ex. Tax</th>
-                  <th scope="col">Cost Price Inc. Tax</th>
-                  <th scope="col">Retail Price Inc. Tax</th>
                   <th scope="col">Action</th>
                 </tr>
               </thead>
               <tbody>
                 <?php if(count($rows)>0){ $sl=1; foreach($rows as $row){?>
                   <tr>
-                    <td scope="row"><?=$sl++?></td>
+                    <th scope="row"><?=$sl++?></th>
                     <td><?=$row->name?></td>
-                    <!-- <td><?=$row->sku?></td>
-                    <td><?=$row->receipt_short_name?></td>
-                    <td><?=$row->shelf_tag_short_name?></td> -->
-                    <td><?=$row->barcode?></td>
-                    <td><?=$row->brand_name?></td>
-                    <td><?=$row->supplier_name?></td>
-                    <td>$<?=number_format($row->cost_price_ex_tax,2)?></td>
-                    <td>$<?=number_format($row->cost_price_inc_tax,2)?></td>
-                    <td>$<?=number_format($row->retail_price_inc_tax,2)?></td>
                     <td>
                       <a href="<?=url('admin/' . $controllerRoute . '/edit/'.Helper::encoded($row->id))?>" class="btn btn-outline-primary btn-sm" title="Edit <?=$module['title']?>"><i class="fa fa-edit"></i></a>
                       <a href="<?=url('admin/' . $controllerRoute . '/delete/'.Helper::encoded($row->id))?>" class="btn btn-outline-danger btn-sm" title="Delete <?=$module['title']?>" onclick="return confirm('Do You Want To Delete This <?=$module['title']?>');"><i class="fa fa-trash"></i></a>

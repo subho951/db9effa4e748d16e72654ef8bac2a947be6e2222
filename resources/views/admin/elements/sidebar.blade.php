@@ -67,7 +67,7 @@ $user_type = session('type');
       </ul>
    </li>
    <!-- Masters -->
-   <li class="menu-item <?=(($pageSegment == 'locations' || $pageSegment == 'brands' || $pageSegment == 'suppliers' || $pageSegment == 'shipping-charges' || $pageSegment == 'coupons' || $pageSegment == 'fast-buttons')?'open':'')?>">
+   <li class="menu-item <?=(($pageSegment == 'locations' || $pageSegment == 'brands' || $pageSegment == 'suppliers' || $pageSegment == 'shipping-charges' || $pageSegment == 'coupons' || $pageSegment == 'fast-buttons' || $pageSegment == 'units' || $pageSegment == 'sizes')?'open':'')?>">
       <a href="javascript:void(0);" class="menu-link menu-toggle">
          <i class="menu-icon tf-icons fa fa-database"></i>
          <div data-i18n="Masters">Masters</div>
@@ -100,7 +100,17 @@ $user_type = session('type');
          </li>
          <li class="menu-item <?=(($pageSegment == 'fast-buttons')?'active':'')?>">
             <a href="<?=url('admin/fast-buttons/list')?>" class="menu-link">
-               <div data-i18n="Configuure Fast Buttons">Configure Fast Buttons</div>
+               <div data-i18n="Configure Fast Buttons">Configure Fast Buttons</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'units')?'active':'')?>">
+            <a href="<?=url('admin/units/list')?>" class="menu-link">
+               <div data-i18n="Units">Units</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'sizes')?'active':'')?>">
+            <a href="<?=url('admin/sizes/list')?>" class="menu-link">
+               <div data-i18n="Sizes">Sizes</div>
             </a>
          </li>
       </ul>

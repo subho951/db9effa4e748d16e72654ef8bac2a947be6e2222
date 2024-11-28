@@ -133,7 +133,7 @@ $current_url = url()->current();
 
                         <div class="mb-3 col-md-4">
                            <label for="description" class="form-label">Address</label>
-                           <textarea class="form-control" id="description" name="description" rows="2"><?=$setting->description?></textarea>
+                           <textarea class="form-control" id="description" name="description" rows="5"><?=$setting->description?></textarea>
                         </div>
                         <div class="mb-3 col-md-4">
                            <label for="become_partner_text" class="form-label">Description</label>
@@ -144,11 +144,15 @@ $current_url = url()->current();
                            <textarea class="form-control" id="copyright_statement" name="copyright_statement" rows="5"><?=$setting->copyright_statement?></textarea>
                         </div>
 
-                        <div class="mb-3 col-md-6">
-                           <label for="google_map_api_code" class="form-label">Google Map API Code</label>
-                           <textarea class="form-control" id="google_map_api_code" name="google_map_api_code" rows="5"><?=$setting->google_map_api_code?></textarea>
+                        <div class="mb-3 col-md-4">
+                           <label for="tax_percent" class="form-label">TAX Percentage (%)</label>
+                           <input type="text" class="form-control" id="tax_percent" name="tax_percent" value="<?=$setting->tax_percent?>" required>
                         </div>
-                        <div class="mb-3 col-md-6">
+                        <div class="mb-3 col-md-4">
+                           <label for="google_map_api_code" class="form-label">Google Map API Code</label>
+                           <input type="text" class="form-control" id="google_map_api_code" name="google_map_api_code" value="<?=$setting->google_map_api_code?>">
+                        </div>
+                        <div class="mb-3 col-md-4">
                            <label for="google_analytics_code" class="form-label">Google Analytics Code</label>
                            <textarea class="form-control" id="google_analytics_code" name="google_analytics_code" rows="5"><?=$setting->google_analytics_code?></textarea>
                         </div>

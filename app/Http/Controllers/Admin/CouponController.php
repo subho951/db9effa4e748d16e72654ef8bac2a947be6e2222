@@ -31,7 +31,7 @@ class CouponController extends Controller
             $title                          = $this->data['title'].' List';
             $page_name                      = 'coupon.list';
             $data['rows']                   = DB::table('coupons')
-                                                ->join('products', 'coupons.main_product', '=', 'products.id')
+                                                ->leftjoin('products', 'coupons.main_product', '=', 'products.id')
                                                 ->select('coupons.*', 'products.name as main_product_name')
                                                 ->where('coupons.status', '!=', 3)
                                                 ->orderBy('coupons.id', 'DESC')
@@ -45,7 +45,7 @@ class CouponController extends Controller
             if($request->isMethod('post')){
                 $postData = $request->all();
                 $rules = [
-                    'main_product'              => 'required',
+                    // 'main_product'              => 'required',
                     'name'                      => 'required',
                     'discount_nature'           => 'required',
                     'discount_type'             => 'required',
@@ -97,7 +97,7 @@ class CouponController extends Controller
             if($request->isMethod('post')){
                 $postData = $request->all();
                 $rules = [
-                    'main_product'              => 'required',
+                    // 'main_product'              => 'required',
                     'name'                      => 'required',
                     'discount_nature'           => 'required',
                     'discount_type'             => 'required',

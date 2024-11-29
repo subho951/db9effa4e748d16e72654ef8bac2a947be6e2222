@@ -11,6 +11,7 @@ use App\Models\Brand;
 use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\Size;
+use App\Models\Coupon;
 
 use Auth;
 use Session;
@@ -217,4 +218,54 @@ class ProductController extends Controller
             return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' '.$msg.' Successfully !!!');
         }
     /* change status */
+    public function getSuggestions(Request $request){
+        $currentDate    = date('Y-m-d');
+        $postData       = $request->all();
+        $q              = $postData['q'];
+        $retail_price   = $postData['retail_price'];
+        $suggestions    = [];
+        $getCoupons     = Coupon::select('name')->where('status', '=', 1)->where('discount_nature', '=', 'Voucher')->where('name', 'LIKE', '%'.$q.'%')->where('discount_amount', '<=', $retail_price)->orderBy('name', 'ASC')->get();
+        // ->where('from_date', '>=', $currentDate)->where('to_date', '<=', $currentDate)
+        if($getCoupons){
+            foreach($getCoupons as $getCoupon){
+                $suggestions[]    = $getCoupon->name;
+            }
+        }
+        // Helper::pr($suggestions);
+        $data = $suggestions;
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data);
+    }
+    public function selectSuggestions(Request $request){
+        $currentDate    = date('Y-m-d');
+        $postData       = $request->all();
+        // Helper::pr($postData);
+        $selected       = $postData['selected'];
+        $retail_price   = $postData['retail_price'];
+        $response       = [];
+        $apiStatus      = 0;
+        $getCoupon      = Coupon::where('status', '=', 1)->where('name', '=', $selected)->first();
+        if($getCoupon){
+            $discount_type      = $getCoupon->discount_type;
+            $discount_amount    = $getCoupon->discount_amount;
+            if($discount_type == 'Percentage'){
+                $discAmt = (($retail_price * $discount_amount) / 100);
+            } else {
+                $discAmt = $discount_amount;
+            }
+            $retail_discounted_price = ($retail_price - $discAmt);
+            $response = [
+                'coupon_id'                 => $getCoupon->id,
+                'discount_value'            => $getCoupon->discount_amount,
+                'discount_type'             => $getCoupon->discount_type,
+                'retail_discount'           => $discAmt,
+                'retail_discounted_price'   => $retail_discounted_price,
+            ];
+            $apiStatus      = 1;
+        }
+        // Helper::pr($suggestions);
+        $data = ['status' => $apiStatus, 'response' => $response];
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data);
+    }
 }

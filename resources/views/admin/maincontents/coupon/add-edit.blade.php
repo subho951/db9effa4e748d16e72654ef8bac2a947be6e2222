@@ -58,7 +58,7 @@ $current_url                    = url()->current();
               </div>
               <div class="mb-3 col-md-6">
                  <label for="main_product" class="form-label">Main Product <small class="text-danger">*</small></label>
-                 <select name="main_product" class="form-control" id="main_product" required>
+                 <select name="main_product" class="form-control" id="main_product">
                   <option value="" selected>Select Product</option>
                   <?php if($products){ foreach($products as $product){?>
                   <option value="<?=$product->id?>" <?=(($product->id == $main_product)?'selected':'')?>><?=$product->name?></option>

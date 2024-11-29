@@ -1,8 +1,28 @@
 <?php
-   use App\Helpers\Helper;
-   $controllerRoute                = $module['controller_route'];
-   $current_url                    = url()->current();
-   ?>
+use App\Helpers\Helper;
+$controllerRoute                = $module['controller_route'];
+$current_url                    = url()->current();
+?>
+<!-- Styling (Optional) -->
+<style>
+    .dropdown {
+        position: absolute;
+        border: 1px solid #ccc;
+        max-height: 150px;
+        overflow-y: auto;
+        background: #fff;
+        display: none;
+        width: 200px;
+        z-index: 1000;
+    }
+    .dropdown div {
+        padding: 8px;
+        cursor: pointer;
+    }
+    .dropdown div:hover {
+        background: #f0f0f0;
+    }
+</style>
 <div class="container-xxl flex-grow-1 container-p-y">
 <h4 class="py-3 mb-4">
    <span class="text-muted fw-light"><a href="<?=url('admin/dashboard')?>">Dashboard</a> /</span>
@@ -170,31 +190,41 @@
 
                            <div class="discounts-section">
                               <h5 class="mb-3">Discounts Voucher</h5>
-                              <div class="row align-items-center gap-2 gap-lg-0">
-                                 <div class="col-auto">
-                                    <div class="form-check form-switch mt-0 pt-0 pb-0">
-                                       <input class="form-check-input mt-0" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked="">
-                                    </div>
-                                 </div>
-                                 <div class="col-lg-2">
-                                    <input type="text" class="form-control" placeholder="Voucher Code">
-                                 </div>
-                                 <div class="col-auto">
-                                    <span>then</span>
-                                 </div>
-                                 <div class="col-lg-3">
-                                    <input type="text" class="form-control" placeholder="Discount Value">
-                                 </div>
-                                 <div class="col-lg-2">
-                                    <span>= retail less discount</span>
-                                 </div>
-                                 <div class="col-lg-3">
-                                    <input type="text" class="form-control" placeholder="retail less discount">
+                              <div class="col-auto">
+                                 <div class="form-check form-switch mt-0 pt-0 pb-0">
+                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="discount_voucher">
                                  </div>
                               </div>
-                              <div class="row align-items-center gap-2 gap-lg-0">
+                              <div class="field_wrapper discount-vouchers-section" style="border: 1px solid #04163d52; padding: 10px; border-radius: 10px;display: none;">
+                                 <div class="row align-items-center gap-2 gap-lg-0">
+                                    <div class="col-lg-2">
+                                       <input type="text" class="form-control" name="voucher_code[]" id="voucher_code1" placeholder="Voucher Code" oninput="getSuggestions(this.value, 1);">
+                                       <input type="hidden" name="coupon_id[]" id="coupon_id1">
+                                       <div id="suggestions1" class="dropdown"></div>
+                                    </div>
+                                    <div class="col-auto">
+                                       <span>then</span>
+                                    </div>
+                                    <div class="col-lg-2">
+                                       <input type="text" class="form-control" placeholder="Discount Value" name="discount_value[]" id="discount_value1" readonly>
+                                    </div>
+                                    <div class="col-lg-1">
+                                       <input type="text" class="form-control" placeholder="Type" name="discount_type[]" id="discount_type1" readonly style="font-size: 9px;">
+                                    </div>
+                                    <div class="col-lg-2">
+                                       <span>= retail less discount</span>
+                                    </div>
+                                    <div class="col-lg-2">
+                                       <input type="text" class="form-control" placeholder="retail less discount" name="retail_discount[]" id="retail_discount1" readonly>
+                                    </div>
+                                    <div class="col-lg-2">
+                                       <input type="text" class="form-control" placeholder="retail discounted price" name="retail_discounted_price[]" id="retail_discounted_price1" readonly>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div class="row align-items-center gap-2 gap-lg-0 discount-vouchers-section" style="display: none;">
                                  <div class="col-12 mt-3">
-                                    <button class="my-btn btn-sky">Add<i class='bx bx-plus'></i></button>
+                                    <button class="my-btn btn-sky add_button" type="button">Add<i class='bx bx-plus'></i></button>
                                  </div>
                               </div>
                            </div>
@@ -325,4 +355,136 @@
          $('#retail_price_inc_tax').val(retail_price_inc_tax.toFixed(2));
       });
    });
+</script>
+<script type="text/javascript">
+   $(document).ready(function(){
+
+      $('#discount_voucher').change(function() {
+         if ($(this).is(':checked')) {
+            $('.discount-vouchers-section').show();
+         } else {
+            $('.discount-vouchers-section').hide();
+         }
+      });
+
+       var maxField = 10; //Input fields increment limitation
+       var addButton = $('.add_button'); //Add button selector
+       var wrapper = $('.field_wrapper'); //Input field wrapper
+       var x = 1; //Initial field counter is 1
+       
+       // Once add button is clicked
+       $(addButton).click(function(){
+           //Check maximum number of input fields
+           if(x < maxField){ 
+               x++; //Increase field counter
+               var fieldHTML = '<div class="row align-items-center gap-2 gap-lg-0 mt-2">\
+                                    <div class="col-lg-2">\
+                                       <input type="text" class="form-control" name="voucher_code[]" id="voucher_code' + x + '" placeholder="Voucher Code" oninput="getSuggestions(this.value, ' + x + ');">\
+                                       <input type="hidden" name="coupon_id[]" id="coupon_id' + x + '">\
+                                       <div id="suggestions' + x + '" class="dropdown"></div>\
+                                    </div>\
+                                    <div class="col-auto">\
+                                       <span>then</span>\
+                                    </div>\
+                                    <div class="col-lg-2">\
+                                       <input type="text" class="form-control" placeholder="Discount Value" name="discount_value[]" id="discount_value' + x + '" readonly>\
+                                    </div>\
+                                    <div class="col-lg-1">\
+                                       <input type="text" class="form-control" placeholder="Type" name="discount_type[]" id="discount_type' + x + '" readonly style="font-size: 9px;">\
+                                    </div>\
+                                    <div class="col-lg-2">\
+                                       <span>= retail less discount</span>\
+                                    </div>\
+                                    <div class="col-lg-2">\
+                                       <input type="text" class="form-control" placeholder="retail less discount" name="retail_discount[]" id="retail_discount' + x + '" readonly>\
+                                    </div>\
+                                    <div class="col-lg-2">\
+                                       <input type="text" class="form-control" placeholder="retail discounted price" name="retail_discounted_price[]" id="retail_discounted_price' + x + '" readonly>\
+                                       <a href="javascript:void(0);" class="remove_button"><i class="fa fa-minus-circle fa-2x text-danger"></i></a>\
+                                    </div>\
+                              </div>'; //New input field html
+               $(wrapper).append(fieldHTML); //Add field html
+           }else{
+               alert('A maximum of '+maxField+' fields are allowed to be added. ');
+           }
+       });
+       
+       // Once remove button is clicked
+       $(wrapper).on('click', '.remove_button', function(e){
+           e.preventDefault();
+           $(this).parent('div').parent('div').remove(); //Remove field html
+           x--; //Decrease field counter
+       });
+   });
+</script>
+<script type="text/javascript">
+   var baseUrl = '<?=url('/')?>'
+   function getSuggestions(valam, sl){
+      const query = valam;
+      var retail_price = parseFloat($('#retail_price_inc_tax').val());
+      if (query.length > 1) {
+         $.ajax({
+            url: baseUrl + "/admin/products/get-suggestions", // Replace with your server endpoint
+            method: "GET",
+            data: { q: query, retail_price : retail_price },
+            success: function (response) {
+               // Assuming `response` is an array of suggestions
+               response = $.parseJSON(response);
+               // console.log(response);
+               let suggestionsHTML = "";
+               response.forEach((item) => {
+                  suggestionsHTML += `<div data-value="${item}" onclick="handleSuggestionClick('${item}',${sl});">${item}</div>`;
+               });
+               $("#suggestions" + sl).html(suggestionsHTML).show();
+            },
+            error: function () {
+                 //
+            },
+         });
+      } else {
+         $("#suggestions" + sl).hide();
+      }
+   }
+   function handleSuggestionClick(valam, sl){
+      const value = valam;
+      $('#voucher_code' + sl).val(value); // Fill the textbox
+      $("#suggestions" + sl).hide();
+      var retail_price = parseFloat($('#retail_price_inc_tax').val());
+      // Make another AJAX call on selection
+      $.ajax({
+         url: baseUrl + "/admin/products/select-suggestions", // Replace with your server endpoint
+         method: "GET",
+         data: { selected: value, retail_price : retail_price },
+         success: function (rply) {
+            console.log("Selection processed:", rply);
+            rply = $.parseJSON(rply);
+            if(rply.status){
+               $('#coupon_id' + sl).val(rply.response.coupon_id);
+               $('#discount_value' + sl).val(rply.response.discount_value.toFixed(2));
+               $('#discount_type' + sl).val(rply.response.discount_type);
+               $('#retail_discount' + sl).val(rply.response.retail_discount.toFixed(2));
+               $('#retail_discounted_price' + sl).val(rply.response.retail_discounted_price.toFixed(2));
+            }
+         },
+         error: function () {
+             console.error("Error processing selection");
+         },
+      });
+   }
+
+   // $(document).ready(function () {
+       
+   //     // Handle suggestion click
+   //     $suggestions.on("click", "div", function () {
+           
+   //     });
+
+   //     // Close dropdown if clicked outside
+   //     $(document).on("click", function (e) {
+   //         if (!$(e.target).closest("#search-box, #suggestions").length) {
+   //             $suggestions.hide();
+   //         }
+   //     });
+   // });
+
 </script>

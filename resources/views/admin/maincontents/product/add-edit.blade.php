@@ -256,6 +256,7 @@ $current_url                    = url()->current();
                                        </div>
                                        <div class="col-lg-2">
                                           <input type="text" class="form-control" placeholder="retail discounted price" name="retail_discounted_price[]" id="retail_discounted_price<?=$sl?>" value="<?=$discountVoucher->retail_discounted_price?>" readonly>
+                                          <a href="javascript:void(0);" class="remove_button"><i class="fa fa-minus-circle text-danger"></i></a>
                                        </div>
                                     </div>
                                  <?php $sl++; } }?>

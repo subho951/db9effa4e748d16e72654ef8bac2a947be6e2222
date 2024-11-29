@@ -1,4 +1,5 @@
 <?php
+use App\Models\ProductDiscountVoucher;
 use App\Helpers\Helper;
 $controllerRoute                = $module['controller_route'];
 $current_url                    = url()->current();
@@ -40,6 +41,7 @@ $current_url                    = url()->current();
          $brand_id                         = $row->brand_id;
          $supplier_id                      = $row->supplier_id;
          $size_id                          = $row->size_id;
+         $style                            = $row->style;
          $cost_price_ex_tax                = $row->cost_price_ex_tax;
          $cost_price_tax                   = $row->cost_price_tax;
          $cost_price_inc_tax               = $row->cost_price_inc_tax;
@@ -48,7 +50,8 @@ $current_url                    = url()->current();
          $added_amount                     = $row->added_amount;
          $retail_price_inc_tax             = $row->retail_price_inc_tax;
          $cover_image                      = $row->cover_image;
-         $stock                            = $row->stock;
+         $shop_stock                       = $row->shop_stock;
+         $warehouse_stock                  = $row->warehouse_stock;
          $status                           = $row->status;
          $uId                              = $row->id;
       } else {
@@ -60,6 +63,7 @@ $current_url                    = url()->current();
          $brand_id                         = '';
          $supplier_id                      = '';
          $size_id                          = '';
+         $style                            = '';
          $cost_price_ex_tax                = '';
          $cost_price_tax                   = '';
          $cost_price_inc_tax               = '';
@@ -68,7 +72,8 @@ $current_url                    = url()->current();
          $added_amount                     = '';
          $retail_price_inc_tax             = '';
          $cover_image                      = '';
-         $stock                            = '';
+         $shop_stock                       = '';
+         $warehouse_stock                  = '';
          $status                           = '';
          $uId                              = '';
       }
@@ -99,11 +104,11 @@ $current_url                    = url()->current();
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="shop_stock">Shop Stock&nbsp;(5ch) <small class="text-danger">*</small></label>
-                              <input type="number" class="form-control" value="888">
+                              <input type="number" class="form-control" id="shop_stock" name="shop_stock" min="1" value="<?=$shop_stock?>">
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="warehouse_stock">Warehouse Stock&nbsp;(5ch) <small class="text-danger">*</small></label>
-                              <input type="number" class="form-control" value="888">
+                              <input type="number" class="form-control" id="warehouse_stock" name="warehouse_stock" min="1" value="<?=$warehouse_stock?>">
                            </div>
                            <div class="col-md-2 align-items-center">
                               <label class="form-label" for="warehouse_stock">Status</label>
@@ -155,18 +160,18 @@ $current_url                    = url()->current();
                            </div>
                            <div class="col-md-3">
                               <label class="form-label" for="style">Style <small class="text-danger">*</small></label>
-                              <input type="text" class="form-control" placeholder="Enter Style" name="style" id="style" required>
+                              <input type="text" class="form-control" placeholder="Enter Style" name="style" id="style" value="<?=$style?>" required>
                            </div>
 
                            <h5 class="mb-3">Pricing</h5>
                            <div class="col-md-2">
                               <label class="form-label" for="cost_price_ex_tax">Cost (Excl. Tax) ($)</label>
-                              <input type="text" class="form-control" placeholder="Enter Cost Ex. Tax" name="cost_price_ex_tax" id="cost_price_ex_tax" required>
+                              <input type="text" class="form-control" placeholder="Enter Cost Ex. Tax" name="cost_price_ex_tax" id="cost_price_ex_tax" value="<?=$cost_price_ex_tax?>" required>
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="cost_price_inc_tax">Cost (Incl. Tax) ($)</label>
                               <input type="hidden" name="cost_price_tax" id="cost_price_tax" value="<?=$cost_price_tax?>">
-                              <input type="text" class="form-control" placeholder="Enter Cost Inc. Tax" name="cost_price_inc_tax" id="cost_price_inc_tax" required readonly>
+                              <input type="text" class="form-control" placeholder="Enter Cost Inc. Tax" name="cost_price_inc_tax" id="cost_price_inc_tax" value="<?=$cost_price_inc_tax?>" required readonly>
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="markup_type">Markup (%)</label>
@@ -177,25 +182,83 @@ $current_url                    = url()->current();
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="markup_amount">Markup ($)</label>
-                              <input type="text" class="form-control" placeholder="Enter Markup in $" name="markup_amount" id="markup_amount" value="<?=$markup_amount?>" required>
+                              <input type="text" class="form-control" placeholder="Enter Markup in $" name="markup_amount" id="markup_amount" value="<?=$markup_amount?>" value="<?=$markup_amount?>" required>
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="added_amount">Added ($)</label>
-                              <input type="text" class="form-control" placeholder="Enter Markup in %" name="added_amount" id="added_amount" value="<?=$added_amount?>" required readonly>
+                              <input type="text" class="form-control" placeholder="Enter Markup in %" name="added_amount" id="added_amount" value="<?=$added_amount?>" value="<?=$added_amount?>" required readonly>
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="retail_price_inc_tax">Retail Price (Incl. Tax) ($)</label>
-                              <input type="text" class="form-control" placeholder="Enter Retail Price" name="retail_price_inc_tax" id="retail_price_inc_tax" value="<?=$retail_price_inc_tax?>" required readonly>
+                              <input type="text" class="form-control" placeholder="Enter Retail Price" name="retail_price_inc_tax" id="retail_price_inc_tax" value="<?=$retail_price_inc_tax?>" value="<?=$retail_price_inc_tax?>" required readonly>
+                           </div>
+
+                           <div class="mb-3 col-md-12">
+                              <div class="d-flex align-items-start align-items-sm-center gap-4">
+                                 <?php if($cover_image != ''){?>
+                                   <img src="<?=env('UPLOADS_URL').'/product/'.$cover_image?>" alt="<?=$name?>" class="d-block rounded" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
+                                 <?php } else {?>
+                                   <img src="<?=env('NO_USER_IMAGE')?>" alt="<?=$name?>" class="d-block rounded" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
+                                 <?php } ?>
+                                 <div class="button-wrapper">
+                                    <label for="cover_image" class="btn btn-primary me-2 mb-4" tabindex="0">
+                                      <span class="d-none d-sm-block">Upload Cover Image</span>
+                                      <i class="bx bx-upload d-block d-sm-none"></i>
+                                      <input type="file" id="cover_image" name="cover_image" class="account-file-input" hidden accept="image/png, image/jpeg" />
+                                    </label>
+                                    <?php if($cover_image != ''){?>
+                                      <a href="<?=url('admin/common-delete-image/'.Helper::encoded($current_url).'/products/cover_image/id/'.$uId)?>" title="Remove image" onclick="return confirm('Do You Want To Delete This Image ?');">
+                                        <button type="button" class="btn btn-outline-secondary account-image-reset mb-4">
+                                          <i class="bx bx-reset d-block d-sm-none"></i>
+                                          <span class="d-none d-sm-block">Reset</span>
+                                        </button>
+                                      </a>
+                                    <?php } ?>
+                                    <p class="text-muted mb-0">Allowed JPG, JPEG, ICO, PNG, GIF, SVG, AVIF</p>
+                                 </div>
+                              </div>
                            </div>
 
                            <div class="discounts-section">
                               <h5 class="mb-3">Discounts Voucher</h5>
+                              <?php
+                              $discountVouchers = ProductDiscountVoucher::where('status', '=', 1)->where('product_id', '=', $uId)->get();
+                              ?>
                               <div class="col-auto">
                                  <div class="form-check form-switch mt-0 pt-0 pb-0">
-                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="discount_voucher">
+                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="discount_voucher" <?=((count($discountVouchers) > 0)?'checked':'')?>>
                                  </div>
                               </div>
-                              <div class="field_wrapper discount-vouchers-section" style="border: 1px solid #04163d52; padding: 10px; border-radius: 10px;display: none;">
+                              <div class="field_wrapper discount-vouchers-section" style="border: 1px solid #04163d52; padding: 10px; border-radius: 10px;<?=((count($discountVouchers) > 0)?'':'display: none;')?>">
+                                 <?php
+                                 if($discountVouchers){ $sl= 101; foreach($discountVouchers as $discountVoucher){
+                                 ?>
+                                    <div class="row align-items-center gap-2 gap-lg-0 mb-2">
+                                       <div class="col-lg-2">
+                                          <input type="text" class="form-control" name="voucher_code[]" id="voucher_code<?=$sl?>" placeholder="Voucher Code" oninput="getSuggestions(this.value, <?=$sl?>);" value="<?=$discountVoucher->voucher_code?>">
+                                          <input type="hidden" name="coupon_id[]" id="coupon_id<?=$sl?>" value="<?=$discountVoucher->coupon_id?>">
+                                          <div id="suggestions<?=$sl?>" class="dropdown"></div>
+                                       </div>
+                                       <div class="col-auto">
+                                          <span>then</span>
+                                       </div>
+                                       <div class="col-lg-2">
+                                          <input type="text" class="form-control" placeholder="Discount Value" name="discount_value[]" id="discount_value<?=$sl?>" value="<?=$discountVoucher->discount_value?>" readonly>
+                                       </div>
+                                       <div class="col-lg-1">
+                                          <input type="text" class="form-control" placeholder="Type" name="discount_type[]" id="discount_type<?=$sl?>" value="<?=$discountVoucher->discount_type?>" readonly style="font-size: 9px;">
+                                       </div>
+                                       <div class="col-lg-2">
+                                          <span>= retail less discount</span>
+                                       </div>
+                                       <div class="col-lg-2">
+                                          <input type="text" class="form-control" placeholder="retail less discount" name="retail_discount[]" id="retail_discount<?=$sl?>" value="<?=$discountVoucher->retail_discount?>" readonly>
+                                       </div>
+                                       <div class="col-lg-2">
+                                          <input type="text" class="form-control" placeholder="retail discounted price" name="retail_discounted_price[]" id="retail_discounted_price<?=$sl?>" value="<?=$discountVoucher->retail_discounted_price?>" readonly>
+                                       </div>
+                                    </div>
+                                 <?php $sl++; } }?>
                                  <div class="row align-items-center gap-2 gap-lg-0">
                                     <div class="col-lg-2">
                                        <input type="text" class="form-control" name="voucher_code[]" id="voucher_code1" placeholder="Voucher Code" oninput="getSuggestions(this.value, 1);">
@@ -222,7 +285,7 @@ $current_url                    = url()->current();
                                     </div>
                                  </div>
                               </div>
-                              <div class="row align-items-center gap-2 gap-lg-0 discount-vouchers-section" style="display: none;">
+                              <div class="row align-items-center gap-2 gap-lg-0 discount-vouchers-section" style="<?=((count($discountVouchers) > 0)?'':'display: none;')?>">
                                  <div class="col-12 mt-3">
                                     <button class="my-btn btn-sky add_button" type="button">Add<i class='bx bx-plus'></i></button>
                                  </div>
@@ -400,7 +463,7 @@ $current_url                    = url()->current();
                                     </div>\
                                     <div class="col-lg-2">\
                                        <input type="text" class="form-control" placeholder="retail discounted price" name="retail_discounted_price[]" id="retail_discounted_price' + x + '" readonly>\
-                                       <a href="javascript:void(0);" class="remove_button"><i class="fa fa-minus-circle fa-2x text-danger"></i></a>\
+                                       <a href="javascript:void(0);" class="remove_button"><i class="fa fa-minus-circle text-danger"></i></a>\
                                     </div>\
                               </div>'; //New input field html
                $(wrapper).append(fieldHTML); //Add field html

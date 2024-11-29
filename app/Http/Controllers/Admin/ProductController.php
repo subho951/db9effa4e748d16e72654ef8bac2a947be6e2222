@@ -12,6 +12,7 @@ use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\Size;
 use App\Models\Coupon;
+use App\Models\ProductDiscountVoucher;
 
 use Auth;
 use Session;
@@ -47,10 +48,12 @@ class ProductController extends Controller
     /* add */
         public function add(Request $request){
             $data['module']           = $this->data;
+            $generalSetting           = GeneralSetting::find('1');
             if($request->isMethod('post')){
                 $postData = $request->all();
                 $rules = [
                     'sku'                       => 'required',
+                    'barcode'                   => 'required',
                     'name'                      => 'required',
                     'receipt_short_name'        => 'required',
                     'shelf_tag_short_name'      => 'required',
@@ -60,7 +63,6 @@ class ProductController extends Controller
                     'cost_price_ex_tax'         => 'required',
                     'cost_price_inc_tax'        => 'required',
                     'retail_price_inc_tax'      => 'required',
-                    'status'                    => 'required',
                 ];
                 if($this->validate($request, $rules)){
                     $checkData = Product::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->first();
@@ -87,14 +89,45 @@ class ProductController extends Controller
                             'barcode'                   => $postData['barcode'],
                             'brand_id'                  => $postData['brand_id'],
                             'supplier_id'               => $postData['supplier_id'],
+                            'size_id'                   => $postData['size_id'],
+                            'style'                     => $postData['style'],
                             'cost_price_ex_tax'         => $postData['cost_price_ex_tax'],
+                            'cost_price_tax'            => $generalSetting->tax_percent,
                             'cost_price_inc_tax'        => $postData['cost_price_inc_tax'],
+                            'markup_amount'             => $postData['markup_amount'],
+                            'markup_type'               => ((array_key_exists("markup_type",$postData))?'PERCENTAGE':'FLAT'),
+                            'added_amount'              => $postData['added_amount'],
                             'retail_price_inc_tax'      => $postData['retail_price_inc_tax'],
                             'cover_image'               => $cover_image,
-                            'stock'                     => $postData['stock'],
-                            'status'                    => $postData['status'],
+                            'shop_stock'                => $postData['shop_stock'],
+                            'warehouse_stock'           => $postData['warehouse_stock'],
+                            'status'                    => ((array_key_exists("status",$postData))?1:0),
                         ];
-                        Product::insert($fields);
+                        // Helper::pr($fields);
+                        $product_id = Product::insertGetId($fields);
+                        /* discount vouchers */
+                            $voucher_code               = $postData['voucher_code'];
+                            $coupon_id                  = $postData['coupon_id'];
+                            $discount_value             = $postData['discount_value'];
+                            $discount_type              = $postData['discount_type'];
+                            $retail_discount            = $postData['retail_discount'];
+                            $retail_discounted_price    = $postData['retail_discounted_price'];
+                            if(count($voucher_code) > 0){
+                                for($k=0;$k<count($voucher_code);$k++){
+                                    $fields2 = [
+                                        'voucher_code'                      => $voucher_code[$k],
+                                        'product_id'                        => $product_id,
+                                        'coupon_id'                         => $coupon_id[$k],
+                                        'discount_value'                    => $discount_value[$k],
+                                        'discount_type'                     => $discount_type[$k],
+                                        'retail_discount'                   => $retail_discount[$k],
+                                        'retail_discounted_price'           => $retail_discounted_price[$k],
+                                    ];
+                                    // Helper::pr($fields2);
+                                    ProductDiscountVoucher::insert($fields2);
+                                }
+                            }
+                        /* discount vouchers */
                         return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Inserted Successfully !!!');
                     } else {
                         return redirect()->back()->with('error_message', $this->data['title'].' Already Exists !!!');
@@ -121,6 +154,7 @@ class ProductController extends Controller
     /* edit */
         public function edit(Request $request, $id){
             $data['module']                 = $this->data;
+            $generalSetting                 = GeneralSetting::find('1');
             $id                             = Helper::decoded($id);
             $title                          = $this->data['title'].' Update';
             $page_name                      = 'product.add-edit';
@@ -137,6 +171,7 @@ class ProductController extends Controller
                 $postData = $request->all();
                 $rules = [
                     'sku'                       => 'required',
+                    'barcode'                   => 'required',
                     'name'                      => 'required',
                     'receipt_short_name'        => 'required',
                     'shelf_tag_short_name'      => 'required',
@@ -146,7 +181,6 @@ class ProductController extends Controller
                     'cost_price_ex_tax'         => 'required',
                     'cost_price_inc_tax'        => 'required',
                     'retail_price_inc_tax'      => 'required',
-                    'status'                    => 'required',
                 ];
                 if($this->validate($request, $rules)){
                     $checkData = Product::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->where('id', '!=', $id)->first();
@@ -173,14 +207,49 @@ class ProductController extends Controller
                             'barcode'                   => $postData['barcode'],
                             'brand_id'                  => $postData['brand_id'],
                             'supplier_id'               => $postData['supplier_id'],
+                            'size_id'                   => $postData['size_id'],
+                            'style'                     => $postData['style'],
                             'cost_price_ex_tax'         => $postData['cost_price_ex_tax'],
+                            'cost_price_tax'            => $generalSetting->tax_percent,
                             'cost_price_inc_tax'        => $postData['cost_price_inc_tax'],
+                            'markup_amount'             => $postData['markup_amount'],
+                            'markup_type'               => ((array_key_exists("markup_type",$postData))?'PERCENTAGE':'FLAT'),
+                            'added_amount'              => $postData['added_amount'],
                             'retail_price_inc_tax'      => $postData['retail_price_inc_tax'],
                             'cover_image'               => $cover_image,
-                            'stock'                     => $postData['stock'],
-                            'status'                    => $postData['status'],
+                            'shop_stock'                => $postData['shop_stock'],
+                            'warehouse_stock'           => $postData['warehouse_stock'],
+                            'status'                    => ((array_key_exists("status",$postData))?1:0),
                         ];
+                        // Helper::pr($fields);
                         Product::where($this->data['primary_key'], '=', $id)->update($fields);
+                        $product_id = $id;
+                        /* discount vouchers */
+                            $voucher_code               = $postData['voucher_code'];
+                            $coupon_id                  = $postData['coupon_id'];
+                            $discount_value             = $postData['discount_value'];
+                            $discount_type              = $postData['discount_type'];
+                            $retail_discount            = $postData['retail_discount'];
+                            $retail_discounted_price    = $postData['retail_discounted_price'];
+                            if(count($voucher_code) > 0){
+                                ProductDiscountVoucher::where('status', '=', 1)->where('product_id', '=', $id)->delete();
+                                for($k=0;$k<count($voucher_code);$k++){
+                                    if($voucher_code[$k] != ''){
+                                        $fields2 = [
+                                            'voucher_code'                      => $voucher_code[$k],
+                                            'product_id'                        => $product_id,
+                                            'coupon_id'                         => $coupon_id[$k],
+                                            'discount_value'                    => $discount_value[$k],
+                                            'discount_type'                     => $discount_type[$k],
+                                            'retail_discount'                   => $retail_discount[$k],
+                                            'retail_discounted_price'           => $retail_discounted_price[$k],
+                                        ];
+                                        // Helper::pr($fields2);
+                                        ProductDiscountVoucher::insert($fields2);
+                                    }
+                                }
+                            }
+                        /* discount vouchers */
                         return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Updated Successfully !!!');
                     } else {
                         return redirect()->back()->with('error_message', $this->data['title'].' Already Exists !!!');

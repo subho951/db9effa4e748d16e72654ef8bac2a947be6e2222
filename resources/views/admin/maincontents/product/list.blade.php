@@ -19,8 +19,8 @@ $controllerRoute = $module['controller_route'];
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col">Name</th>
-                  <!-- <th scope="col">SKU ID</th>
-                  <th scope="col">Receipt Short Name</th>
+                  <th scope="col">SKU ID</th>
+                  <!-- <th scope="col">Receipt Short Name</th>
                   <th scope="col">Shelf Tag Short Name</th> -->
                   <th scope="col">Barcode</th>
                   <th scope="col">Brand</th>
@@ -36,8 +36,8 @@ $controllerRoute = $module['controller_route'];
                   <tr>
                     <td scope="row"><?=$sl++?></td>
                     <td><?=$row->name?></td>
-                    <!-- <td><?=$row->sku?></td>
-                    <td><?=$row->receipt_short_name?></td>
+                    <td><?=$row->sku?></td>
+                    <!-- <td><?=$row->receipt_short_name?></td>
                     <td><?=$row->shelf_tag_short_name?></td> -->
                     <td><?=$row->barcode?></td>
                     <td><?=$row->brand_name?></td>

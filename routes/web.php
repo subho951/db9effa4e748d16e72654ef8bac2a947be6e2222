@@ -169,6 +169,8 @@ Route::get('/db-test', function () {
                 Route::get('products/change-status/{id}', 'ProductController@change_status');
                 Route::get('products/get-suggestions', 'ProductController@getSuggestions');
                 Route::get('products/select-suggestions', 'ProductController@selectSuggestions');
+                Route::get('products/get-barcode-suggestions', 'ProductController@getBarcodeSuggestions');
+                Route::get('products/select-barcode-suggestions', 'ProductController@selectBarcodeSuggestions');
             /* customer */
             /* customer */
                 Route::get('customer/list', 'CustomerController@list');

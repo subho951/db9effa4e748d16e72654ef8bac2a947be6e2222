@@ -13,6 +13,7 @@ use App\Models\Unit;
 use App\Models\Size;
 use App\Models\Coupon;
 use App\Models\ProductDiscountVoucher;
+use App\Models\ProductMultipleBuy;
 
 use Auth;
 use Session;
@@ -128,6 +129,45 @@ class ProductController extends Controller
                                 }
                             }
                         /* discount vouchers */
+                        /* multiple buys */
+                            $first_barcode              = $postData['first_barcode'];
+                            $second_barcode             = $postData['second_barcode'];
+                            $product2_id                = $postData['product2_id'];
+                            $barcode_discount_type      = ((array_key_exists('barcode_discount_type', $postData))?$postData['barcode_discount_type']:[]);
+                            $discount_amount            = $postData['discount_amount'];
+                            if(count($voucher_code) > 0){
+                                for($k=0;$k<count($second_barcode);$k++){
+                                    if($second_barcode[$k] != ''){
+                                        $getProduct1            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product_id)->first();
+                                        $getProduct2            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product2_id[$k])->first();
+
+                                        $retail_price_inc_tax1  = (($getProduct1)?$getProduct1->retail_price_inc_tax:'');
+                                        $retail_price_inc_tax2  = (($getProduct2)?$getProduct2->retail_price_inc_tax:'');
+                                        $total_price            = ($retail_price_inc_tax1 + $retail_price_inc_tax2);
+                                        $discAmt                = 0;
+                                        if(array_key_exists('barcode_discount_type', $postData)){
+                                            $discAmt        = (($total_price * $discount_amount[$k]) / 100);
+                                            $discountType  = 'PERCENTAGE';
+                                        } else {
+                                            $discAmt        = $discount_amount[$k];
+                                            $discountType  = 'FLAT';
+                                        }
+                                        $discounted_amount = ($total_price - $discAmt);
+                                        $fields2                = [
+                                            'product_id'                        => $product_id,
+                                            'first_barcode'                     => $first_barcode[$k],
+                                            'second_barcode'                    => $second_barcode[$k],
+                                            'product2_id'                       => $product2_id[$k],
+                                            'barcode_discount_type'             => $discountType,
+                                            'discount_amount'                   => $discount_amount[$k],
+                                            'discounted_amount'                 => $discounted_amount,
+                                        ];
+                                        // Helper::pr($fields2);
+                                        ProductMultipleBuy::insert($fields2);
+                                    }
+                                }
+                            }
+                        /* multiple buys */
                         return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Inserted Successfully !!!');
                     } else {
                         return redirect()->back()->with('error_message', $this->data['title'].' Already Exists !!!');
@@ -250,6 +290,46 @@ class ProductController extends Controller
                                 }
                             }
                         /* discount vouchers */
+                        /* multiple buys */
+                            $first_barcode              = $postData['first_barcode'];
+                            $second_barcode             = $postData['second_barcode'];
+                            $product2_id                = $postData['product2_id'];
+                            $barcode_discount_type      = ((array_key_exists('barcode_discount_type', $postData))?$postData['barcode_discount_type']:[]);
+                            $discount_amount            = $postData['discount_amount'];
+                            if(count($voucher_code) > 0){
+                                ProductMultipleBuy::where('status', '=', 1)->where('product_id', '=', $id)->delete();
+                                for($k=0;$k<count($second_barcode);$k++){
+                                    if($second_barcode[$k] != ''){
+                                        $getProduct1            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product_id)->first();
+                                        $getProduct2            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product2_id[$k])->first();
+
+                                        $retail_price_inc_tax1  = (($getProduct1)?$getProduct1->retail_price_inc_tax:'');
+                                        $retail_price_inc_tax2  = (($getProduct2)?$getProduct2->retail_price_inc_tax:'');
+                                        $total_price            = ($retail_price_inc_tax1 + $retail_price_inc_tax2);
+                                        $discAmt                = 0;
+                                        if(array_key_exists('barcode_discount_type', $postData)){
+                                            $discAmt        = (($total_price * $discount_amount[$k]) / 100);
+                                            $discountType  = 'PERCENTAGE';
+                                        } else {
+                                            $discAmt        = $discount_amount[$k];
+                                            $discountType  = 'FLAT';
+                                        }
+                                        $discounted_amount = ($total_price - $discAmt);
+                                        $fields2                = [
+                                            'product_id'                        => $product_id,
+                                            'first_barcode'                     => $first_barcode[$k],
+                                            'second_barcode'                    => $second_barcode[$k],
+                                            'product2_id'                       => $product2_id[$k],
+                                            'barcode_discount_type'             => $discountType,
+                                            'discount_amount'                   => $discount_amount[$k],
+                                            'discounted_amount'                 => $discounted_amount,
+                                        ];
+                                        // Helper::pr($fields2);
+                                        ProductMultipleBuy::insert($fields2);
+                                    }
+                                }
+                            }
+                        /* multiple buys */
                         return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Updated Successfully !!!');
                     } else {
                         return redirect()->back()->with('error_message', $this->data['title'].' Already Exists !!!');
@@ -329,6 +409,45 @@ class ProductController extends Controller
                 'discount_type'             => $getCoupon->discount_type,
                 'retail_discount'           => $discAmt,
                 'retail_discounted_price'   => $retail_discounted_price,
+            ];
+            $apiStatus      = 1;
+        }
+        // Helper::pr($suggestions);
+        $data = ['status' => $apiStatus, 'response' => $response];
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data);
+    }
+    public function getBarcodeSuggestions(Request $request){
+        $currentDate    = date('Y-m-d');
+        $postData       = $request->all();
+        $q              = $postData['q'];
+        $barcode        = $postData['barcode'];
+        $suggestions    = [];
+        $getProducts     = Product::select('id', 'barcode')->where('status', '=', 1)->where('barcode', 'LIKE', '%'.$q.'%')->where('barcode', '!=', $barcode)->orderBy('barcode', 'ASC')->get();
+        if($getProducts){
+            foreach($getProducts as $getProduct){
+                $suggestions[]    = $getProduct->barcode;
+            }
+        }
+        // Helper::pr($suggestions);
+        $data = $suggestions;
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data);
+    }
+    public function selectBarcodeSuggestions(Request $request){
+        $currentDate    = date('Y-m-d');
+        $postData       = $request->all();
+        // Helper::pr($postData);
+        $selected       = $postData['selected'];
+        $barcode        = $postData['barcode'];
+        $response       = [];
+        $apiStatus      = 0;
+        $getProduct      = Product::where('status', '=', 1)->where('barcode', '=', $selected)->first();
+        if($getProduct){
+            $discount_type      = $getProduct->discount_type;
+            $response = [
+                'product_id'         => $getProduct->id,
+                'barcode'            => $getProduct->barcode,
             ];
             $apiStatus      = 1;
         }

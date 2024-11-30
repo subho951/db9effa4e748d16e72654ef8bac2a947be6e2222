@@ -1,5 +1,6 @@
 <?php
 use App\Models\ProductDiscountVoucher;
+use App\Models\ProductMultipleBuy;
 use App\Helpers\Helper;
 $controllerRoute                = $module['controller_route'];
 $current_url                    = url()->current();
@@ -292,33 +293,83 @@ $current_url                    = url()->current();
                                  </div>
                               </div>
                            </div>
+
+
+
+
+
+
                            <div class="multiple-buys-section">
                               <h5 class="mb-3">Multiple Buys</h5>
-                              <div class="row align-items-center gap-2 gap-lg-0">
-                                 <div class="col-auto">
-                                    <div class="form-check form-switch mt-0 pt-0 pb-0">
-                                       <input class="form-check-input mt-0" type="checkbox" role="switch" id="flexSwitchCheckChecked" >
-                                    </div>
-                                 </div>
-                                 <div class="col-lg-2">
-                                    <input type="text" class="form-control" placeholder="Barcode 1 / SKU">
-                                 </div>
-                                 <div class="col-auto">
-                                    <span>and</span>
-                                 </div>
-                                 <div class="col-lg-3">
-                                    <input type="text" class="form-control" placeholder="Barcode 2 / SKU">
-                                 </div>
-                                 <div class="col-lg-2">
-                                    <span>= true, then</span>
-                                 </div>
-                                 <div class="col-lg-3">
-                                    <input type="text" class="form-control" placeholder="Discount $">
+                              <?php
+                              $multipleBuys = ProductMultipleBuy::where('status', '=', 1)->where('product_id', '=', $uId)->get();
+                              ?>
+                              <div class="col-auto">
+                                 <div class="form-check form-switch mt-0 pt-0 pb-0">
+                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="multiple_buys" <?=((count($multipleBuys) > 0)?'checked':'')?>>
                                  </div>
                               </div>
-                              <div class="row align-items-center gap-2 gap-lg-0">
+
+                              <div class="field_wrapper2 multiple-buy-section" style="border: 1px solid #04163d52; padding: 10px; border-radius: 10px;<?=((count($multipleBuys) > 0)?'':'display: none;')?>">
+                                 <?php
+                                 if($multipleBuys){ $sl= 101; foreach($multipleBuys as $multipleBuy){
+                                 ?>
+                                    <div class="row align-items-center gap-2 gap-lg-0 mb-2">
+                                       <div class="col-lg-2">
+                                          <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode101" value="<?=$multipleBuy->first_barcode?>">
+                                       </div>
+                                       <div class="col-auto">
+                                          <span>and</span>
+                                       </div>
+                                       <div class="col-lg-2">
+                                          <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode1" oninput="getBarcodeSuggestions(this.value, 101);" value="<?=$multipleBuy->second_barcode?>">
+                                          <input type="hidden" name="product2_id[]" id="product2_id101" value="<?=$multipleBuy->product2_id?>">
+                                          <div id="barcode_suggestions1" class="dropdown"></div>
+                                       </div>
+                                       <div class="col-lg-2">
+                                          <span>= true, then</span>
+                                       </div>
+                                       <div class="col-lg-2">
+                                          <div class="form-check form-switch mt-0">
+                                             <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type101" onchange="change_discount_type(101);" <?=(($multipleBuy->barcode_discount_type == 'PERCENTAGE')?'checked':'')?>>
+                                             <label class="form-check-label" for="discount_type1" id="discount_type_text1">Flat</label>
+                                          </div>
+                                       </div>
+                                       <div class="col-lg-2">
+                                          <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount101" value="<?=$multipleBuy->discount_amount?>">
+                                       </div>
+                                    </div>
+                                 <?php $sl++; } }?>
+                                 <div class="row align-items-center gap-2 gap-lg-0 mb-2">
+                                    <div class="col-lg-2">
+                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode1">
+                                    </div>
+                                    <div class="col-auto">
+                                       <span>and</span>
+                                    </div>
+                                    <div class="col-lg-2">
+                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode1" oninput="getBarcodeSuggestions(this.value, 1);">
+                                       <input type="hidden" name="product2_id[]" id="product2_id1">
+                                       <div id="barcode_suggestions1" class="dropdown"></div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                       <span>= true, then</span>
+                                    </div>
+                                    <div class="col-lg-2">
+                                       <div class="form-check form-switch mt-0">
+                                          <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type1" onchange="change_discount_type(1);">
+                                          <label class="form-check-label" for="discount_type1" id="discount_type_text1">Flat</label>
+                                       </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                       <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount1">
+                                    </div>
+                                 </div>
+                              </div>
+
+                              <div class="row align-items-center gap-2 gap-lg-0 multiple-buy-section" style="<?=((count($multipleBuys) > 0)?'':'display: none;')?>">
                                  <div class="col-12 mt-3">
-                                    <button class="my-btn btn-sky">Add<i class='bx bx-plus'></i></button>
+                                    <button class="my-btn btn-sky add_button2" type="button">Add<i class='bx bx-plus'></i></button>
                                  </div>
                               </div>
                            </div>
@@ -520,7 +571,7 @@ $current_url                    = url()->current();
          method: "GET",
          data: { selected: value, retail_price : retail_price },
          success: function (rply) {
-            console.log("Selection processed:", rply);
+            // console.log("Selection processed:", rply);
             rply = $.parseJSON(rply);
             if(rply.status){
                $('#coupon_id' + sl).val(rply.response.coupon_id);
@@ -535,20 +586,135 @@ $current_url                    = url()->current();
          },
       });
    }
+</script>
+<script type="text/javascript">
 
-   // $(document).ready(function () {
+   $(document).ready(function(){
+      $('#multiple_buys').change(function() {
+         if ($(this).is(':checked')) {
+            $('.multiple-buy-section').show();
+         } else {
+            $('.multiple-buy-section').hide();
+         }
+      });
+
+      $('.first_barcode').val($('#barcode').val());
+
+       var maxField = 10; //Input fields increment limitation
+       var addButton = $('.add_button2'); //Add button selector
+       var wrapper = $('.field_wrapper2'); //Input field wrapper
+       var x = 1; //Initial field counter is 1
        
-   //     // Handle suggestion click
-   //     $suggestions.on("click", "div", function () {
-           
-   //     });
+       // Once add button is clicked
+       $(addButton).click(function(){
+           //Check maximum number of input fields
+           if(x < maxField){ 
+               x++; //Increase field counter
+               var main_barcode = $('#barcode').val();
+               console.log(main_barcode);
+               var fieldHTML = '<div class="row align-items-center gap-2 gap-lg-0 mb-2">\
+                                    <div class="col-lg-2">\
+                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode' + x + '" value="' + main_barcode + '">\
+                                    </div>\
+                                    <div class="col-auto">\
+                                       <span>and</span>\
+                                    </div>\
+                                    <div class="col-lg-2">\
+                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode' + x + '" oninput="getBarcodeSuggestions(this.value, ' + x + ');">\
+                                       <input type="hidden" name="product2_id[]" id="product2_id' + x + '">\
+                                       <div id="barcode_suggestions' + x + '" class="dropdown"></div>\
+                                    </div>\
+                                    <div class="col-lg-2">\
+                                       <span>= true, then</span>\
+                                    </div>\
+                                    <div class="col-lg-2">\
+                                       <div class="form-check form-switch mt-0">\
+                                          <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type' + x + '" onchange="change_discount_type(' + x + ');">\
+                                          <label class="form-check-label" for="discount_type' + x + '" id="discount_type_text' + x + '">Flat</label>\
+                                       </div>\
+                                    </div>\
+                                    <div class="col-lg-2">\
+                                       <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount' + x + '">\
+                                    </div>\
+                                    <div class="col-lg-2">\
+                                       <a href="javascript:void(0);" class="remove_button2"><i class="fa fa-minus-circle text-danger"></i></a>\
+                                    </div>\
+                                 </div>'; //New input field html
+               $(wrapper).append(fieldHTML); //Add field html
 
-   //     // Close dropdown if clicked outside
-   //     $(document).on("click", function (e) {
-   //         if (!$(e.target).closest("#search-box, #suggestions").length) {
-   //             $suggestions.hide();
-   //         }
-   //     });
-   // });
+           }else{
+               alert('A maximum of '+maxField+' fields are allowed to be added. ');
+           }
+       });
+       
+       // Once remove button is clicked
+       $(wrapper).on('click', '.remove_button2', function(e){
+           e.preventDefault();
+           $(this).parent('div').parent('div').remove(); //Remove field html
+           x--; //Decrease field counter
+       });
 
+      
+      $('#barcode').on('input', function(){
+         $('.first_barcode').val($('#barcode').val());
+      });
+   });
+
+   function change_discount_type(sl){
+      if ($('#discount_type' + sl).is(':checked')) {
+         $('#discount_type_text' + sl).text('Percentage');
+      } else {
+         $('#discount_type_text' + sl).text('Flat');
+      }
+   }
+
+   var baseUrl = '<?=url('/')?>'
+   function getBarcodeSuggestions(valam, sl){
+      const query = valam;
+      var barcode = $('.first_barcode').val();
+      if (query.length > 1) {
+         $.ajax({
+            url: baseUrl + "/admin/products/get-barcode-suggestions", // Replace with your server endpoint
+            method: "GET",
+            data: { q: query, barcode : barcode },
+            success: function (response) {
+               // Assuming `response` is an array of suggestions
+               response = $.parseJSON(response);
+               // console.log(response);
+               let suggestionsHTML = "";
+               response.forEach((item) => {
+                  suggestionsHTML += `<div data-value="${item}" onclick="handleBarcodeSuggestionClick('${item}',${sl});">${item}</div>`;
+               });
+               $("#barcode_suggestions" + sl).html(suggestionsHTML).show();
+            },
+            error: function () {
+                 //
+            },
+         });
+      } else {
+         $("#barcode_suggestions" + sl).hide();
+      }
+   }
+   function handleBarcodeSuggestionClick(valam, sl){
+      const value = valam;
+      $('#second_barcode' + sl).val(value); // Fill the textbox
+      $("#barcode_suggestions" + sl).hide();
+      var barcode = $('.first_barcode').val();
+      // Make another AJAX call on selection
+      $.ajax({
+         url: baseUrl + "/admin/products/select-barcode-suggestions", // Replace with your server endpoint
+         method: "GET",
+         data: { selected: value, barcode : barcode },
+         success: function (rply) {
+            // console.log("Selection processed:", rply);
+            rply = $.parseJSON(rply);
+            if(rply.status){
+               $('#product2_id' + sl).val(rply.response.product_id);
+            }
+         },
+         error: function () {
+             console.error("Error processing selection");
+         },
+      });
+   }
 </script>

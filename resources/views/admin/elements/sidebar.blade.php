@@ -116,11 +116,23 @@ $user_type = session('type');
       </ul>
    </li>
    <!-- Products -->
-   <li class="menu-item <?=(($pageSegment == 'products')?'active':'')?>">
-      <a href="<?=url('admin/products/list')?>" class="menu-link">
+   <li class="menu-item <?=(($pageSegment == 'products')?'open':'')?>">
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
          <i class="menu-icon tf-icons fa fa-list-alt"></i>
          <div data-i18n="Products">Products</div>
       </a>
+      <ul class="menu-sub">
+         <li class="menu-item <?=(($pageFunction == 'list')?'active':'')?>">
+            <a href="<?=url('admin/products/list')?>" class="menu-link">
+               <div data-i18n="List">List</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageFunction == 'upload-product')?'active':'')?>">
+            <a href="<?=url('admin/products/upload-product')?>" class="menu-link">
+               <div data-i18n="Upload Products">Upload Products</div>
+            </a>
+         </li>
+      </ul>
    </li>
    <!-- Login Logs -->
    <li class="menu-item <?=(($pageSegment == 'login-logs')?'active':'')?>">

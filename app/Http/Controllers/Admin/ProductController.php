@@ -14,6 +14,7 @@ use App\Models\Size;
 use App\Models\Coupon;
 use App\Models\ProductDiscountVoucher;
 use App\Models\ProductMultipleBuy;
+use App\Models\UploadProduct;
 
 use Auth;
 use Session;
@@ -456,4 +457,115 @@ class ProductController extends Controller
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($data);
     }
+    /* upload products */
+        public function uploadProduct(Request $request){
+            $data['module']                 = $this->data;
+            $title                          = $this->data['title'].' Upload List';
+            $page_name                      = 'product.upload-product';
+            $data['rows']                   = UploadProduct::where('status', '=', 1)->orderBy('id', 'DESC')->get();
+            if($request->isMethod('post')){
+                $postData = $request->all();
+                $rules = [
+                    'title'                 => 'required',
+                    'filename'              => 'required'
+                ];
+                if($this->validate($request, $rules)){
+                    /* banner image */
+                        $imageFile      = $request->file('filename');
+                        if($imageFile != ''){
+                            $imageName      = $imageFile->getClientOriginalName();
+                            $uploadedFile   = $this->upload_single_file('filename', $imageName, 'product', 'csv');
+                            if($uploadedFile['status']){
+                                $filename       = $uploadedFile['newFilename'];
+                                $sessionData    = Auth::guard('admin')->user();
+                                $fields         = [
+                                    'title'                 => $postData['title'],
+                                    'filename'              => $filename,
+                                    'created_by'            => $sessionData->id,
+                                    'updated_by'            => $sessionData->id,
+                                ];
+                                $upload_id = UploadProduct::insertGetId($fields);
+                                /* extract data from file & insert into three category tables */
+                                    // Path to the CSV file
+                                    $file_path = './public/uploads/product/'.$filename;
+                                    // Open the CSV file for reading
+                                    if (($handle = fopen($file_path, 'r')) !== FALSE) {
+                                        // Loop through each line in the file
+                                        $counter = 0;
+                                        while (($data = fgetcsv($handle, 1000, ',')) !== FALSE) {
+                                            // Print each line's data as an array
+                                            if($counter > 0){
+                                                // Helper::pr($data);die;
+                                                $sku                        = $data[0];
+                                                $name                       = $data[1];
+                                                $receipt_short_name         = $data[2];
+                                                $shelf_tag_short_name       = $data[3];
+                                                $barcode                    = $data[4];
+                                                $brand                      = $data[5];
+                                                $supplier                   = $data[6];
+                                                $size                       = $data[7];
+                                                $style                      = $data[8];
+                                                $cost_price_ex_tax          = $data[9];
+                                                $cost_price_tax             = $data[10];
+                                                $cost_price_inc_tax         = $data[11];
+                                                $markup_amount              = $data[12];
+                                                $markup_type                = $data[13];
+                                                $added_amount               = $data[14];
+                                                $retail_price_inc_tax       = $data[15];
+                                                
+                                                $getBrandId                 = Brand::select('id')->where('name', 'LIKE', '%'.$brand.'%')->first();
+                                                $getSupplierId              = Supplier::select('id')->where('name', 'LIKE', '%'.$supplier.'%')->first();
+                                                $getSizeId                  = Size::select('id')->where('name', 'LIKE', '%'.$size.'%')->first();
+
+                                                $fields = [
+                                                    'sku'                       => $sku,
+                                                    'name'                      => $name,
+                                                    'receipt_short_name'        => $receipt_short_name,
+                                                    'shelf_tag_short_name'      => $shelf_tag_short_name,
+                                                    'barcode'                   => $barcode,
+                                                    'brand_id'                  => (($getBrandId)?$getBrandId->id:0),
+                                                    'supplier_id'               => (($getSupplierId)?$getSupplierId->id:0),
+                                                    'size_id'                   => (($getSizeId)?$getSizeId->id:0),
+                                                    'style'                     => $style,
+                                                    'cost_price_ex_tax'         => $cost_price_ex_tax,
+                                                    'cost_price_tax'            => $cost_price_tax,
+                                                    'cost_price_inc_tax'        => $cost_price_inc_tax,
+                                                    'markup_amount'             => $markup_amount,
+                                                    'markup_type'               => $markup_type,
+                                                    'added_amount'              => $added_amount,
+                                                    'retail_price_inc_tax'      => $retail_price_inc_tax,
+                                                    'upload_id'                 => $upload_id,
+                                                ];
+                                                // Helper::pr($fields);
+                                                Product::insert($fields);
+                                            }
+                                            $counter++;
+                                        }
+                                        // Close the file
+                                        fclose($handle);
+                                        return redirect("admin/" . $this->data['controller_route'] . "/upload-product")->with('success_message', $this->data['title'].' Uploaded Successfully !!!');
+                                    } else {
+                                        return redirect()->back()->with(['error_message' => 'Error opening the file !!!']);
+                                    }
+                                /* extract data from file & insert into three category tables */
+                            } else {
+                                return redirect()->back()->with(['error_message' => $uploadedFile['message']]);
+                            }
+                        } else {
+                            return redirect()->back()->with(['error_message' => 'CSV file is required to upload !!!']);
+                        }
+                    /* banner image */
+                } else {
+                    return redirect()->back()->with('error_message', 'All Fields Required !!!');
+                }
+            }
+            echo $this->admin_after_login_layout($title,$page_name,$data);
+        }
+        public function deleteUploadProduct(Request $request, $id){
+            $id                             = Helper::decoded($id);
+            UploadProduct::where($this->data['primary_key'], '=', $id)->delete();
+            Product::where('upload_id', '=', $id)->delete();
+            return redirect("admin/" . $this->data['controller_route'] . "/upload-product")->with('success_message', 'Uploaded Products Deleted Successfully !!!');
+        }
+    /* upload products */
 }

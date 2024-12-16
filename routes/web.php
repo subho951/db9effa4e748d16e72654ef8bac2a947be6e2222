@@ -171,6 +171,8 @@ Route::get('/db-test', function () {
                 Route::get('products/select-suggestions', 'ProductController@selectSuggestions');
                 Route::get('products/get-barcode-suggestions', 'ProductController@getBarcodeSuggestions');
                 Route::get('products/select-barcode-suggestions', 'ProductController@selectBarcodeSuggestions');
+                Route::match(['get', 'post'], 'products/upload-product', 'ProductController@uploadProduct');
+                Route::match(['get', 'post'], 'products/delete-upload-product/{id}', 'ProductController@deleteUploadProduct');
             /* customer */
             /* customer */
                 Route::get('customer/list', 'CustomerController@list');

@@ -16,6 +16,9 @@ use App\Models\ProductDiscountVoucher;
 use App\Models\ProductMultipleBuy;
 use App\Models\UploadProduct;
 
+use Illuminate\Support\Facades\File;
+use Picqer\Barcode\BarcodeGeneratorPNG;
+
 use Auth;
 use Session;
 use Helper;
@@ -24,7 +27,7 @@ use DB;
 class ProductController extends Controller
 {
     public function __construct()
-    {        
+    {
         $this->data = array(
             'title'             => 'Product',
             'controller'        => 'ProductController',
@@ -83,12 +86,15 @@ class ProductController extends Controller
                                 $cover_image = '';
                             }
                         /* cover image */
+                        $barcode_image_url = '';
+                        $barcode_image_url = $this->generateBarcode($postData['barcode']);
                         $fields = [
                             'sku'                       => $postData['sku'],
                             'name'                      => $postData['name'],
                             'receipt_short_name'        => $postData['receipt_short_name'],
                             'shelf_tag_short_name'      => $postData['shelf_tag_short_name'],
                             'barcode'                   => $postData['barcode'],
+                            'barcode_image_url'         => $barcode_image_url,
                             'brand_id'                  => $postData['brand_id'],
                             'supplier_id'               => $postData['supplier_id'],
                             'size_id'                   => $postData['size_id'],
@@ -240,12 +246,16 @@ class ProductController extends Controller
                                 $cover_image = $data['row']->cover_image;
                             }
                         /* cover image */
+                        // Ensure barcode directory exists
+                        $barcode_image_url = '';
+                        $barcode_image_url = $this->generateBarcode($postData['barcode']);
                         $fields = [
                             'sku'                       => $postData['sku'],
                             'name'                      => $postData['name'],
                             'receipt_short_name'        => $postData['receipt_short_name'],
                             'shelf_tag_short_name'      => $postData['shelf_tag_short_name'],
                             'barcode'                   => $postData['barcode'],
+                            'barcode_image_url'         => $barcode_image_url,
                             'brand_id'                  => $postData['brand_id'],
                             'supplier_id'               => $postData['supplier_id'],
                             'size_id'                   => $postData['size_id'],
@@ -568,4 +578,106 @@ class ProductController extends Controller
             return redirect("admin/" . $this->data['controller_route'] . "/upload-product")->with('success_message', 'Uploaded Products Deleted Successfully !!!');
         }
     /* upload products */
+    /* generate barcodes */
+        public function generateBarcode($code)
+        {
+            // Ensure the directory exists
+            if (!File::exists(public_path('uploads/barcodes'))) {
+                File::makeDirectory(public_path('uploads/barcodes'), 0775, true);
+            }
+
+            // // Define barcode file path
+            // $path = public_path("uploads/barcodes/{$code}.png");
+
+            // Generate barcode
+            $generator = new BarcodeGeneratorPNG();
+            $barcode = $generator->getBarcode($code, $generator::TYPE_CODE_128);
+
+            // Create an image from the barcode
+            $barcodeImage = imagecreatefromstring($barcode);
+            $width = imagesx($barcodeImage);
+            $height = imagesy($barcodeImage);
+
+            // Create a new image with extra space for text
+            $newHeight = $height + 30; // Extra 30px for text
+            $finalImage = imagecreatetruecolor($width, $newHeight);
+
+            // Set white background
+            $white = imagecolorallocate($finalImage, 255, 255, 255);
+            imagefilledrectangle($finalImage, 0, 0, $width, $newHeight, $white);
+
+            // Copy the barcode onto the new image
+            imagecopy($finalImage, $barcodeImage, 0, 0, 0, 0, $width, $height);
+
+            // Add text (barcode number)
+            $black = imagecolorallocate($finalImage, 0, 0, 0);
+            $font = 5; // Built-in GD font
+            $textWidth = imagefontwidth($font) * strlen($code);
+            $x = ($width - $textWidth) / 2; // Center text
+            $y = $height + 5; // Position below barcode
+            imagestring($finalImage, $font, $x, $y, $code, $black);
+
+            // Define barcode file path
+            $filePath = public_path("uploads/barcodes/{$code}.png");
+
+            // Save the final image
+            imagepng($finalImage, $filePath);
+
+            // Free up memory
+            imagedestroy($barcodeImage);
+            imagedestroy($finalImage);
+
+            // Save barcode image
+            // file_put_contents($path, $barcode);
+            $barcode_url =  url("public/uploads/barcodes/{$code}.png");
+            return $barcode_url;
+        }
+    /* generate barcodes */
+    /* print barcodes */
+        public function printBarcode($id){
+            $id                             = Helper::decoded($id);
+            $data['row']                    = Product::select('sku', 'name', 'barcode', 'barcode_image_url')->where($this->data['primary_key'], '=', $id)->first();
+            return view('admin.maincontents.product.print-barcode', $data);
+        }
+    /* print barcodes */
+    /* search products for barcode */
+        public function generateProductBarcode(Request $request){
+            $data['module']                 = $this->data;
+            $title                          = 'Search Products For Strickers';
+            $page_name                      = 'product.generate-product-barcode';
+            $data['brands']                 = Brand::select('id', 'name')->where('status', '=', 1)->get();
+            $data['rows']                   = [];
+            $data['brand_id']               = '';
+            if($request->isMethod('post')){
+                $data['rows']               = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name')
+                                                ->where('products.status', '!=', 3)
+                                                ->where('products.brand_id', '=', $request->brand_id)
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                $data['brand_id']           = $request->brand_id;
+                echo $this->admin_after_login_layout($title,$page_name,$data);
+            } else {
+                echo $this->admin_after_login_layout($title,$page_name,$data);
+            }
+        }
+        public function printProducts(Request $request){
+            $postData = $request->all();
+            $product_id = $postData['product_id'];
+            $products = [];
+            if(!empty($product_id)){
+                for($p=0;$p<count($product_id);$p++){
+                    $getProduct = Product::select('name', 'retail_price_inc_tax')->where('id', '=', $product_id[$p])->first();
+                    $products[] = [
+                        'name'  => (($getProduct)?$getProduct->name:''),
+                        'price' => (($getProduct)?$getProduct->retail_price_inc_tax:0),
+                    ];
+                }
+            }
+            $data['products'] = $products;
+            return view('admin.maincontents.product.print-products', $data);
+        }
+    /* search products for barcode */
 }

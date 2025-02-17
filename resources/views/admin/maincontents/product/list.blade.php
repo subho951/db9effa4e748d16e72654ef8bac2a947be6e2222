@@ -54,6 +54,10 @@ $controllerRoute = $module['controller_route'];
                       <?php } else {?>
                         <a href="<?=url('admin/' . $controllerRoute . '/change-status/'.Helper::encoded($row->id))?>" class="btn btn-outline-warning btn-sm" title="Deactivate <?=$module['title']?>"><i class="fa fa-times"></i></a>
                       <?php }?>
+                      <br><br>
+                      <?php if($row->barcode_image_url != ''){?>
+                        <a target="_blank" href="<?=url('admin/' . $controllerRoute . '/print-barcode/'.Helper::encoded($row->id))?>" class="btn btn-info btn-sm" title="Print <?=$module['title']?> Barcode"><i class="fa-solid fa-barcode"></i>&nbsp;Print Barcode</a>
+                      <?php }?>
                     </td>
                   </tr>
                 <?php } }?>

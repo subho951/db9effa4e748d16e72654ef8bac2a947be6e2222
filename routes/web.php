@@ -173,6 +173,10 @@ Route::get('/db-test', function () {
                 Route::get('products/select-barcode-suggestions', 'ProductController@selectBarcodeSuggestions');
                 Route::match(['get', 'post'], 'products/upload-product', 'ProductController@uploadProduct');
                 Route::match(['get', 'post'], 'products/delete-upload-product/{id}', 'ProductController@deleteUploadProduct');
+                Route::get('products/print-barcode/{id}', 'ProductController@printBarcode');
+                Route::get('products/generate-product-barcode', 'ProductController@generateProductBarcode');
+                Route::post('products/generate-product-barcode', 'ProductController@generateProductBarcode');
+                Route::post('products/print-products', 'ProductController@printProducts');
             /* customer */
             /* customer */
                 Route::get('customer/list', 'CustomerController@list');

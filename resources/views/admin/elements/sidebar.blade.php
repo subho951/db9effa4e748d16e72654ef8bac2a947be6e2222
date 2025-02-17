@@ -132,6 +132,11 @@ $user_type = session('type');
                <div data-i18n="Upload Products">Upload Products</div>
             </a>
          </li>
+         <li class="menu-item <?=(($pageFunction == 'generate-product-barcode')?'active':'')?>">
+            <a href="<?=url('admin/products/generate-product-barcode')?>" class="menu-link">
+               <div data-i18n="Upload Products">Products Strickers</div>
+            </a>
+         </li>
       </ul>
    </li>
    <!-- Login Logs -->

@@ -4,7 +4,7 @@
 <meta name="description" content="<?=$generalSetting->meta_description?>" />
 <meta name="keywords" content="<?=$generalSetting->meta_title?>">
 <!-- Canonical SEO -->
-<link rel="canonical" href="https://themeselection.com/item/sneat-dashboard-pro-bootstrap/">
+<!-- <link rel="canonical" href="https://themeselection.com/item/sneat-dashboard-pro-bootstrap/"> -->
 <!-- Favicon -->
 <link rel="icon" type="image/x-icon" href="<?=env('UPLOADS_URL')?><?=$generalSetting->site_favicon?>" />
 <!-- Fonts -->

@@ -192,6 +192,30 @@ Route::get('/db-test', function () {
                 Route::get('page/delete/{id}', 'PageController@delete');
                 Route::get('page/change-status/{id}', 'PageController@change_status');
             /* page */
+            /* billing */
+                Route::get('billing/list', 'BillingController@list');
+                Route::get('billing/billing-item/{id}', 'BillingController@billingItem');
+                Route::post('billing/add-to-cart', 'BillingController@addToCart');
+                Route::post('billing/item-delete', 'BillingController@itemDelete');
+                Route::post('billing/billing-change-status', 'BillingController@billingChangeStatus');
+                Route::post('billing/billing-update-qty', 'BillingController@billingUpdateQty');
+                Route::post('billing/billing-select-delivery-address', 'BillingController@billingSelectDeliveryAddress');
+                Route::get('billing/billing-delivery-address/{id}', 'BillingController@billingDeliveryAddress');
+                Route::get('billing/billing-payment/{id}', 'BillingController@billingPayment');
+                Route::post('billing/save-delivery-address', 'BillingController@saveDeliveryAddress');
+                Route::post('billing/billing-select-payment-mode', 'BillingController@billingSelectPaymentMode');
+                Route::post('billing/place-order', 'BillingController@placeOrder');
+                Route::get('billing/billing-search/{id}', 'BillingController@billingSearch');
+                Route::post('billing/search-result', 'BillingController@searchResult');
+                Route::post('billing/search-product-add-to-cart', 'BillingController@searchProductAddToCart');
+                Route::get('billing/billing-shortcuts/{id}', 'BillingController@billingShortcuts');
+                Route::post('billing/validate-admin-pin', 'BillingController@validateAdminPin');
+                Route::post('billing/billing-price-update', 'BillingController@billingPriceUpdate');
+
+                Route::get('billing/billing-recall', 'BillingController@billingRecall');
+                Route::get('billing/past-orders', 'BillingController@pastOrders');
+                Route::get('billing/billing-invoice/{id}', 'BillingController@billingInvoice');
+            /* billing */
         });
     });
 /* Admin Panel */

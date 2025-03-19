@@ -312,6 +312,26 @@ class Controller extends BaseController
         $data['maincontent']        = view('admin.maincontents.'.$page_name, $data);
         return view('admin.layout-after-login', $data);
     }
+    // admin after login billing layout
+    public function admin_after_login_billing_layout($title, $page_name, $data)
+    {
+        $data['generalSetting']     = GeneralSetting::find('1');
+        $data['title']              = $title.' :: '.$data['generalSetting']->site_name;
+        $data['page_header']        = $title;
+        $user_id                    = session('user_id');
+        $data['admin']              = Admin::find($user_id);
+        $userAccess                 = UserAccess::where('user_id', '=', $user_id)->where('status', '=', 1)->first();
+        if($userAccess) {
+            $data['module_id']      = json_decode($userAccess->module_id);
+        } else {
+            $data['module_id']      = [];
+        }
+
+        $data['head']               = view('admin.elements.billing-head', $data);
+        $data['header']             = view('admin.elements.billing-header', $data);
+        $data['maincontent']        = view('admin.maincontents.'.$page_name, $data);
+        return view('admin.layout-billing', $data);
+    }
     // sale operator authentication layout
     public function user_before_login_layout($title, $page_name, $data)
     {

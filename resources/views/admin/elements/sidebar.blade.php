@@ -139,6 +139,25 @@ $user_type = session('type');
          </li>
       </ul>
    </li>
+   <!-- Billing -->
+   <li class="menu-item <?=(($pageSegment == 'billing')?'open':'')?>">
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
+         <i class="menu-icon tf-icons fa fa-list-alt"></i>
+         <div data-i18n="Billing">Billing</div>
+      </a>
+      <ul class="menu-sub">
+         <li class="menu-item <?=(($pageFunction == 'list')?'active':'')?>">
+            <a href="<?=url('admin/billing/list')?>" class="menu-link">
+               <div data-i18n="New">New</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageFunction == 'past-orders')?'active':'')?>">
+            <a href="<?=url('admin/billing/past-orders')?>" class="menu-link">
+               <div data-i18n="Past Orders">Past Orders</div>
+            </a>
+         </li>
+      </ul>
+   </li>
    <!-- Login Logs -->
    <li class="menu-item <?=(($pageSegment == 'login-logs')?'active':'')?>">
       <a href="<?=url('admin/login-logs')?>" class="menu-link">

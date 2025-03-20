@@ -69,7 +69,8 @@ class FrontController extends Controller
                             UserActivity::insert($activityData);
                         /* user activity */
                         // Helper::pr($request->session());
-                        return redirect('user/take-order');
+                        // return redirect('user/take-order');
+                        return redirect('user/billing/list');
                     } else {
                         /* user activity */
                             $activityData = [

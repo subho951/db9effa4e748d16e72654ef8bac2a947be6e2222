@@ -39,8 +39,34 @@ Route::get('/db-test', function () {
     // after login
         Route::group(['prefix' => 'user', 'middleware' => ['admin']], function () {
             Route::match(['get','post'], '/dashboard', 'App\Http\Controllers\FrontController@dashboard');
-            Route::match(['get','post'], '/take-order', 'App\Http\Controllers\FrontController@takeOrder');
+            // Route::match(['get','post'], '/take-order', 'App\Http\Controllers\FrontController@takeOrder');
             Route::get('/signout', 'App\Http\Controllers\FrontController@logout');
+            /* billing */
+                Route::get('billing/list', 'App\Http\Controllers\BillingController@list');
+                Route::get('billing/billing-item/{id}', 'App\Http\Controllers\BillingController@billingItem');
+                Route::post('billing/add-to-cart', 'App\Http\Controllers\BillingController@addToCart');
+                Route::post('billing/item-delete', 'App\Http\Controllers\BillingController@itemDelete');
+                Route::post('billing/billing-change-status', 'App\Http\Controllers\BillingController@billingChangeStatus');
+                Route::post('billing/billing-update-qty', 'App\Http\Controllers\BillingController@billingUpdateQty');
+                Route::post('billing/billing-select-delivery-address', 'App\Http\Controllers\BillingController@billingSelectDeliveryAddress');
+                Route::get('billing/billing-delivery-address/{id}', 'App\Http\Controllers\BillingController@billingDeliveryAddress');
+                Route::get('billing/billing-payment/{id}', 'App\Http\Controllers\BillingController@billingPayment');
+                Route::post('billing/save-delivery-address', 'App\Http\Controllers\BillingController@saveDeliveryAddress');
+                Route::post('billing/billing-select-payment-mode', 'App\Http\Controllers\BillingController@billingSelectPaymentMode');
+                Route::post('billing/place-order', 'App\Http\Controllers\BillingController@placeOrder');
+                Route::get('billing/billing-search/{id}', 'App\Http\Controllers\BillingController@billingSearch');
+                Route::post('billing/search-result', 'App\Http\Controllers\BillingController@searchResult');
+                Route::post('billing/search-product-add-to-cart', 'App\Http\Controllers\BillingController@searchProductAddToCart');
+                Route::get('billing/billing-shortcuts/{id}', 'App\Http\Controllers\BillingController@billingShortcuts');
+                Route::post('billing/validate-admin-pin', 'App\Http\Controllers\BillingController@validateAdminPin');
+                Route::post('billing/billing-price-update', 'App\Http\Controllers\BillingController@billingPriceUpdate');
+
+                Route::get('billing/billing-recall', 'App\Http\Controllers\BillingController@billingRecall');
+                Route::get('billing/billing-ongoing', 'App\Http\Controllers\BillingController@billingOngoing');
+                Route::get('billing/past-orders', 'App\Http\Controllers\BillingController@pastOrders');
+                Route::get('billing/billing-invoice/{id}', 'App\Http\Controllers\BillingController@billingInvoice');
+                Route::get('billing/billing-pdf-invoice/{id}', 'App\Http\Controllers\BillingController@billingPDFInvoice');
+            /* billing */
         });
     // after login
 /* Front Panel */

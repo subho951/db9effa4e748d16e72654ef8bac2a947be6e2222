@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -92,7 +92,7 @@ class BillingController extends Controller
                     }
                 }
             /* order no generate */
-            return redirect("admin/" . $this->data['controller_route'] . "/billing-item/" . Helper::encoded($order_id));
+            return redirect("user/" . $this->data['controller_route'] . "/billing-item/" . Helper::encoded($order_id));
         }
     /* list */
     /* new or existing order */
@@ -110,7 +110,7 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = $this->data['title'].' List';
             $page_name                      = 'billing.list';
-            echo $this->admin_after_login_billing_layout($title,$page_name,$data);
+            echo $this->user_after_login_billing_layout($title,$page_name,$data);
         }
         public function addToCart(Request $request){
             $apiStatus          = TRUE;
@@ -195,7 +195,7 @@ class BillingController extends Controller
                                                             ->where('order_details.order_id', '=', $order_id)
                                                             ->orderBy('order_details.id', 'ASC')
                                                             ->get();
-                        $item_table_html                = view('admin.maincontents.billing.ajax-order-item', $data)->render();
+                        $item_table_html                = view('front.maincontents.billing.ajax-order-item', $data)->render();
                     /* item table rearrange on the go */
                     $apiStatus                          = TRUE;
                     http_response_code(200);
@@ -260,7 +260,7 @@ class BillingController extends Controller
                                                             ->where('order_details.order_id', '=', $order_id)
                                                             ->orderBy('order_details.id', 'ASC')
                                                             ->get();
-                        $item_table_html                = view('admin.maincontents.billing.ajax-order-item', $data)->render();
+                        $item_table_html                = view('front.maincontents.billing.ajax-order-item', $data)->render();
                     /* item table rearrange on the go */
                     $apiStatus                          = TRUE;
                     http_response_code(200);
@@ -380,7 +380,7 @@ class BillingController extends Controller
                                                                 ->where('order_details.order_id', '=', $order_id)
                                                                 ->orderBy('order_details.id', 'ASC')
                                                                 ->get();
-                            $item_table_html                = view('admin.maincontents.billing.ajax-order-item', $data)->render();
+                            $item_table_html                = view('front.maincontents.billing.ajax-order-item', $data)->render();
                         /* item table rearrange on the go */
                         $apiStatus                          = TRUE;
                         http_response_code(200);
@@ -433,11 +433,11 @@ class BillingController extends Controller
                     }
                     if($delivery_mode == 'Deliver'){
                         $is_redirect    = 1;
-                        $redirect_url   = url('admin/billing/billing-delivery-address/' . Helper::encoded($order_id));
+                        $redirect_url   = url('user/billing/billing-delivery-address/' . Helper::encoded($order_id));
                     }
                     if($delivery_mode == 'Pickup'){
                         $is_redirect    = 1;
-                        $redirect_url   = url('admin/billing/billing-delivery-address/' . Helper::encoded($order_id));
+                        $redirect_url   = url('user/billing/billing-delivery-address/' . Helper::encoded($order_id));
                     }
                     $apiResponse                        = [
                         'is_redirect'   => $is_redirect,
@@ -477,7 +477,7 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = 'Delivery Address';
             $page_name                      = 'billing.billing-delivery-address';
-            echo $this->admin_after_login_billing_layout($title,$page_name,$data);
+            echo $this->user_after_login_billing_layout($title,$page_name,$data);
         }
         public function billingPayment($order_id){
             $order_id                       = Helper::decoded($order_id);
@@ -492,7 +492,7 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = 'Payment';
             $page_name                      = 'billing.billing-payment';
-            echo $this->admin_after_login_billing_layout($title,$page_name,$data);
+            echo $this->user_after_login_billing_layout($title,$page_name,$data);
         }
         public function saveDeliveryAddress(Request $request){
             $apiStatus          = TRUE;
@@ -634,7 +634,7 @@ class BillingController extends Controller
                         $order_no                       = (($data['getOrderDetail'])?$data['getOrderDetail']->order_no:'');
                         $generalSetting                 = GeneralSetting::find('1');
                         $subject                        = 'Invoice-' . $order_no;
-                        $message                        = view('admin.maincontents.billing.pdf-invoice', $data);                        
+                        $message                        = view('front.maincontents.billing.pdf-invoice', $data);                        
                         // echo $message;die;
                         $options        = new Options();
                         $options->set('defaultFont', 'Courier');
@@ -685,7 +685,7 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = $this->data['title'].' Search and Shortcuts';
             $page_name                      = 'billing.billing-search';
-            echo $this->admin_after_login_billing_layout($title,$page_name,$data);
+            echo $this->user_after_login_billing_layout($title,$page_name,$data);
         }
         public function searchResult(Request $request){
             $apiStatus          = TRUE;
@@ -731,7 +731,7 @@ class BillingController extends Controller
                     }
                     // Helper::pr($products);
                     $data['products']                   = $products;
-                    $item_table_html                    = view('admin.maincontents.billing.ajax-search-item', $data)->render();
+                    $item_table_html                    = view('front.maincontents.billing.ajax-search-item', $data)->render();
                     $apiResponse                        = [
                                                             'item_table_html' => $item_table_html,
                                                             ];
@@ -833,7 +833,7 @@ class BillingController extends Controller
                         //                                     ->where('order_details.order_id', '=', $order_id)
                         //                                     ->orderBy('order_details.id', 'ASC')
                         //                                     ->get();
-                        // $item_table_html                = view('admin.maincontents.billing.ajax-order-item', $data)->render();
+                        // $item_table_html                = view('front.maincontents.billing.ajax-order-item', $data)->render();
                     /* item table rearrange on the go */
                     $apiStatus                          = TRUE;
                     http_response_code(200);
@@ -873,7 +873,7 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = $this->data['title'].' Search and Shortcuts';
             $page_name                      = 'billing.billing-shortcuts';
-            echo $this->admin_after_login_billing_layout($title,$page_name,$data);
+            echo $this->user_after_login_billing_layout($title,$page_name,$data);
         }
         public function validateAdminPin(Request $request){
             $apiStatus          = TRUE;
@@ -969,7 +969,7 @@ class BillingController extends Controller
                                                             ->where('order_details.order_id', '=', $order_id)
                                                             ->orderBy('order_details.id', 'ASC')
                                                             ->get();
-                        $item_table_html                = view('admin.maincontents.billing.ajax-order-item', $data)->render();
+                        $item_table_html                = view('front.maincontents.billing.ajax-order-item', $data)->render();
                     /* item table rearrange on the go */
                     $apiStatus                          = TRUE;
                     http_response_code(200);
@@ -1001,14 +1001,14 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = 'Past Orders';
             $page_name                      = 'billing.past-orders';
-            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'note', 'delivery_mode', 'pdf_invoice')->where('status', '=', 5)->orderBy('id', 'DESC')->get();
-            echo $this->admin_after_login_billing_layout($title,$page_name,$data);
+            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'note', 'delivery_mode', 'pdf_invoice')->where('status', '=', 5)->where('operator_id', '=', session('user_id'))->orderBy('id', 'DESC')->get();
+            echo $this->user_after_login_billing_layout($title,$page_name,$data);
         }
         public function billingInvoice($order_id){
             $order_id                       = Helper::decoded($order_id);
             $data['module']                 = $this->data;
             $data['getOrderDetail']         = Order::where('id', '=', $order_id)->first();
-            return view('admin.maincontents.billing.print-invoice', $data);
+            return view('front.maincontents.billing.print-invoice', $data);
         }
         public function billingPDFInvoice($order_id){
             $order_id                       = Helper::decoded($order_id);
@@ -1017,7 +1017,7 @@ class BillingController extends Controller
             $order_no                       = (($data['getOrderDetail'])?$data['getOrderDetail']->order_no:'');
             $generalSetting                 = GeneralSetting::find('1');
             $subject                        = 'Invoice-' . $order_no;
-            $message                        = view('admin.maincontents.billing.pdf-invoice', $data);                        
+            $message                        = view('front.maincontents.billing.pdf-invoice', $data);                        
             // echo $message;die;
             $options        = new Options();
             $options->set('defaultFont', 'Courier');
@@ -1032,7 +1032,7 @@ class BillingController extends Controller
             $pdfFilePath    = 'public/uploads/invoice/' . $filename;
             file_put_contents($pdfFilePath, $output);
             Order::where('id', '=', $order_id)->update(['pdf_invoice' => $filename]);
-            return view('admin.maincontents.billing.pdf-invoice', $data);
+            return view('front.maincontents.billing.pdf-invoice', $data);
         }
     /* past orders */
     /* recall orders */
@@ -1040,8 +1040,8 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = 'Recall Orders';
             $page_name                      = 'billing.billing-recall';
-            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'status')->where('status', '=', 3)->orderBy('id', 'DESC')->get();
-            echo $this->admin_after_login_billing_layout($title,$page_name,$data);
+            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'status')->where('status', '=', 3)->where('operator_id', '=', session('user_id'))->orderBy('id', 'DESC')->get();
+            echo $this->user_after_login_billing_layout($title,$page_name,$data);
         }
     /* recall orders */
     /* ongoing orders */
@@ -1049,8 +1049,8 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = 'Ongoing Orders';
             $page_name                      = 'billing.billing-ongoing';
-            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'status')->where('status', '<', 3)->orderBy('id', 'DESC')->get();
-            echo $this->admin_after_login_billing_layout($title,$page_name,$data);
+            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'status')->where('status', '<', 3)->where('operator_id', '=', session('user_id'))->orderBy('id', 'DESC')->get();
+            echo $this->user_after_login_billing_layout($title,$page_name,$data);
         }
     /* ongoing orders */
 }

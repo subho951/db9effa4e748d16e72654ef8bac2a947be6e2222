@@ -10,8 +10,8 @@ $current_url          = url()->current();
             <div class="order-summary-left">
                 <div class="mb-3 d-flex justify-content-between">
                     <p class="order-header">ORDER #: <?=(($getOrder)?$getOrder->order_no:'')?></p>
-                    <a href="<?=url('admin/billing/billing-ongoing')?>" class="my-btn btn-orange">Ongoing Orders</i></a>
-                    <a href="<?=url('admin/billing/past-orders')?>" class="my-btn btn-orange">Past Orders</i></a>
+                    <a href="<?=url('user/billing/billing-ongoing')?>" class="my-btn btn-orange">Ongoing Orders</i></a>
+                    <a href="<?=url('user/billing/past-orders')?>" class="my-btn btn-orange">Past Orders</i></a>
                 </div>
                 <div class="my-5">
                     <?php if($getOrder){ if($getOrder->delivery_mode != ''){?>
@@ -50,7 +50,7 @@ $current_url          = url()->current();
             <div class="order-summery-left-bottom">
                 <div class="row my-4">
                     <div class="col-md-12 d-flex justify-content-start">
-                        <a href="<?=url('admin/billing/list')?>" class="my-btn btn-sky">BACK</a>
+                        <a href="<?=url('user/billing/list')?>" class="my-btn btn-sky">BACK</a>
                     </div>
                 </div>
             </div>
@@ -270,7 +270,7 @@ $current_url          = url()->current();
         if (confirm("Are you sure you want to delete this product from cart ?")) {
             // User clicked "Yes", proceed with AJAX
             $.ajax({
-                url: base_url + "/admin/billing/item-delete",
+                url: base_url + "/user/billing/item-delete",
                 type: "POST",
                 data: {"_token": "{{ csrf_token() }}", key : "db9effa4e748d16e72654ef8bac2a947be6e2222", item_id : itemId, order_id : orderId},
                 beforeSend: function () {
@@ -306,7 +306,7 @@ $current_url          = url()->current();
         $('#qty-val-' + itemId).val(qtyVal);
         $('#qty-text-' + itemId).text(qtyVal);
         $.ajax({
-            url: base_url + "/admin/billing/billing-update-qty",
+            url: base_url + "/user/billing/billing-update-qty",
             type: "POST",
             data: {"_token": "{{ csrf_token() }}", key : "db9effa4e748d16e72654ef8bac2a947be6e2222", item_id : itemId, order_id : orderId, qtyVal : qtyVal},
             beforeSend: function () {
@@ -337,7 +337,7 @@ $current_url          = url()->current();
             $('#qty-val-' + itemId).val(qtyVal);
             $('#qty-text-' + itemId).text(qtyVal);
             $.ajax({
-                url: base_url + "/admin/billing/billing-update-qty",
+                url: base_url + "/user/billing/billing-update-qty",
                 type: "POST",
                 data: {"_token": "{{ csrf_token() }}", key : "db9effa4e748d16e72654ef8bac2a947be6e2222", item_id : itemId, order_id : orderId, qtyVal : qtyVal},
                 beforeSend: function () {
@@ -371,7 +371,7 @@ $current_url          = url()->current();
             var order_id        = '<?=(($getOrder)?$getOrder->id:0)?>';
             var note            = $('#note').val();
             $.ajax({
-                url: base_url + "/admin/billing/billing-select-payment-mode",
+                url: base_url + "/user/billing/billing-select-payment-mode",
                 type: "POST",
                 data: {
                     "_token": "{{ csrf_token() }}",
@@ -409,7 +409,7 @@ $current_url          = url()->current();
             var formData = new FormData(this);
             $.ajax({
                 type: "POST",
-                url: base_url + "/admin/billing/billing-select-payment-mode",
+                url: base_url + "/user/billing/billing-select-payment-mode",
                 data: formData,
                 cache: false,
                 contentType: false,
@@ -443,7 +443,7 @@ $current_url          = url()->current();
             var formData = new FormData(this);
             $.ajax({
                 type: "POST",
-                url: base_url + "/admin/billing/billing-select-payment-mode",
+                url: base_url + "/user/billing/billing-select-payment-mode",
                 data: formData,
                 cache: false,
                 contentType: false,
@@ -477,7 +477,7 @@ $current_url          = url()->current();
         $('#placeOrderModal').modal('hide');
         var note = $('#note').val();
         $.ajax({
-            url: base_url + "/admin/billing/place-order",
+            url: base_url + "/user/billing/place-order",
             type: "POST",
             data: {"_token": "{{ csrf_token() }}", key : "db9effa4e748d16e72654ef8bac2a947be6e2222", order_id : orderId, note : note},
             beforeSend: function () {
@@ -486,7 +486,7 @@ $current_url          = url()->current();
             success: function(res) {
                 $("#loader").hide();
                 if(res.status){
-                    var redirect_url = base_url + '/admin/billing/past-orders';
+                    var redirect_url = base_url + '/user/billing/past-orders';
                     toastAlert("success", res.message, true, redirect_url);
                 }else{
                     toastAlert("error", res.message);

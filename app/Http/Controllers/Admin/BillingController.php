@@ -1009,6 +1009,30 @@ class BillingController extends Controller
             $data['getOrderDetail']         = Order::where('id', '=', $order_id)->first();
             return view('admin.maincontents.billing.print-invoice', $data);
         }
+        public function billingPDFInvoice($order_id){
+            $order_id                       = Helper::decoded($order_id);
+            $data['module']                 = $this->data;
+            $data['getOrderDetail']         = Order::where('id', '=', $order_id)->first();
+            $order_no                       = (($data['getOrderDetail'])?$data['getOrderDetail']->order_no:'');
+            $generalSetting                 = GeneralSetting::find('1');
+            $subject                        = 'Invoice-' . $order_no;
+            $message                        = view('admin.maincontents.billing.pdf-invoice', $data);                        
+            // echo $message;die;
+            $options        = new Options();
+            $options->set('defaultFont', 'Courier');
+            $dompdf         = new Dompdf($options);
+            $html           = $message;
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            $output         = $dompdf->output();
+            $dompdf->stream("document.pdf", array("Attachment" => false));die;
+            $filename       = $order_no.'.pdf';
+            $pdfFilePath    = 'public/uploads/invoice/' . $filename;
+            file_put_contents($pdfFilePath, $output);
+            Order::where('id', '=', $order_id)->update(['pdf_invoice' => $filename]);
+            return view('admin.maincontents.billing.pdf-invoice', $data);
+        }
     /* past orders */
     /* recall orders */
         public function billingRecall(){

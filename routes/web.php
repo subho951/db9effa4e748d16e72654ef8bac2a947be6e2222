@@ -216,6 +216,7 @@ Route::get('/db-test', function () {
                 Route::get('billing/billing-ongoing', 'BillingController@billingOngoing');
                 Route::get('billing/past-orders', 'BillingController@pastOrders');
                 Route::get('billing/billing-invoice/{id}', 'BillingController@billingInvoice');
+                Route::get('billing/billing-pdf-invoice/{id}', 'BillingController@billingPDFInvoice');
             /* billing */
         });
     });

@@ -10,9 +10,10 @@ $generalSetting = GeneralSetting::find(1);
 <!-- Favicon -->
 <link rel="icon" type="image/x-icon" href="<?=env('UPLOADS_URL')?><?=$generalSetting->site_favicon?>" />
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <div class="container-fluid invoice-container" style="margin: 15px auto;padding: 40px;max-width: 850px;background-color: #fff;border: 1px solid #ccc;-moz-border-radius: 6px;-webkit-border-radius: 6px;-o-border-radius: 6px;border-radius: 6px;">
    <header class="text-center">
-      <div class="btn-group btn-group-sm d-print-none"> <a href="javascript:window.print();" class="btn btn-light border text-black-50 shadow-none"><i class="fa fa-print"></i> Print</a> </div>
+      <div class="btn-group btn-group-sm d-print-none"> <a href="javascript:window.print();" class="btn btn-light border text-black-50 shadow-none"><i class="fa fa-print"></i> PRINT</a> </div>
    </header>
    <table class="table table-bordered border border-secondary mb-0">
       <tbody>

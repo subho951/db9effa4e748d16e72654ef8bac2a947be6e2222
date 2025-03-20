@@ -11,9 +11,6 @@ $generalSetting = GeneralSetting::find(1);
 <link rel="icon" type="image/x-icon" href="<?=env('UPLOADS_URL')?><?=$generalSetting->site_favicon?>" />
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 <div class="container-fluid invoice-container" style="margin: 15px auto;padding: 40px;max-width: 850px;background-color: #fff;border: 1px solid #ccc;-moz-border-radius: 6px;-webkit-border-radius: 6px;-o-border-radius: 6px;border-radius: 6px;">
-   <header class="text-center">
-      <div class="btn-group btn-group-sm d-print-none"> <a href="javascript:window.print()" class="btn btn-light border text-black-50 shadow-none"><i class="fa fa-print"></i> Print & Download</a> </div>
-   </header>
    <table class="table table-bordered border border-secondary mb-0">
       <tbody>
          <tr>

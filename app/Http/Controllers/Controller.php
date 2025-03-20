@@ -64,8 +64,8 @@ class Controller extends BaseController
         } else {
             $imageFileType1 = pathinfo($imge, PATHINFO_EXTENSION);
             if($uploadType == 'image') {
-                if($imageFileType1 != "jpg" && $imageFileType1 != "png" && $imageFileType1 != "jpeg" && $imageFileType1 != "JPG" && $imageFileType1 != "PNG" && $imageFileType1 != "JPEG" && $imageFileType1 != "ico" && $imageFileType1 != "ICO" && $imageFileType1 != "SVG" && $imageFileType1 != "svg") {
-                    $message = 'Sorry, only JPG, JPEG, ICO, SVG, PNG files are allowed';
+                if($imageFileType1 != "jpg" && $imageFileType1 != "png" && $imageFileType1 != "jpeg" && $imageFileType1 != "JPG" && $imageFileType1 != "PNG" && $imageFileType1 != "JPEG" && $imageFileType1 != "ico" && $imageFileType1 != "ICO" && $imageFileType1 != "SVG" && $imageFileType1 != "svg" && $imageFileType1 != "GIF" && $imageFileType1 != "gif" && $imageFileType1 != "WEBP" && $imageFileType1 != "webp" && $imageFileType1 != "AVIF" && $imageFileType1 != "avif") {
+                    $message = 'Sorry, only JPG, JPEG, ICO, SVG, PNG, GIF, WEBP & AVIF files are allowed';
                     $status = 0;
                 } else {
                     $message = 'Upload ok';
@@ -112,8 +112,8 @@ class Controller extends BaseController
                     $status = 1;
                 }
             } elseif($uploadType == 'custom') {
-                if($imageFileType1 != "doc" && $imageFileType1 != "DOC" && $imageFileType1 != "docx" && $imageFileType1 != "DOCX" && $imageFileType1 != "pdf" && $imageFileType1 != "PDF" && $imageFileType1 != "ppt" && $imageFileType1 != "PPT" && $imageFileType1 != "pptx" && $imageFileType1 != "PPTX" && $imageFileType1 != "txt" && $imageFileType1 != "TXT" && $imageFileType1 != "xls" && $imageFileType1 != "XLS" && $imageFileType1 != "xlsx" && $imageFileType1 != "XLSX" && $imageFileType1 != "jpg" && $imageFileType1 != "png" && $imageFileType1 != "jpeg" && $imageFileType1 != "JPG" && $imageFileType1 != "PNG" && $imageFileType1 != "JPEG" && $imageFileType1 != "ico" && $imageFileType1 != "ICO" && $imageFileType1 != "SVG" && $imageFileType1 != "svg") {
-                    $message = 'Sorry, only .DOC,.DOCX,.PPT,.PPTX,.PDF,.XLS,.XLSX,JPG, JPEG, ICO, SVG, PNG files are allowed';
+                if($imageFileType1 != "doc" && $imageFileType1 != "DOC" && $imageFileType1 != "docx" && $imageFileType1 != "DOCX" && $imageFileType1 != "pdf" && $imageFileType1 != "PDF" && $imageFileType1 != "ppt" && $imageFileType1 != "PPT" && $imageFileType1 != "pptx" && $imageFileType1 != "PPTX" && $imageFileType1 != "txt" && $imageFileType1 != "TXT" && $imageFileType1 != "xls" && $imageFileType1 != "XLS" && $imageFileType1 != "xlsx" && $imageFileType1 != "XLSX" && $imageFileType1 != "jpg" && $imageFileType1 != "png" && $imageFileType1 != "jpeg" && $imageFileType1 != "JPG" && $imageFileType1 != "PNG" && $imageFileType1 != "JPEG" && $imageFileType1 != "ico" && $imageFileType1 != "ICO" && $imageFileType1 != "SVG" && $imageFileType1 != "svg" && $imageFileType1 != "GIF" && $imageFileType1 != "gif" && $imageFileType1 != "WEBP" && $imageFileType1 != "webp" && $imageFileType1 != "AVIF" && $imageFileType1 != "avif") {
+                    $message = 'Sorry, only DOC, DOCX, PPT, PPTX, PDF, XLS, XLSX, JPG, JPEG, ICO, SVG, PNG, GIF, WEBP & AVIF files are allowed';
                     $status = 0;
                 } else {
                     $message = 'Upload ok';
@@ -171,8 +171,8 @@ class Controller extends BaseController
                 } else {
                     $imageFileType1 = pathinfo($imge, PATHINFO_EXTENSION);
                     if($uploadType == 'image') {
-                        if($imageFileType1 != "jpg" && $imageFileType1 != "png" && $imageFileType1 != "jpeg" && $imageFileType1 != "gif" && $imageFileType1 != "JPG" && $imageFileType1 != "PNG" && $imageFileType1 != "JPEG" && $imageFileType1 != "GIF" && $imageFileType1 != "ico" && $imageFileType1 != "ICO" && $imageFileType1 != "svg" && $imageFileType1 != "SVG" && $imageFileType1 != "avif" && $imageFileType1 != "AVIF") {
-                            $message = 'Sorry, only JPG, JPEG, ICO, PNG, GIF, SVG, AVIF files are allowed';
+                        if($imageFileType1 != "jpg" && $imageFileType1 != "png" && $imageFileType1 != "jpeg" && $imageFileType1 != "gif" && $imageFileType1 != "JPG" && $imageFileType1 != "PNG" && $imageFileType1 != "JPEG" && $imageFileType1 != "GIF" && $imageFileType1 != "ico" && $imageFileType1 != "ICO" && $imageFileType1 != "svg" && $imageFileType1 != "SVG" && $imageFileType1 != "GIF" && $imageFileType1 != "gif" && $imageFileType1 != "WEBP" && $imageFileType1 != "webp" && $imageFileType1 != "AVIF" && $imageFileType1 != "avif") {
+                            $message = 'Sorry, only JPG, JPEG, ICO, PNG, GIF, SVG & AVIF files are allowed';
                             $status = 0;
                         } else {
                             $message = 'Upload ok';

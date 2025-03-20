@@ -10,6 +10,7 @@ $current_url          = url()->current();
             <div class="order-summary-left">
                 <div class="mb-3 d-flex justify-content-between">
                     <p class="order-header">ORDER #: <?=(($getOrder)?$getOrder->order_no:'')?></p>
+                    <a href="<?=url('admin/billing/billing-ongoing')?>" class="my-btn btn-orange">Ongoing Orders</i></a>
                     <a href="<?=url('admin/billing/past-orders')?>" class="my-btn btn-orange">Past Orders</i></a>
                 </div>
                 <div class="my-5">
@@ -96,7 +97,7 @@ $current_url          = url()->current();
                 <div class="footer-notes p-4 pb-0">
                     <div class="d-flex justify-content-between align-items-center">
                         <p class="me-2">Notes </p>
-                        <input type="text" class="form-control" id="note" placeholder="Notes">
+                        <input type="text" class="form-control" id="note" value="<?=$getOrder->note?>" placeholder="Notes">
                     </div>
                 </div>
                 <div class="order-footer p-4">
@@ -176,10 +177,111 @@ $current_url          = url()->current();
 </div>
 <script type="text/javascript">
     var base_url = '<?=url('/')?>';
+    function itemDelete(itemId, orderId){
+        // Show confirmation box
+        if (confirm("Are you sure you want to delete this product from cart ?")) {
+            // User clicked "Yes", proceed with AJAX
+            $.ajax({
+                url: base_url + "/admin/billing/item-delete",
+                type: "POST",
+                data: {"_token": "{{ csrf_token() }}", key : "db9effa4e748d16e72654ef8bac2a947be6e2222", item_id : itemId, order_id : orderId},
+                beforeSend: function () {
+                    $("#loader").show();
+                },
+                success: function(res) {
+                    $("#loader").hide();
+                    if(res.status){
+                        toastAlert("success", res.message);
+                        $('#order-item').empty();
+                        $('#order-item').html(res.data.item_table_html);
+                        // setTimeout(function() {
+                        //     location.reload();
+                        // }, 3000);
+                    }else{
+                        toastAlert("error", res.message);
+                    }
+                },
+                error:function (xhr, ajaxOptions, thrownError){
+                    $("#loader").hide();
+                    var res = xhr.responseJSON;
+                    if(!res.status) {
+                        toastAlert("error", res.message);
+                    }
+                }
+            });
+        } else {
+            toastAlert("error", "Delete action cancelled");
+        }
+    }
+    function itemQtyIncrease(itemId, orderId){
+        var qtyVal = parseInt($('#qty-val-' + itemId).val()) + 1;
+        $('#qty-val-' + itemId).val(qtyVal);
+        $('#qty-text-' + itemId).text(qtyVal);
+        $.ajax({
+            url: base_url + "/admin/billing/billing-update-qty",
+            type: "POST",
+            data: {"_token": "{{ csrf_token() }}", key : "db9effa4e748d16e72654ef8bac2a947be6e2222", item_id : itemId, order_id : orderId, qtyVal : qtyVal},
+            beforeSend: function () {
+                $("#loader").show();
+            },
+            success: function(res) {
+                $("#loader").hide();
+                if(res.status){
+                    toastAlert("success", res.message);
+                    $('#order-item').empty();
+                    $('#order-item').html(res.data.item_table_html);
+                }else{
+                    toastAlert("error", res.message);
+                }
+            },
+            error:function (xhr, ajaxOptions, thrownError){
+                $("#loader").hide();
+                var res = xhr.responseJSON;
+                if(!res.status) {
+                    toastAlert("error", res.message);
+                }
+            }
+        });
+    }
+    function itemQtyDecrease(itemId, orderId){
+        var qtyVal = parseInt($('#qty-val-' + itemId).val()) - 1;
+        if(qtyVal >= 1){
+            $('#qty-val-' + itemId).val(qtyVal);
+            $('#qty-text-' + itemId).text(qtyVal);
+            $.ajax({
+                url: base_url + "/admin/billing/billing-update-qty",
+                type: "POST",
+                data: {"_token": "{{ csrf_token() }}", key : "db9effa4e748d16e72654ef8bac2a947be6e2222", item_id : itemId, order_id : orderId, qtyVal : qtyVal},
+                beforeSend: function () {
+                    $("#loader").show();
+                },
+                success: function(res) {
+                    $("#loader").hide();
+                    if(res.status){
+                        toastAlert("success", res.message);
+                        $('#order-item').empty();
+                        $('#order-item').html(res.data.item_table_html);
+                    }else{
+                        toastAlert("error", res.message);
+                    }
+                },
+                error:function (xhr, ajaxOptions, thrownError){
+                    $("#loader").hide();
+                    var res = xhr.responseJSON;
+                    if(!res.status) {
+                        toastAlert("error", res.message);
+                    }
+                }
+            });
+        } else {
+            toastAlert("error", 'Product quantity can\'t be less than 1');
+        }
+    }
     $(document).ready(function() {
         $(".radioOption").change(function() {
             var selectedValue   = $("input[name='payment_mode']:checked").val(); // Get checked value
             var order_id        = '<?=(($getOrder)?$getOrder->id:0)?>';
+            var note            = $('#note').val();
             $.ajax({
                 url: base_url + "/admin/billing/billing-select-payment-mode",
                 type: "POST",
@@ -188,6 +290,7 @@ $current_url          = url()->current();
                     key : "db9effa4e748d16e72654ef8bac2a947be6e2222",
                     order_id: order_id,
                     payment_mode: selectedValue,
+                    note: note,
                 },
                 dataType: "json",
                 beforeSend: function () {

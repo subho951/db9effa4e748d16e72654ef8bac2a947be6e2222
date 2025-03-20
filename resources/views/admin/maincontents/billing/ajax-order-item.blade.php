@@ -36,7 +36,7 @@
     <div class="footer-notes p-4 pb-0">
         <div class="d-flex justify-content-between align-items-center">
             <p class="me-2">Notes </p>
-            <input type="text" class="form-control" placeholder="Notes">
+            <input type="text" class="form-control" id="note" value="<?=$getOrder->note?>" placeholder="Notes">
         </div>
     </div>
     <div class="order-footer p-4">

@@ -58,11 +58,11 @@ $current_url          = url()->current();
                                     <span class="badge bg-danger">Cancel Order</span>
                                 <?php }?>
                             </td>
-                            <td><a href="<?=url('admin/billing/billing-item/' . Helper::encoded($row->id))?>"><button class="btn btn-custom">DETAILS</button></a></td>
+                            <td><a href="<?=url('admin/billing/billing-item/' . Helper::encoded($row->id))?>"><button class="btn btn-custom">RECALL</button></a></td>
                         </tr>
                     <?php } } else {?>
                         <tr>
-                            <td colspan="9" style="color: red !important; text-align: center;">No past orders found</td>
+                            <td colspan="9" style="color: red !important; text-align: center;">No hold orders found</td>
                         </tr>
                     <?php }?>
                 </tbody>

@@ -213,6 +213,7 @@ Route::get('/db-test', function () {
                 Route::post('billing/billing-price-update', 'BillingController@billingPriceUpdate');
 
                 Route::get('billing/billing-recall', 'BillingController@billingRecall');
+                Route::get('billing/billing-ongoing', 'BillingController@billingOngoing');
                 Route::get('billing/past-orders', 'BillingController@pastOrders');
                 Route::get('billing/billing-invoice/{id}', 'BillingController@billingInvoice');
             /* billing */

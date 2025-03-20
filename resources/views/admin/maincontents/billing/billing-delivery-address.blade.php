@@ -10,6 +10,7 @@ $current_url          = url()->current();
             <div class="order-summary-left">
                 <div class="mb-3 d-flex justify-content-between">
                     <p class="order-header">ORDER #: <?=(($getOrder)?$getOrder->order_no:'')?></p>
+                    <a href="<?=url('admin/billing/billing-ongoing')?>" class="my-btn btn-orange">Ongoing Orders</i></a>
                     <a href="<?=url('admin/billing/past-orders')?>" class="my-btn btn-orange">Past Orders</i></a>
                 </div>
                 <div class="my-5">
@@ -184,7 +185,7 @@ $current_url          = url()->current();
                 <div class="footer-notes p-4 pb-0">
                     <div class="d-flex justify-content-between align-items-center">
                         <p class="me-2">Notes </p>
-                        <input type="text" class="form-control" placeholder="Notes">
+                        <input type="text" class="form-control" id="note" value="<?=$getOrder->note?>" placeholder="Notes">
                     </div>
                 </div>
                 <div class="order-footer p-4">
@@ -410,16 +411,19 @@ $current_url          = url()->current();
         });
     }
     $(document).ready(function() {
-        $(".radioOption").change(function() {
+        $(".deliveryOption").change(function() {
             var selectedValue   = $("input[name='delivery_mode']:checked").val(); // Get checked value
             var order_id        = '<?=(($getOrder)?$getOrder->id:0)?>';
+            var note            = $('#note').val();
             $.ajax({
                 url: base_url + "/admin/billing/billing-select-delivery-address",
                 type: "POST",
                 data: {
-                    _token: $('meta[name="csrf-token"]').attr('content'), // CSRF Token
+                    "_token": "{{ csrf_token() }}",
+                    key : "db9effa4e748d16e72654ef8bac2a947be6e2222",
                     order_id: order_id,
                     delivery_mode: selectedValue,
+                    note: note,
                 },
                 dataType: "json",
                 beforeSend: function () {

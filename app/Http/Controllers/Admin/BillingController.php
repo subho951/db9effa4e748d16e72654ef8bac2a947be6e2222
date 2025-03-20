@@ -18,6 +18,8 @@ use Session;
 use Helper;
 use Hash;
 use DB;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 class BillingController extends Controller
 {
     public function __construct()
@@ -120,7 +122,22 @@ class BillingController extends Controller
             if($requestData['key'] == env('PROJECT_KEY')){
                 $barcode            = $requestData['barcode'];
                 $order_id           = $requestData['order_id'];
-                $getProduct         = Product::where('barcode', '=', $barcode)->first();
+                // $getProduct         = Product::where('barcode', '=', $barcode)->first();
+                $getProduct         = Product::select(
+                                                        'id',
+                                                        'name',
+                                                        'sku',
+                                                        'retail_price_inc_tax',
+                                                        'barcode',
+                                                    )
+                                            ->where(function($query) {
+                                                $query->where('status', 1);
+                                            })
+                                            ->where(function($query) use ($barcode) {
+                                                    $query->where('barcode', 'LIKE', '%'.$barcode.'%')
+                                                      ->orWhere('sku', 'LIKE', '%'.$barcode.'%');
+                                            })
+                                            ->first();
                 if($getProduct){
                     /* orders details table */
                         $checkAlreadyAdded = OrderDetail::where('order_id', '=', $order_id)->where('item_id', '=', $getProduct->id)->first();
@@ -406,9 +423,10 @@ class BillingController extends Controller
             if($requestData['key'] == env('PROJECT_KEY')){
                 $delivery_mode      = $requestData['delivery_mode'];
                 $order_id           = $requestData['order_id'];
+                $note               = $requestData['note'];
                 $getOrder           = Order::where('id', '=', $order_id)->first();
                 if($getOrder){
-                    Order::where('id', '=', $order_id)->update(['delivery_mode' => $delivery_mode, 'status' => 1]);
+                    Order::where('id', '=', $order_id)->update(['delivery_mode' => $delivery_mode, 'status' => 1, 'note' => $note]);
                     if($delivery_mode == 'Take'){
                         $is_redirect    = 0;
                         $redirect_url   = '';
@@ -483,7 +501,6 @@ class BillingController extends Controller
             $apiExtraField      = '';
             $apiExtraData       = '';
             $requestData        = $request->all();
-            // Helper::pr($requestData);
             if($requestData['key'] == env('PROJECT_KEY')){
                 $order_id           = $requestData['order_id'];
                 $getOrder           = Order::where('id', '=', $order_id)->first();
@@ -563,9 +580,10 @@ class BillingController extends Controller
             if($requestData['key'] == env('PROJECT_KEY')){
                 $payment_mode      = $requestData['payment_mode'];
                 $order_id           = $requestData['order_id'];
+                $note               = $requestData['note'];
                 $getOrder           = Order::where('id', '=', $order_id)->first();
                 if($getOrder){
-                    Order::where('id', '=', $order_id)->update(['payment_mode' => $payment_mode, 'status' => 2]);
+                    Order::where('id', '=', $order_id)->update(['payment_mode' => $payment_mode, 'status' => 2, 'note' => $note]);
                     $apiStatus                          = TRUE;
                     http_response_code(200);
                     $apiMessage                         = 'Order payment mode selected as ' . $payment_mode . ' successfully';
@@ -609,6 +627,28 @@ class BillingController extends Controller
                         'status'            => 5,
                     ];
                     Order::where('id', '=', $order_id)->update($fields);
+
+                    /* invoice pdf generate */
+                        $data['getOrderDetail']         = Order::where('id', '=', $order_id)->first();
+                        $order_no                       = (($data['getOrderDetail'])?$data['getOrderDetail']->order_no:'');
+                        $generalSetting                 = GeneralSetting::find('1');
+                        $subject                        = 'Invoice-' . $order_no;
+                        $message                        = view('admin.maincontents.billing.pdf-invoice', $data);                        
+                        // echo $message;die;
+                        $options        = new Options();
+                        $options->set('defaultFont', 'Courier');
+                        $dompdf         = new Dompdf($options);
+                        $html           = $message;
+                        $dompdf->loadHtml($html);
+                        $dompdf->setPaper('A4', 'portrait');
+                        $dompdf->render();
+                        $output         = $dompdf->output();
+                        // $dompdf->stream("document.pdf", array("Attachment" => true));die;
+                        $filename       = $order_no.'.pdf';
+                        $pdfFilePath    = 'public/uploads/invoice/' . $filename;
+                        file_put_contents($pdfFilePath, $output);
+                        Order::where('id', '=', $order_id)->update(['pdf_invoice' => $filename]);
+                    /* invoice pdf generate */
                     $apiStatus                          = TRUE;
                     http_response_code(200);
                     $apiMessage                         = 'Order placed successfully';
@@ -653,7 +693,6 @@ class BillingController extends Controller
             $apiExtraField      = '';
             $apiExtraData       = '';
             $requestData        = $request->all();
-            // Helper::pr($requestData);
             if($requestData['key'] == env('PROJECT_KEY')){
                 $order_id           = $requestData['order_id'];
                 $search_keyword     = $requestData['search_keyword'];
@@ -961,7 +1000,7 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = 'Past Orders';
             $page_name                      = 'billing.past-orders';
-            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'note')->where('status', '=', 5)->orderBy('id', 'DESC')->get();
+            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'note', 'delivery_mode', 'pdf_invoice')->where('status', '=', 5)->orderBy('id', 'DESC')->get();
             echo $this->admin_after_login_billing_layout($title,$page_name,$data);
         }
         public function billingInvoice($order_id){
@@ -976,8 +1015,17 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = 'Recall Orders';
             $page_name                      = 'billing.billing-recall';
-            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'status')->where('status', '<', 5)->orderBy('id', 'DESC')->get();
+            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'status')->where('status', '=', 3)->orderBy('id', 'DESC')->get();
             echo $this->admin_after_login_billing_layout($title,$page_name,$data);
         }
     /* recall orders */
+    /* ongoing orders */
+        public function billingOngoing(){
+            $data['module']                 = $this->data;
+            $title                          = 'Ongoing Orders';
+            $page_name                      = 'billing.billing-ongoing';
+            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'status')->where('status', '<', 3)->orderBy('id', 'DESC')->get();
+            echo $this->admin_after_login_billing_layout($title,$page_name,$data);
+        }
+    /* ongoing orders */
 }

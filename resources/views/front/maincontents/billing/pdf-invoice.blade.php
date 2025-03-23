@@ -22,7 +22,7 @@ $generalSetting = GeneralSetting::find(1);
          <tr>
             <td class="col-7">
                <div class="row gx-2 gy-2">
-                  <div><strong>Delivery Mode : </strong><?=$getOrderDetail->delivery_mode?></div>
+                  <div><strong>Delivery Mode : 2</strong><?=$getOrderDetail->delivery_mode?></div>
                   <?php if($getOrderDetail->delivery_mode != 'Take'){?>
                      <div class="col">
                         <?php if($getOrderDetail->delivery_mode == 'Pickup'){?>

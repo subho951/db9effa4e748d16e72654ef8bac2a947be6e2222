@@ -31,7 +31,7 @@ $current_url          = url()->current();
                             <label for="delivery_mode1">&nbsp;Take</label>
                         </a> -->
 
-                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode1" style="width: 30%;">
+                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode1">
                             <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode1" value="Take" <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'checked':''):'')?> style="display: none;">
                             <label for="delivery_mode1">&nbsp;Take</label>
                         </a>
@@ -50,7 +50,7 @@ $current_url          = url()->current();
                             <label for="delivery_mode2">&nbsp;Deliver</label>
                         </a> -->
 
-                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Deliver')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode2" style="width: 30%;">
+                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Deliver')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode2">
                             <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode2" value="Deliver" <?=(($getOrder)?(($getOrder->delivery_mode == 'Deliver')?'checked':''):'')?> style="display: none;">
                             <label for="delivery_mode2">&nbsp;Deliver</label>
                         </a>
@@ -70,7 +70,7 @@ $current_url          = url()->current();
                             <label for="delivery_mode3">&nbsp;Pickup</label>
                         </a> -->
 
-                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Pickup')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode3" style="width: 30%;">
+                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Pickup')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode3">
                             <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode3" value="Pickup" <?=(($getOrder)?(($getOrder->delivery_mode == 'Pickup')?'checked':''):'')?> style="display: none;">
                             <label for="delivery_mode3">&nbsp;Pickup</label>
                         </a>

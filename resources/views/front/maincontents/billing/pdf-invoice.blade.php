@@ -16,13 +16,13 @@ $generalSetting = GeneralSetting::find(1);
          <tr>
             <td colspan="2" class="bg-light text-center">
                <h3 class="mb-0"><strong><?=$generalSetting->site_name?></strong></h3>
-               <h3 class="mb-0"><strong>Invoice</strong></h3>
+               <h3 class="mb-0"><strong>Invoice2</strong></h3>
             </td>
          </tr>
          <tr>
             <td class="col-7">
                <div class="row gx-2 gy-2">
-                  <div><strong>Delivery Mode : 2</strong><?=$getOrderDetail->delivery_mode?></div>
+                  <div><strong>Delivery Mode : </strong><?=$getOrderDetail->delivery_mode?></div>
                   <?php if($getOrderDetail->delivery_mode != 'Take'){?>
                      <div class="col">
                         <?php if($getOrderDetail->delivery_mode == 'Pickup'){?>

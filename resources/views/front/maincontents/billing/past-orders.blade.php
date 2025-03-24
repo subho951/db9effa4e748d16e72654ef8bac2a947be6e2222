@@ -52,12 +52,12 @@ $current_url          = url()->current();
                             <!-- <td><?=$row->note?></td> -->
                             <td>
                                 <?php if($row->pdf_invoice != ''){?>
-                                    <!-- <a href="<?=env('UPLOADS_URL') . '/invoice/' . $row->pdf_invoice?>" target="_blank">
-                                        <button class="btn btn-custom btn-sm" style="padding: 10px 10px;background: #00bcd4;border: 1px solid #00bcd4;"><i class="fa fa-download"></i></button>
-                                    </a> -->
-                                    <a href="<?=url('user/billing/billing-pdf-invoice/' . Helper::encoded($row->id))?>" target="_blank">
+                                    <a href="<?=env('UPLOADS_URL') . '/invoice/' . $row->pdf_invoice?>" target="_blank">
                                         <button class="btn btn-custom btn-sm" style="padding: 10px 10px;background: #00bcd4;border: 1px solid #00bcd4;"><i class="fa fa-download"></i></button>
                                     </a>
+                                    <!-- <a href="<?=url('user/billing/billing-pdf-invoice/' . Helper::encoded($row->id))?>" target="_blank">
+                                        <button class="btn btn-custom btn-sm" style="padding: 10px 10px;background: #00bcd4;border: 1px solid #00bcd4;"><i class="fa fa-download"></i></button>
+                                    </a> -->
                                 <?php }?>
                                 <a href="<?=url('user/billing/billing-invoice/' . Helper::encoded($row->id))?>" target="_blank">
                                     <button class="btn btn-custom btn-sm" style="padding: 10px 10px;background: #3f51b5;border: 1px solid #3f51b5;"><i class="fa fa-print"></i></button>

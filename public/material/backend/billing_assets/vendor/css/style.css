@@ -508,6 +508,12 @@ ul{
         padding: 10px 0;
         font-size: 10px;
     }
+    .totals p:first-child{
+        font-size: 25px;
+    }
+    .totals p:last-child{
+        font-size: 30px;
+    }
 }
 @media(max-width: 767px){
     .right-bar-list li {
@@ -527,6 +533,12 @@ ul{
     }
     .Modify-btn{
         max-width: 100%;
+    }
+    .totals p:first-child{
+        font-size: 20px;
+    }
+    .totals p:last-child{
+        font-size: 25px;
     }
     
 }

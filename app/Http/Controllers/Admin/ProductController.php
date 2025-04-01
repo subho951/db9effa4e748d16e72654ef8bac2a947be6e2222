@@ -15,6 +15,7 @@ use App\Models\Coupon;
 use App\Models\ProductDiscountVoucher;
 use App\Models\ProductMultipleBuy;
 use App\Models\UploadProduct;
+use App\Models\Admin;
 
 use Illuminate\Support\Facades\File;
 use Picqer\Barcode\BarcodeGeneratorPNG;
@@ -36,17 +37,148 @@ class ProductController extends Controller
         );
     }
     /* list */
-        public function list(){
+        public function list(Request $request){
             $data['module']                 = $this->data;
             $title                          = $this->data['title'].' List';
             $page_name                      = 'product.list';
-            $data['rows']                   = DB::table('products')
+            $data['brands']                 = Brand::select('id', 'name')->where('status', '=', 1)->get();
+            $data['suppliers']              = Supplier::select('id', 'name')->where('status', '=', 1)->get();
+
+            if ($request->isMethod('get') && $request->has('mode')) {
+                $data['status']                 = '';
+                $data['brand_id']               = '';
+                $data['supplier_id']            = '';
+                $data['is_search']              = 1;
+                $data['rows']                   = [];
+                $status                         = $request->status;
+                $brand_id                       = $request->brand_id;
+                $supplier_id                    = $request->supplier_id;
+                if($status != '' && $brand_id == '' && $supplier_id == ''){
+                    $data['rows']                   = DB::table('products')
                                                 ->join('brands', 'products.brand_id', '=', 'brands.id')
                                                 ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
-                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '=', $status)
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['supplier_id']            = $supplier_id;
+                    $data['is_search']              = 1;
+                } elseif($status == '' && $brand_id != '' && $supplier_id == ''){
+                    $data['rows']                   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '!=', 3)
+                                                ->where('products.brand_id', '=', $brand_id)
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['supplier_id']            = $supplier_id;
+                    $data['is_search']              = 1;
+                } elseif($status == '' && $brand_id == '' && $supplier_id != ''){
+                    $data['rows']                   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '!=', 3)
+                                                ->where('products.supplier_id', '=', $supplier_id)
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['supplier_id']            = $supplier_id;
+                    $data['is_search']              = 1;
+                } elseif($status != '' && $brand_id != '' && $supplier_id == ''){
+                    $data['rows']                   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '=', $status)
+                                                ->where('products.brand_id', '=', $brand_id)
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['supplier_id']            = $supplier_id;
+                    $data['is_search']              = 1;
+                } elseif($status != '' && $brand_id == '' && $supplier_id != ''){
+                    $data['rows']                   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '=', $status)
+                                                ->where('products.supplier_id', '=', $supplier_id)
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['supplier_id']            = $supplier_id;
+                    $data['is_search']              = 1;
+                } elseif($status == '' && $brand_id != '' && $supplier_id != ''){
+                    $data['rows']                   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '!=', 3)
+                                                ->where('products.brand_id', '=', $brand_id)
+                                                ->where('products.supplier_id', '=', $supplier_id)
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['supplier_id']            = $supplier_id;
+                    $data['is_search']              = 1;
+                } elseif($status != '' && $brand_id != '' && $supplier_id != ''){
+                    $data['rows']                   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '=', $status)
+                                                ->where('products.brand_id', '=', $brand_id)
+                                                ->where('products.supplier_id', '=', $supplier_id)
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['supplier_id']            = $supplier_id;
+                    $data['is_search']              = 1;
+                } elseif($status == '' && $brand_id == '' && $supplier_id == ''){
+                    $data['is_search']              = 0;
+                    return redirect()->back()->with('error_message', 'Please select any of the filter parameter');
+                }
+                
+            } else {
+                $data['rows']                   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
                                                 ->where('products.status', '!=', 3)
                                                 ->orderBy('products.id', 'DESC')
                                                 ->get();
+                $data['status']                 = '';
+                $data['brand_id']               = '';
+                $data['supplier_id']            = '';
+                $data['is_search']              = 0;
+            }
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
     /* list */
@@ -643,7 +775,7 @@ class ProductController extends Controller
     /* search products for barcode */
         public function generateProductBarcode(Request $request){
             $data['module']                 = $this->data;
-            $title                          = 'Search Products For Strickers';
+            $title                          = 'Shelf Tags and Discounts';
             $page_name                      = 'product.generate-product-barcode';
             $data['brands']                 = Brand::select('id', 'name')->where('status', '=', 1)->get();
             $data['rows']                   = [];
@@ -680,4 +812,91 @@ class ProductController extends Controller
             return view('admin.maincontents.product.print-products', $data);
         }
     /* search products for barcode */
+    /* validate admin pin products */
+        public function validateAdminPinProduct(Request $request){
+            $apiStatus          = TRUE;
+            $apiMessage         = '';
+            $apiResponse        = [];
+            $apiExtraField      = '';
+            $apiExtraData       = '';
+            $requestData        = $request->all();
+            // Helper::pr($requestData);
+            if($requestData['key'] == env('PROJECT_KEY')){
+                $pin1           = $requestData['pin1'];
+                $pin2           = $requestData['pin2'];
+                $pin3           = $requestData['pin3'];
+                $pin4           = $requestData['pin4'];
+                $product_id     = $requestData['product_id'];
+                $completePin    = $pin1.$pin2.$pin3.$pin4;
+                $getAdmin       = Admin::where('id','=',1)->first();
+                if(Hash::check($completePin, $getAdmin->password)){
+                    $redirectUrl = url('admin/products/edit/'.Helper::encoded($product_id));
+                    // $apiResponse['redirectUrl'] = $redirectUrl;
+                    // http_response_code(200);
+                    // $apiStatus          = TRUE;
+                    // $apiMessage         = 'Admin PIN matched !!!';
+                    // $apiExtraField      = 'response_code';
+                    // $apiExtraData       = http_response_code();
+                    return redirect($redirectUrl)->with('success_message', 'Admin PIN matched !!!');
+                } else {
+                    // http_response_code(200);
+                    // $apiStatus          = FALSE;
+                    // $apiMessage         = 'Admin PIN Doesn\'t match !!!';
+                    // $apiExtraField      = 'response_code';
+                    // $apiExtraData       = http_response_code();
+                    return redirect()->back()->with('error_message', 'Admin PIN Doesn\'t match !!!');
+                }
+            } else {
+                // http_response_code(400);
+                // $apiStatus          = FALSE;
+                // $apiMessage         = $this->getResponseCode(http_response_code());
+                // $apiExtraField      = 'response_code';
+                // $apiExtraData       = http_response_code();
+                return redirect()->back()->with('error_message', 'Invalid request');
+            }
+            // $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
+        }
+        public function validateAdminPinExport(Request $request){
+            $apiStatus          = TRUE;
+            $apiMessage         = '';
+            $apiResponse        = [];
+            $apiExtraField      = '';
+            $apiExtraData       = '';
+            $requestData        = $request->all();
+            // Helper::pr($requestData);
+            if($requestData['key'] == env('PROJECT_KEY')){
+                $pin1           = $requestData['pin1'];
+                $pin2           = $requestData['pin2'];
+                $pin3           = $requestData['pin3'];
+                $pin4           = $requestData['pin4'];
+                $completePin    = $pin1.$pin2.$pin3.$pin4;
+                $getAdmin       = Admin::where('id','=',1)->first();
+                if(Hash::check($completePin, $getAdmin->password)){
+                    $request->session()->put('is_export', 1);
+                    // $apiResponse['redirectUrl'] = $redirectUrl;
+                    // http_response_code(200);
+                    // $apiStatus          = TRUE;
+                    // $apiMessage         = 'Admin PIN matched !!!';
+                    // $apiExtraField      = 'response_code';
+                    // $apiExtraData       = http_response_code();
+                    return redirect(url('admin/products/list'))->with('success_message', 'Admin PIN matched !!!');
+                } else {
+                    // http_response_code(200);
+                    // $apiStatus          = FALSE;
+                    // $apiMessage         = 'Admin PIN Doesn\'t match !!!';
+                    // $apiExtraField      = 'response_code';
+                    // $apiExtraData       = http_response_code();
+                    return redirect()->back()->with('error_message', 'Admin PIN Doesn\'t match !!!');
+                }
+            } else {
+                // http_response_code(400);
+                // $apiStatus          = FALSE;
+                // $apiMessage         = $this->getResponseCode(http_response_code());
+                // $apiExtraField      = 'response_code';
+                // $apiExtraData       = http_response_code();
+                return redirect()->back()->with('error_message', 'Invalid request');
+            }
+            // $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
+        }
+    /* validate admin pin products */
 }

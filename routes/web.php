@@ -65,6 +65,8 @@ Route::get('/db-test', function () {
                 Route::get('billing/billing-ongoing', 'App\Http\Controllers\BillingController@billingOngoing');
                 Route::get('billing/past-orders', 'App\Http\Controllers\BillingController@pastOrders');
                 Route::get('billing/billing-invoice/{id}', 'App\Http\Controllers\BillingController@billingInvoice');
+                Route::get('billing/billing-invoice-email/{id}', 'App\Http\Controllers\BillingController@billingInvoiceEmail');
+                Route::post('billing/print-delivery-order', 'App\Http\Controllers\BillingController@printDeliveryOrder');
                 Route::get('billing/billing-pdf-invoice/{id}', 'App\Http\Controllers\BillingController@billingPDFInvoice');
             /* billing */
         });
@@ -203,6 +205,8 @@ Route::get('/db-test', function () {
                 Route::get('products/generate-product-barcode', 'ProductController@generateProductBarcode');
                 Route::post('products/generate-product-barcode', 'ProductController@generateProductBarcode');
                 Route::post('products/print-products', 'ProductController@printProducts');
+                Route::post('products/validate-admin-pin-product', 'ProductController@validateAdminPinProduct');
+                Route::post('products/validate-admin-pin-export', 'ProductController@validateAdminPinExport');
             /* customer */
             /* customer */
                 Route::get('customer/list', 'CustomerController@list');
@@ -242,6 +246,7 @@ Route::get('/db-test', function () {
                 Route::get('billing/billing-ongoing', 'BillingController@billingOngoing');
                 Route::get('billing/past-orders', 'BillingController@pastOrders');
                 Route::get('billing/billing-invoice/{id}', 'BillingController@billingInvoice');
+                Route::get('billing/billing-invoice-email/{id}', 'BillingController@billingInvoiceEmail');
                 Route::get('billing/billing-pdf-invoice/{id}', 'BillingController@billingPDFInvoice');
             /* billing */
         });

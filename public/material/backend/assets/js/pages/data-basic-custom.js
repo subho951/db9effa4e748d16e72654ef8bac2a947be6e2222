@@ -10,21 +10,24 @@ $(document).ready(function() {
                 topStart: {
                     buttons: ['excel', 'pdf', 'print']
                 }
-            }
+            },
+            "pageLength": 50, // Default 50 records per page
         });
         $('#simpletable2').DataTable({
             layout: {
                 topStart: {
                     buttons: ['excel', 'pdf', 'print']
                 }
-            }
+            },
+            "pageLength": 50, // Default 50 records per page
         });
         $('#simpletable3').DataTable({
             layout: {
                 topStart: {
                     buttons: ['excel', 'pdf', 'print']
                 }
-            }
+            },
+            "pageLength": 50, // Default 50 records per page
         });
         // let dataTable = new DataTable("#myTable");
 
@@ -84,5 +87,5 @@ $(document).ready(function() {
             }
         });
 
-    }, 350);
+    }, 100);
 });

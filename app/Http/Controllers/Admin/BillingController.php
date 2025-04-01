@@ -1001,7 +1001,7 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = 'Past Orders';
             $page_name                      = 'billing.past-orders';
-            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'note', 'delivery_mode', 'pdf_invoice')->where('status', '=', 5)->orderBy('id', 'DESC')->get();
+            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'note', 'delivery_mode', 'pdf_invoice', 'pickup_email', 'delivery_email')->where('status', '=', 5)->orderBy('id', 'DESC')->get();
             echo $this->admin_after_login_billing_layout($title,$page_name,$data);
         }
         public function billingInvoice($order_id){
@@ -1009,6 +1009,30 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $data['getOrderDetail']         = Order::where('id', '=', $order_id)->first();
             return view('admin.maincontents.billing.print-invoice', $data);
+        }
+        public function billingInvoiceEmail($order_id){
+            $generalSetting                 = GeneralSetting::find(1);
+            $order_id                       = Helper::decoded($order_id);
+            $data['getOrder']               = Order::where('id', '=', $order_id)->first();
+            $to_email                       = '';
+            if($data['getOrder']){
+                if($data['getOrder']->delivery_mode == 'Pickup'){
+                    $to_email                       = $data['getOrder']->pickup_email;
+                }
+                if($data['getOrder']->delivery_mode == 'Deliver'){
+                    $to_email                       = $data['getOrder']->delivery_email;
+                }
+            }
+            $to                             = $to_email;
+            if($to != ''){
+                $subject                    = $generalSetting->site_name . " Invoice " . (($data['getOrder'])?$data['getOrder']->order_no:'');
+                $message                    = $subject;
+                $attchment                  = 'public/uploads/invoice/' . $data['getOrder']->pdf_invoice;
+                $this->sendMail($to, $subject, $message, $attchment);
+                return redirect('/admin/billing/past-orders/')->with('success_message', 'Invoice sent successfully');
+            } else {
+                return redirect('/admin/billing/past-orders/')->with('error_message', 'Email address is not available');
+            }
         }
         public function billingPDFInvoice($order_id){
             $order_id                       = Helper::decoded($order_id);

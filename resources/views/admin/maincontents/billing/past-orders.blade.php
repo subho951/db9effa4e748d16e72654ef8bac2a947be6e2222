@@ -28,8 +28,7 @@ $current_url          = url()->current();
                         <th>AMOUNT</th>
                         <th>OPERATOR</th>
                         <th>DELIVERY MODE</th>
-                        <th>DATE</th>
-                        <th>TIME</th>
+                        <th>DATE/TIME</th>
                         <!-- <th>NOTE</th> -->
                         <th width="8%">ACTION</th>
                     </tr>
@@ -47,10 +46,24 @@ $current_url          = url()->current();
                             <td>$<?=number_format($row->net_amount,2)?></td>
                             <td><?=(($getOperator)?$getOperator->name:'')?></td>
                             <td><?=$row->delivery_mode?></td>
-                            <td><?=date_format(date_create($row->order_date), "M d, Y")?></td>
-                            <td><?=date_format(date_create($row->order_time), "h:i A")?></td>
+                            <td><?=date_format(date_create($row->order_date), "M d, Y")?><br><?=date_format(date_create($row->order_time), "h:i A")?></td>
                             <!-- <td><?=$row->note?></td> -->
                             <td>
+                                <?php if($row->delivery_mode != 'Take'){?>
+                                    <?php
+                                    if($row->delivery_mode == 'Pickup'){
+                                        $to_email                       = $row->pickup_email;
+                                    }
+                                    if($row->delivery_mode == 'Deliver'){
+                                        $to_email                       = $row->delivery_email;
+                                    }
+                                    if($to_email != ''){
+                                    ?>
+                                        <a href="<?=url('admin/billing/billing-invoice-email/' . Helper::encoded($row->id))?>">
+                                            <button class="btn btn-custom btn-sm" style="padding: 10px 10px;background: #0a9b74;border: 1px solid #0a9b74;"><i class="fa fa-envelope"></i></button>
+                                        </a>
+                                    <?php }?>
+                                <?php }?>
                                 <?php if($row->pdf_invoice != ''){?>
                                     <a href="<?=env('UPLOADS_URL') . '/invoice/' . $row->pdf_invoice?>" target="_blank">
                                         <button class="btn btn-custom btn-sm" style="padding: 10px 10px;background: #00bcd4;border: 1px solid #00bcd4;"><i class="fa fa-download"></i></button>
@@ -66,7 +79,7 @@ $current_url          = url()->current();
                         </tr>
                     <?php } } else {?>
                         <tr>
-                            <td colspan="9" style="color: red !important; text-align: center;">No past orders found</td>
+                            <td colspan="8" style="color: red !important; text-align: center;">No past orders found</td>
                         </tr>
                     <?php }?>
                 </tbody>

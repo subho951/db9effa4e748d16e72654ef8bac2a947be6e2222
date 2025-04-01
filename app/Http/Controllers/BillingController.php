@@ -1001,7 +1001,7 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = 'Past Orders';
             $page_name                      = 'billing.past-orders';
-            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'note', 'delivery_mode', 'pdf_invoice')->where('status', '=', 5)->where('operator_id', '=', session('user_id'))->orderBy('id', 'DESC')->get();
+            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'note', 'delivery_mode', 'pdf_invoice', 'pickup_email', 'delivery_email')->where('status', '=', 5)->where('operator_id', '=', session('user_id'))->orderBy('id', 'DESC')->get();
             echo $this->user_after_login_billing_layout($title,$page_name,$data);
         }
         public function billingInvoice($order_id){
@@ -1009,6 +1009,30 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $data['getOrderDetail']         = Order::where('id', '=', $order_id)->first();
             return view('front.maincontents.billing.print-invoice', $data);
+        }
+        public function billingInvoiceEmail($order_id){
+            $generalSetting                 = GeneralSetting::find(1);
+            $order_id                       = Helper::decoded($order_id);
+            $data['getOrder']               = Order::where('id', '=', $order_id)->first();
+            $to_email                       = '';
+            if($data['getOrder']){
+                if($data['getOrder']->delivery_mode == 'Pickup'){
+                    $to_email                       = $data['getOrder']->pickup_email;
+                }
+                if($data['getOrder']->delivery_mode == 'Deliver'){
+                    $to_email                       = $data['getOrder']->delivery_email;
+                }
+            }
+            $to                             = $to_email;
+            if($to != ''){
+                $subject                    = $generalSetting->site_name . " Invoice " . (($data['getOrder'])?$data['getOrder']->order_no:'');
+                $message                    = $subject;
+                $attchment                  = 'public/uploads/invoice/' . $data['getOrder']->pdf_invoice;
+                $this->sendMail($to, $subject, $message, $attchment);
+                return redirect('/user/billing/past-orders/')->with('success_message', 'Invoice sent successfully');
+            } else {
+                return redirect('/user/billing/past-orders/')->with('error_message', 'Email address is not available');
+            }
         }
         public function billingPDFInvoice($order_id){
             $order_id                       = Helper::decoded($order_id);
@@ -1033,6 +1057,39 @@ class BillingController extends Controller
             file_put_contents($pdfFilePath, $output);
             Order::where('id', '=', $order_id)->update(['pdf_invoice' => $filename]);
             return view('front.maincontents.billing.pdf-invoice', $data);
+        }
+        public function printDeliveryOrder(Request $request){
+            $postData       = $request->all();
+            $order_id       = $postData['order_id'];
+            $delivery_data  = [];
+            if(count($order_id) > 0){
+                for($k=0;$k<count($order_id);$k++){
+                    $getOrderInfo = Order::where('id', '=', $order_id[$k])->first();
+                    if($getOrderInfo){
+                        $delivery_data[] = [
+                            'order_id'              => $order_id[$k],
+                            'order_no'              => $getOrderInfo->order_no,
+                            'order_date'            => $getOrderInfo->order_date,
+                            'order_time'            => $getOrderInfo->order_time,
+                            'delivery_mode'         => $getOrderInfo->delivery_mode,
+                            'delivery_name'         => $getOrderInfo->delivery_name,
+                            'delivery_phone'        => $getOrderInfo->delivery_phone,
+                            'delivery_email'        => $getOrderInfo->delivery_email,
+                            'delivery_address'      => $getOrderInfo->delivery_address,
+                            'delivery_suburb'       => $getOrderInfo->delivery_suburb,
+                            'delivery_state'        => $getOrderInfo->delivery_state,
+                            'delivery_postcode'     => $getOrderInfo->delivery_postcode,
+                            'net_amount'            => $getOrderInfo->net_amount,
+                            'payment_status'        => $getOrderInfo->payment_status,
+                            'payment_date_time'     => $getOrderInfo->payment_date_time,
+                        ];
+                    }
+                }
+                $data['delivery_data']         = $delivery_data;
+            return view('front.maincontents.billing.print-delivery-orders', $data);
+            } else {
+                return redirect('/user/billing/past-orders/')->with('error_message', 'For generate delivery order please select atleast one order from list');
+            }
         }
     /* past orders */
     /* recall orders */

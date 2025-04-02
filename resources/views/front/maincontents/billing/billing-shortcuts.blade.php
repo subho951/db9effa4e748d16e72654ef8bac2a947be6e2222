@@ -24,8 +24,8 @@ $current_url          = url()->current();
                         ?>
                         <div class="custome-info-box <?=(($checkProductExistCart > 0)?'active':'')?>" onclick="searchProductCartAdd(<?=$fast_button->product_id?>, <?=$fast_button->qty?>, <?=$fast_button->id?>);" id="fast-button-<?=$fast_button->id?>">
                             <h4><?=$fast_button->name?></h4>
-                            <p>$<?=$fast_button->price?></p>
-                            <p>Qty : <?=$fast_button->qty?></p>
+                            <!-- <p>$<?=$fast_button->price?></p>
+                            <p>Qty : <?=$fast_button->qty?></p> -->
                         </div>
                     <?php } }?>
                 </div>
@@ -49,7 +49,7 @@ $current_url          = url()->current();
             success: function (res) {
                 $("#loader").hide();
                 if(res.status){
-                    toastAlert("success", res.message);
+                    toastAlert("success", res.message, true, res.data.redirect_url);
                     $('#fast-button-' + fastButtonId).addClass('active');
                 }else{
                     toastAlert("error", res.message);

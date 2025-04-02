@@ -7,7 +7,7 @@ $controllerRoute      = $module['controller_route'];
 $current_url          = url()->current();
 ?>
 <div class="row">
-    <div class="col-md-12 mb-3">
+    <!-- <div class="col-md-12 mb-3">
         <div class="order-summery-left-bottom">
             <div class="row my-4">
                 <div class="col-md-12 d-flex justify-content-between">
@@ -15,7 +15,7 @@ $current_url          = url()->current();
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
     <div class="col-md-12">
         <div class="table-container table-responsive">
             <h3><?=$page_header?></h3>

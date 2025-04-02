@@ -246,8 +246,8 @@ ul{
 .order-summary-right .table tbody td{
     color: #000 !important;
     background: #FAFAFA;
-    font-weight: bold;
-    padding: 12px 20px;
+    /* font-weight: bold; */
+    padding: 2px 20px;
 }
 .order-summary-right .table tbody td i{
     color: #EE5A5A;
@@ -268,16 +268,16 @@ ul{
 }
 .footer-notes p {
 	color: #000;
-	font-weight: bold;
+	/* font-weight: bold; */
 	font-size: 15px;
 }
 .totals p:first-child{
     font-size: 30px;
-    font-weight: 400;
-    color: #EC5A5A
+    font-weight: 700;
+    color: #ff0000 !important;
 }
 .totals p:last-child{
-    font-size: 40px;
+    font-size: 17px;
     font-weight: 700;
     color: #000
 }

@@ -835,11 +835,12 @@ class BillingController extends Controller
                         //                                     ->get();
                         // $item_table_html                = view('admin.maincontents.billing.ajax-order-item', $data)->render();
                     /* item table rearrange on the go */
+                    $redirect_url   = url('admin/billing/billing-item/' . Helper::encoded($order_id));
+                    $apiResponse    = [
+                                            'redirect_url'  => $redirect_url,
+                                        ];
                     $apiStatus                          = TRUE;
                     http_response_code(200);
-                    // $apiResponse                        = [
-                    //     'item_table_html' => $item_table_html,
-                    // ];
                     $apiMessage                         = 'Product added into cart successfully';
                     $apiExtraField                      = 'response_code';
                     $apiExtraData                       = http_response_code();

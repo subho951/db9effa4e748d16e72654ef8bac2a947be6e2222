@@ -161,7 +161,7 @@ $current_url                    = url()->current();
                            </div>
                            <div class="col-md-3">
                               <label class="form-label" for="style">Style <small class="text-danger">*</small></label>
-                              <input type="text" class="form-control" placeholder="Enter Style" name="style" id="style" value="<?=$style?>" required>
+                              <input type="text" class="form-control" placeholder="Enter Style" name="style" id="style" value="<?=$style?>">
                            </div>
 
                            <h5 class="mb-3">Pricing</h5>

@@ -160,7 +160,7 @@ $current_url                    = url()->current();
                                </select>
                            </div>
                            <div class="col-md-3">
-                              <label class="form-label" for="style">Style <small class="text-danger">*</small></label>
+                              <label class="form-label" for="style">Style</label>
                               <input type="text" class="form-control" placeholder="Enter Style" name="style" id="style" value="<?=$style?>">
                            </div>
 

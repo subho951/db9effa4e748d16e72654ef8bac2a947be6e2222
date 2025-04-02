@@ -61,7 +61,7 @@
     </style>
 </head>
 <body>
-    <button class="print-button" onclick="window.print();" style="background: #eee; border: 1px solid #ccc; padding: 7px 13px; text-transform: uppercase; margin: auto;">Print</button>
+    <!-- <button class="print-button" onclick="window.print();" style="background: #eee; border: 1px solid #ccc; padding: 7px 13px; text-transform: uppercase; margin: auto;">Print</button> -->
     <div class="main">
         <div class="label-sheet">
             <?php if(!empty($products)){ foreach($products as $product){?>
@@ -70,7 +70,6 @@
                     <span><?=$product['name']?></span>
                 </div>
             <?php } }?>
-            <!-- Repeat the above 5 labels 12 more times -->
         </div>
     </div>
 </body>

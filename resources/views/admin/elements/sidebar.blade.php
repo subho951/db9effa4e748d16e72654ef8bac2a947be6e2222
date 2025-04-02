@@ -17,6 +17,11 @@ if(!empty($parameters)){
 }
 $user_type = session('type');
 ?>
+<style type="text/css">
+   .menu-sub .menu-item .menu-link{
+      font-size: 13px;
+   }
+</style>
 <div class="app-brand demo ">
    <a href="<?=url('admin/dashboard')?>" class="app-brand-link">
       <!-- <span class="app-brand-logo demo">
@@ -134,7 +139,12 @@ $user_type = session('type');
          </li>
          <li class="menu-item <?=(($pageFunction == 'generate-product-barcode')?'active':'')?>">
             <a href="<?=url('admin/products/generate-product-barcode')?>" class="menu-link">
-               <div data-i18n="Upload Products">Shelf Tags and Discounts</div>
+               <div data-i18n="Shelf Tags and Discounts">Shelf Tags and Discounts</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageFunction == 'shelf-tag-list')?'active':'')?>">
+            <a href="<?=url('admin/products/shelf-tag-list')?>" class="menu-link">
+               <div data-i18n="Shelf Tags List">Shelf Tags List</div>
             </a>
          </li>
       </ul>

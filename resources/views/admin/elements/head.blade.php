@@ -44,8 +44,10 @@
 	  background-color: #000;
 	  color: #007bff !important;
 	}
-</style>
-<style>
+    table.dataTable>tbody>tr>th, table.dataTable>tbody>tr>td {
+        padding: 1px 5px !important;
+        font-size: 12px !important;
+    }
     /* Loader Styling */
     #loader {
         position: fixed;

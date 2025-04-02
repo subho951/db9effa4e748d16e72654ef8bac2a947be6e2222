@@ -204,6 +204,8 @@ Route::get('/db-test', function () {
                 Route::get('products/print-barcode/{id}', 'ProductController@printBarcode');
                 Route::get('products/generate-product-barcode', 'ProductController@generateProductBarcode');
                 Route::post('products/generate-product-barcode', 'ProductController@generateProductBarcode');
+                Route::get('products/shelf-tag-list', 'ProductController@shelfTagList');
+                Route::post('products/shelf-tag-list', 'ProductController@shelfTagList');
                 Route::post('products/print-products', 'ProductController@printProducts');
                 Route::post('products/validate-admin-pin-product', 'ProductController@validateAdminPinProduct');
                 Route::post('products/validate-admin-pin-export', 'ProductController@validateAdminPinExport');

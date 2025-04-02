@@ -16,6 +16,7 @@ use App\Models\ProductDiscountVoucher;
 use App\Models\ProductMultipleBuy;
 use App\Models\UploadProduct;
 use App\Models\Admin;
+use App\Models\ShelfTag;
 
 use Illuminate\Support\Facades\File;
 use Picqer\Barcode\BarcodeGeneratorPNG;
@@ -25,6 +26,8 @@ use Session;
 use Helper;
 use Hash;
 use DB;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 class ProductController extends Controller
 {
     public function __construct()
@@ -778,38 +781,241 @@ class ProductController extends Controller
             $title                          = 'Shelf Tags and Discounts';
             $page_name                      = 'product.generate-product-barcode';
             $data['brands']                 = Brand::select('id', 'name')->where('status', '=', 1)->get();
-            $data['rows']                   = [];
+            $data['status']                 = '';
             $data['brand_id']               = '';
-            if($request->isMethod('post')){
-                $data['rows']               = DB::table('products')
+            $data['discount_type']          = '';
+            $data['is_search']              = 1;
+            $data['rows']                   = [];
+
+            if ($request->isMethod('get') && $request->has('mode')) {
+                $status                         = $request->status;
+                $brand_id                       = $request->brand_id;
+                $discount_type                  = $request->discount_type;
+                if($status != '' && $brand_id == '' && $discount_type == ''){
+                    $data['rows']   = DB::table('products')
                                                 ->join('brands', 'products.brand_id', '=', 'brands.id')
                                                 ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
-                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name')
-                                                ->where('products.status', '!=', 3)
-                                                ->where('products.brand_id', '=', $request->brand_id)
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '=', $status)
+                                                ->groupBy('products.id')
                                                 ->orderBy('products.id', 'DESC')
                                                 ->get();
-                $data['brand_id']           = $request->brand_id;
-                echo $this->admin_after_login_layout($title,$page_name,$data);
-            } else {
-                echo $this->admin_after_login_layout($title,$page_name,$data);
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['discount_type']          = $discount_type;
+                    $data['is_search']              = 1;
+                } elseif($status == '' && $brand_id != '' && $discount_type == ''){
+                    $data['rows']   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '!=', 3)
+                                                ->where('products.brand_id', '=', $brand_id)
+                                                ->groupBy('products.id')
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['discount_type']          = $discount_type;
+                    $data['is_search']              = 1;
+                } elseif($status == '' && $brand_id == '' && $discount_type != ''){
+                    $data['rows']   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '!=', 3)
+                                                ->where('product_discount_vouchers.discount_type', '=', $discount_type)
+                                                ->groupBy('products.id')
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['discount_type']          = $discount_type;
+                    $data['is_search']              = 1;
+                } elseif($status != '' && $brand_id != '' && $discount_type == ''){
+                    $data['rows']   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '=', $status)
+                                                ->where('products.brand_id', '=', $brand_id)
+                                                ->groupBy('products.id')
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['discount_type']          = $discount_type;
+                    $data['is_search']              = 1;
+                } elseif($status != '' && $brand_id == '' && $discount_type != ''){
+                    $data['rows']   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '=', $status)
+                                                ->where('product_discount_vouchers.discount_type', '=', $discount_type)
+                                                ->groupBy('products.id')
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['discount_type']          = $discount_type;
+                    $data['is_search']              = 1;
+                } elseif($status == '' && $brand_id != '' && $discount_type != ''){
+                    $data['rows']   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '!=', 3)
+                                                ->where('products.brand_id', '=', $brand_id)
+                                                ->where('product_discount_vouchers.discount_type', '=', $discount_type)
+                                                ->groupBy('products.id')
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['discount_type']          = $discount_type;
+                    $data['is_search']              = 1;
+                } elseif($status != '' && $brand_id != '' && $discount_type != ''){
+                    $data['rows']   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '=', $status)
+                                                ->where('products.brand_id', '=', $brand_id)
+                                                ->where('product_discount_vouchers.discount_type', '=', $discount_type)
+                                                ->groupBy('products.id')
+                                                ->orderBy('products.id', 'DESC')
+                                                ->get();
+                    $data['status']                 = $status;
+                    $data['brand_id']               = $brand_id;
+                    $data['discount_type']          = $discount_type;
+                    $data['is_search']              = 1;
+                } elseif($status == '' && $brand_id == '' && $discount_type == ''){
+                    $data['is_search']              = 0;
+                    return redirect()->back()->with('error_message', 'Please select any of the filter parameter');
+                }
             }
+            echo $this->admin_after_login_layout($title,$page_name,$data);
         }
         public function printProducts(Request $request){
             $postData = $request->all();
             $product_id = $postData['product_id'];
             $products = [];
             if(!empty($product_id)){
-                for($p=0;$p<count($product_id);$p++){
-                    $getProduct = Product::select('name', 'retail_price_inc_tax')->where('id', '=', $product_id[$p])->first();
-                    $products[] = [
-                        'name'  => (($getProduct)?$getProduct->name:''),
-                        'price' => (($getProduct)?$getProduct->retail_price_inc_tax:0),
-                    ];
+                $getLastPriceTag = ShelfTag::orderBy('id', 'DESC')->first();
+                if($getLastPriceTag){
+                    $sl_no              = $getLastPriceTag->sl_no;
+                    $next_sl_no         = $sl_no + 1;
+                    $next_sl_no_string  = str_pad($next_sl_no, 4, 0, STR_PAD_LEFT);
+                    $sequence_no        = $next_sl_no_string;
+                } else {
+                    $next_sl_no         = 111;
+                    $next_sl_no_string  = str_pad($next_sl_no, 4, 0, STR_PAD_LEFT);
+                    $sequence_no        = $next_sl_no_string; 
                 }
+                $fields = [
+                    'sl_no'        => $next_sl_no,
+                    'sequence_no'  => $sequence_no
+                ];
+                $shilf_tag_id = ShelfTag::insertGetId($fields);
+
+                /* shelf tag pdf generate */
+                    $sequence_no                    = $sequence_no;
+                    $generalSetting                 = GeneralSetting::find('1');
+                    $subject                        = 'PriceTag' . $sequence_no;
+
+                    for($p=0;$p<count($product_id);$p++){
+                        $getProduct = Product::select('name', 'retail_price_inc_tax')->where('id', '=', $product_id[$p])->first();
+                        $products[] = [
+                            'name'  => (($getProduct)?$getProduct->name:''),
+                            'price' => (($getProduct)?$getProduct->retail_price_inc_tax:0),
+                        ];
+                        $discountVouchers = ProductDiscountVoucher::select('voucher_code', 'retail_discounted_price')->where('product_id', $product_id[$p])->where('status', 1)->get();
+                        if($discountVouchers){ foreach($discountVouchers as $discountVoucher){
+                            $products[] = [
+                                'name'  => (($getProduct)?$getProduct->name.' [<small style="font-size: 8px;">'.$discountVoucher->voucher_code.'</small>]':''),
+                                'price' => $discountVoucher->retail_discounted_price,
+                            ];
+                        } }
+                    }
+                    $data['products']   = $products;
+                    $message            = view('admin.maincontents.product.print-products', $data);                       
+                    // echo $message;die;
+                    $options            = new Options();
+                    $options->set('defaultFont', 'Courier');
+                    $dompdf             = new Dompdf($options);
+                    $html               = $message;
+                    $dompdf->loadHtml($html);
+                    $dompdf->setPaper('A4', 'portrait');
+                    $dompdf->render();
+                    $output             = $dompdf->output();
+                    // $dompdf->stream("document.pdf", array("Attachment" => false));die;
+                    $filename           = $sequence_no.'.pdf';
+                    $pdfFilePath        = 'public/uploads/shelf_tags/' . $filename;
+                    file_put_contents($pdfFilePath, $output);
+                    ShelfTag::where('id', '=', $shilf_tag_id)->update(['filename' => $filename]);
+                /* shelf tag pdf generate */
+                return redirect("admin/" . $this->data['controller_route'] . "/shelf-tag-list")->with('success_message', 'Shelf tag generated successfully');
             }
-            $data['products'] = $products;
-            return view('admin.maincontents.product.print-products', $data);
+        }
+        public function shelfTagList(Request $request){
+            $data['module']                 = $this->data;
+            $title                          = 'Shelf Tags List';
+            $page_name                      = 'product.shelf-tag-list';
+            $data['rows']                   = ShelfTag::where('status', 1)->orderBy('id', 'DESC')->get();
+            if($request->isMethod('post')){
+                $generalSetting     = GeneralSetting::find(1);
+                $postData           = $request->all();
+                $shilf_tag_id       = $postData['shilf_tag_id'];
+                $filename           = $postData['filename'];
+                $emails2            = explode(",",$postData['emails']);
+                $getShelfTag        = ShelfTag::where('id', '=', $shilf_tag_id)->first();
+                $emails1            = [];
+                if($getShelfTag){
+                    $emails1 = json_decode($getShelfTag->emails);
+                }
+                if(!empty($emails1)){
+                    $updated_emails = array_merge($emails1, $emails2);
+                } else {
+                    $updated_emails = $emails2;
+                }
+                // Helper::pr($updated_emails);
+                ShelfTag::where('id', '=', $shilf_tag_id)->update(['emails' => json_encode($updated_emails)]);
+                /* email sent */
+                    if(!empty($updated_emails)){
+                        for($k=0;$k<count($updated_emails);$k++){
+                            $to                         = $updated_emails[$k];
+                            $subject                    = $generalSetting->site_name . " Price Tag " . (($getShelfTag)?$getShelfTag->sequence_no:'');
+                            $message                    = $subject;
+                            $attchment                  = 'public/uploads/shelf_tags/' . $getShelfTag->filename;
+                            $this->sendMail($to, $subject, $message, $attchment);
+                        }
+                    }
+                /* email sent */
+                return redirect()->back()->with('success_message', 'Shelf price tag file sent successfully');
+            }
+            echo $this->admin_after_login_layout($title,$page_name,$data);
         }
     /* search products for barcode */
     /* validate admin pin products */

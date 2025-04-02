@@ -4,10 +4,6 @@ use App\Helpers\Helper;
 $controllerRoute = $module['controller_route'];
 ?>
 <style type="text/css">
-  table.dataTable>tbody>tr>th, table.dataTable>tbody>tr>td {
-    padding: 1px 5px !important;
-    font-size: 12px !important;
-  }
   /* admin pin modal */
   .otp-input-fields {
       margin: auto;

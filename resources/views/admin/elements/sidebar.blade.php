@@ -123,7 +123,7 @@ $user_type = session('type');
    <!-- Products -->
    <li class="menu-item <?=(($pageSegment == 'products')?'open':'')?>">
       <a href="javascript:void(0);" class="menu-link menu-toggle">
-         <i class="menu-icon tf-icons fa fa-list-alt"></i>
+         <i class="menu-icon tf-icons fa fa-product-hunt"></i>
          <div data-i18n="Products">Products</div>
       </a>
       <ul class="menu-sub">
@@ -168,17 +168,43 @@ $user_type = session('type');
          </li>
       </ul>
    </li>
+   <!-- Customers -->
+   <li class="menu-item <?=(($pageSegment == 'customer')?'active':'')?>">
+      <a href="<?=url('admin/customer/list')?>" class="menu-link">
+         <i class="menu-icon tf-icons fa fa-users"></i>
+         <div data-i18n="Customers">Customers</div>
+      </a>
+   </li>
+   <!-- Reports -->
+   <li class="menu-item <?=(($pageSegment == 'report')?'open':'')?>">
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
+         <i class="menu-icon tf-icons fa fa-file"></i>
+         <div data-i18n="Reports">Reports</div>
+      </a>
+      <ul class="menu-sub">
+         <li class="menu-item <?=(($pageFunction == 'advance-search-report')?'active':'')?>">
+            <a href="<?=url('admin/report/advance-search-report')?>" class="menu-link">
+               <div data-i18n="Advance Search Reports">Advance Search Reports</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageFunction == 'sale-report')?'active':'')?>">
+            <a href="<?=url('admin/report/sale-report')?>" class="menu-link">
+               <div data-i18n="Sale Reports">Sale Reports</div>
+            </a>
+         </li>
+      </ul>
+   </li>
    <!-- Login Logs -->
    <li class="menu-item <?=(($pageSegment == 'login-logs')?'active':'')?>">
       <a href="<?=url('admin/login-logs')?>" class="menu-link">
-         <i class="menu-icon tf-icons fa fa-home"></i>
+         <i class="menu-icon tf-icons fa fa-sign-in"></i>
          <div data-i18n="Login Logs">Login Logs</div>
       </a>
    </li>
    <!-- Email Logs -->
    <li class="menu-item <?=(($pageSegment == 'email-logs')?'active':'')?>">
       <a href="<?=url('admin/email-logs')?>" class="menu-link">
-         <i class="menu-icon tf-icons fa fa-home"></i>
+         <i class="menu-icon tf-icons fa fa-envelope"></i>
          <div data-i18n="Email Logs">Email Logs</div>
       </a>
    </li>

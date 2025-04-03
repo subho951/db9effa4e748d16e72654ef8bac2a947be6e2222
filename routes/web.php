@@ -212,10 +212,11 @@ Route::get('/db-test', function () {
             /* customer */
             /* customer */
                 Route::get('customer/list', 'CustomerController@list');
-                Route::match(['get', 'post'], 'customer/add', 'CustomerController@add');
-                Route::match(['get', 'post'], 'customer/edit/{id}', 'CustomerController@edit');
-                Route::get('customer/delete/{id}', 'CustomerController@delete');
-                Route::get('customer/change-status/{id}', 'CustomerController@change_status');
+                // Route::match(['get', 'post'], 'customer/add', 'CustomerController@add');
+                // Route::match(['get', 'post'], 'customer/edit/{id}', 'CustomerController@edit');
+                // Route::get('customer/delete/{id}', 'CustomerController@delete');
+                Route::get('customer/customer-orders/{id}', 'CustomerController@customerOrders');
+                Route::get('customer/order-details/{id}', 'CustomerController@orderDetails');
             /* customer */
             /* page */
                 Route::get('page/list', 'PageController@list');

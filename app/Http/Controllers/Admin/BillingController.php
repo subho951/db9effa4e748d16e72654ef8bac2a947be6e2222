@@ -618,7 +618,25 @@ class BillingController extends Controller
                 $note               = $requestData['note'];
                 $getOrder           = Order::where('id', '=', $order_id)->first();
                 if($getOrder){
+                    $customer_name  = '';
+                    $customer_phone = '';
+                    $customer_email = '';
+                    if($getOrder){
+                        if($getOrder->delivery_mode == 'Deliver'){
+                            $customer_name  = $getOrder->delivery_name;
+                            $customer_phone = $getOrder->delivery_phone;
+                            $customer_email = $getOrder->delivery_email;
+                        }
+                        if($getOrder->delivery_mode == 'Pickup'){
+                            $customer_name  = $getOrder->pickup_name;
+                            $customer_phone = $getOrder->pickup_phone;
+                            $customer_email = $getOrder->pickup_email;
+                        }
+                    }
                     $fields = [
+                        'customer_name'     => $customer_name,
+                        'customer_phone'    => $customer_phone,
+                        'customer_email'    => $customer_email,
                         'order_date'        => date('Y-m-d'),
                         'order_time'        => date('H:i:s'),
                         'payment_status'    => 1,

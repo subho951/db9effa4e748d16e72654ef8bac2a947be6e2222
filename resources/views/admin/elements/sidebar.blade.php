@@ -123,7 +123,7 @@ $user_type = session('type');
    <!-- Products -->
    <li class="menu-item <?=(($pageSegment == 'products')?'open':'')?>">
       <a href="javascript:void(0);" class="menu-link menu-toggle">
-         <i class="menu-icon tf-icons fa fa-product-hunt"></i>
+         <i class="menu-icon tf-icons fa-solid fa-cart-shopping"></i>
          <div data-i18n="Products">Products</div>
       </a>
       <ul class="menu-sub">

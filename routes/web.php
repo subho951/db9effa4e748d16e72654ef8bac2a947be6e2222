@@ -252,6 +252,10 @@ Route::get('/db-test', function () {
                 Route::get('billing/billing-invoice-email/{id}', 'BillingController@billingInvoiceEmail');
                 Route::get('billing/billing-pdf-invoice/{id}', 'BillingController@billingPDFInvoice');
             /* billing */
+            /* reports */
+                Route::match(['get', 'post'], 'report/advance-search-report', 'ReportController@advanceSearchReport');
+                Route::match(['get', 'post'], 'report/sale-report', 'ReportController@saleReport');
+            /* reports */
         });
     });
 /* Admin Panel */

@@ -182,11 +182,11 @@ $user_type = session('type');
          <div data-i18n="Reports">Reports</div>
       </a>
       <ul class="menu-sub">
-         <li class="menu-item <?=(($pageFunction == 'advance-search-report')?'active':'')?>">
+         <!-- <li class="menu-item <?=(($pageFunction == 'advance-search-report')?'active':'')?>">
             <a href="<?=url('admin/report/advance-search-report')?>" class="menu-link">
                <div data-i18n="Advance Search Reports">Advance Search Reports</div>
             </a>
-         </li>
+         </li> -->
          <li class="menu-item <?=(($pageFunction == 'sale-report')?'active':'')?>">
             <a href="<?=url('admin/report/sale-report')?>" class="menu-link">
                <div data-i18n="Sale Reports">Sale Reports</div>

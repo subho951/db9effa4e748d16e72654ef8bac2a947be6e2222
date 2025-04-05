@@ -9,7 +9,7 @@ $current_url          = url()->current();
         <div class="order-summary">
             <div class="order-summary-left">
                 <div class="mb-3 d-flex justify-content-between">
-                    <p class="order-header">ORDER #: <?=(($getOrder)?$getOrder->order_no:'')?></p>
+                    <!-- <p class="order-header">ORDER #: <?=(($getOrder)?$getOrder->order_no:'')?></p> -->
                     <a href="<?=url('user/billing/billing-ongoing')?>" class="my-btn btn-orange">Ongoing Orders</i></a>
                     <a href="<?=url('user/billing/past-orders')?>" class="my-btn btn-orange">Past Orders</i></a>
                 </div>
@@ -63,10 +63,10 @@ $current_url          = url()->current();
                 <table class="table">
                     <thead>
                         <tr>
-                            <th width="40%">Item</th>
-                            <th>Price</th>
+                            <th width="40%">ORDER #: <?=(($getOrder)?$getOrder->order_no:'')?></th>
                             <th class="text-center">Qty</th>
-                            <th class="text-end">Subtotal</th>
+                            <th>Price</th>
+                            <!-- <th class="text-end">Subtotal</th> -->
                         </tr>
                     </thead>
                     <tbody>
@@ -76,7 +76,6 @@ $current_url          = url()->current();
                                     <span><?=$getOrderItem->product_name?></span><br>
                                     <small style="font-size: 10px;color: #0096eb;">SKU : <?=$getOrderItem->product_sku?></small>
                                 </td>
-                                <td>$<?=number_format($getOrderItem->price,2)?></td>
                                 <td class="text-center">
                                     <button class="btn-plus-minus" onclick="itemQtyDecrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">-</button>
                                     <input type="hidden" id="qty-val-<?=$getOrderItem->item_id?>" value="<?=$getOrderItem->qty?>">
@@ -84,10 +83,11 @@ $current_url          = url()->current();
                                     <button class="btn-plus-minus" onclick="itemQtyIncrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">+</button>
                                     <?php $totItemQty += $getOrderItem->qty; ?>
                                 </td>
-                                <td class="text-end">
+                                <td>$<?=number_format($getOrderItem->price,2)?></td>
+                                <!-- <td class="text-end">
                                     $<?=number_format($getOrderItem->subtotal,2)?>
                                     <a href="javascript:void(0);" onclick="itemDelete(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);"><i class='bx bxs-trash'></i></a>
-                                </td>
+                                </td> -->
                             </tr>
                         <?php } }?>
                     </tbody>

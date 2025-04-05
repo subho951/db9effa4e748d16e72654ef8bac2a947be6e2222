@@ -10,6 +10,8 @@ use App\Models\Admin;
 use App\Models\Brand;
 use App\Models\FastButton;
 use App\Models\Product;
+use App\Models\ProductDiscountVoucher;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderDetail;
 
@@ -143,12 +145,32 @@ class BillingController extends Controller
                         $checkAlreadyAdded = OrderDetail::where('order_id', '=', $order_id)->where('item_id', '=', $getProduct->id)->first();
                         if($checkAlreadyAdded){
                             $qty                = $checkAlreadyAdded->qty + 1;
-                            $discount_amount    = 0;
-                            $subtotal           = (($getProduct->retail_price_inc_tax * $qty) - $discount_amount);
+                            /* discount calculation */
+                                $discount_amount    = 0;
+                                $today = now(); // Get current date and time
+                                $minDiscountedPrice = \DB::table('product_discount_vouchers as pdv')
+                                                        ->join('coupons as c', 'pdv.voucher_code', '=', 'c.voucher_code') // Join with coupons table
+                                                        ->where('pdv.product_id', $getProduct->id) // Filter by product_id
+                                                        ->whereDate('c.from_date', '<=', $today) // Coupon must be active
+                                                        ->whereDate('c.to_date', '>=', $today) // Coupon must not be expired
+                                                        ->orderBy('pdv.retail_discounted_price', 'asc')
+                                                        ->select('pdv.*', 'c.from_date', 'c.to_date') // Select needed columns
+                                                        ->first();
+                                if($minDiscountedPrice){
+                                    $per_unit_discount          = (($minDiscountedPrice)?$minDiscountedPrice->retail_discount:0);
+                                    $per_unit_discounted_price  = (($minDiscountedPrice)?$minDiscountedPrice->retail_discounted_price:0);
+                                    $discount_amount            = ($per_unit_discount * $qty);
+                                    $price                      = $per_unit_discounted_price;
+                                    $subtotal                   = (($price * $qty));
+                                } else {
+                                    $price                      = $getProduct->retail_price_inc_tax;
+                                    $subtotal                   = (($price * $qty) - $discount_amount);
+                                }
+                            /* discount calculation */
                             $field1             = [
                                 'order_id'              => $order_id,
                                 'item_id'               => $getProduct->id,
-                                'price'                 => $getProduct->retail_price_inc_tax,
+                                'price'                 => $price,
                                 'qty'                   => $qty,
                                 'discount_amount'       => $discount_amount,
                                 'subtotal'              => $subtotal,
@@ -156,12 +178,32 @@ class BillingController extends Controller
                             OrderDetail::where('order_id', '=', $order_id)->where('item_id', '=', $getProduct->id)->update($field1);
                         } else {
                             $qty                = 1;
-                            $discount_amount    = 0;
-                            $subtotal           = (($getProduct->retail_price_inc_tax * $qty) - $discount_amount);
+                            /* discount calculation */
+                                $discount_amount    = 0;
+                                $today = now(); // Get current date and time
+                                $minDiscountedPrice = \DB::table('product_discount_vouchers as pdv')
+                                                        ->join('coupons as c', 'pdv.voucher_code', '=', 'c.voucher_code') // Join with coupons table
+                                                        ->where('pdv.product_id', $getProduct->id) // Filter by product_id
+                                                        ->whereDate('c.from_date', '<=', $today) // Coupon must be active
+                                                        ->whereDate('c.to_date', '>=', $today) // Coupon must not be expired
+                                                        ->orderBy('pdv.retail_discounted_price', 'asc')
+                                                        ->select('pdv.*', 'c.from_date', 'c.to_date') // Select needed columns
+                                                        ->first();
+                                if($minDiscountedPrice){
+                                    $per_unit_discount          = (($minDiscountedPrice)?$minDiscountedPrice->retail_discount:0);
+                                    $per_unit_discounted_price  = (($minDiscountedPrice)?$minDiscountedPrice->retail_discounted_price:0);
+                                    $discount_amount            = ($per_unit_discount * $qty);
+                                    $price                      = $per_unit_discounted_price;
+                                    $subtotal                   = (($price * $qty));
+                                } else {
+                                    $price                      = $getProduct->retail_price_inc_tax;
+                                    $subtotal                   = (($price * $qty) - $discount_amount);
+                                }
+                            /* discount calculation */
                             $field1             = [
                                 'order_id'          => $order_id,
                                 'item_id'           => $getProduct->id,
-                                'price'             => $getProduct->retail_price_inc_tax,
+                                'price'             => $price,
                                 'qty'               => $qty,
                                 'discount_amount'   => $discount_amount,
                                 'subtotal'          => $subtotal,
@@ -344,9 +386,30 @@ class BillingController extends Controller
                             $checkAlreadyAdded = OrderDetail::where('order_id', '=', $order_id)->where('item_id', '=', $item_id)->first();
                             if($checkAlreadyAdded){
                                 $qty                = $qtyVal;
-                                $discount_amount    = 0;
-                                $subtotal           = (($getProduct->retail_price_inc_tax * $qty) - $discount_amount);
+                                /* discount calculation */
+                                    $discount_amount    = 0;
+                                    $today = now(); // Get current date and time
+                                    $minDiscountedPrice = \DB::table('product_discount_vouchers as pdv')
+                                                            ->join('coupons as c', 'pdv.voucher_code', '=', 'c.voucher_code') // Join with coupons table
+                                                            ->where('pdv.product_id', $getProduct->id) // Filter by product_id
+                                                            ->whereDate('c.from_date', '<=', $today) // Coupon must be active
+                                                            ->whereDate('c.to_date', '>=', $today) // Coupon must not be expired
+                                                            ->orderBy('pdv.retail_discounted_price', 'asc')
+                                                            ->select('pdv.*', 'c.from_date', 'c.to_date') // Select needed columns
+                                                            ->first();
+                                    if($minDiscountedPrice){
+                                        $per_unit_discount          = (($minDiscountedPrice)?$minDiscountedPrice->retail_discount:0);
+                                        $per_unit_discounted_price  = (($minDiscountedPrice)?$minDiscountedPrice->retail_discounted_price:0);
+                                        $discount_amount            = ($per_unit_discount * $qty);
+                                        $price                      = $per_unit_discounted_price;
+                                        $subtotal                   = (($price * $qty));
+                                    } else {
+                                        $price                      = $getProduct->retail_price_inc_tax;
+                                        $subtotal                   = (($price * $qty) - $discount_amount);
+                                    }
+                                /* discount calculation */
                                 $field1             = [
+                                    'price'                 => $price,
                                     'qty'                   => $qty,
                                     'discount_amount'       => $discount_amount,
                                     'subtotal'              => $subtotal,
@@ -799,12 +862,32 @@ class BillingController extends Controller
                         $checkAlreadyAdded = OrderDetail::where('order_id', '=', $order_id)->where('item_id', '=', $getProduct->id)->first();
                         if($checkAlreadyAdded){
                             $qty                = $checkAlreadyAdded->qty + $post_qty;
-                            $discount_amount    = 0;
-                            $subtotal           = (($getProduct->retail_price_inc_tax * $qty) - $discount_amount);
+                            /* discount calculation */
+                                $discount_amount    = 0;
+                                $today = now(); // Get current date and time
+                                $minDiscountedPrice = \DB::table('product_discount_vouchers as pdv')
+                                                        ->join('coupons as c', 'pdv.voucher_code', '=', 'c.voucher_code') // Join with coupons table
+                                                        ->where('pdv.product_id', $getProduct->id) // Filter by product_id
+                                                        ->whereDate('c.from_date', '<=', $today) // Coupon must be active
+                                                        ->whereDate('c.to_date', '>=', $today) // Coupon must not be expired
+                                                        ->orderBy('pdv.retail_discounted_price', 'asc')
+                                                        ->select('pdv.*', 'c.from_date', 'c.to_date') // Select needed columns
+                                                        ->first();
+                                if($minDiscountedPrice){
+                                    $per_unit_discount          = (($minDiscountedPrice)?$minDiscountedPrice->retail_discount:0);
+                                    $per_unit_discounted_price  = (($minDiscountedPrice)?$minDiscountedPrice->retail_discounted_price:0);
+                                    $discount_amount            = ($per_unit_discount * $qty);
+                                    $price                      = $per_unit_discounted_price;
+                                    $subtotal                   = (($price * $qty));
+                                } else {
+                                    $price                      = $getProduct->retail_price_inc_tax;
+                                    $subtotal                   = (($price * $qty) - $discount_amount);
+                                }
+                            /* discount calculation */
                             $field1             = [
                                 'order_id'              => $order_id,
                                 'item_id'               => $getProduct->id,
-                                'price'                 => $getProduct->retail_price_inc_tax,
+                                'price'                 => $price,
                                 'qty'                   => $qty,
                                 'discount_amount'       => $discount_amount,
                                 'subtotal'              => $subtotal,
@@ -812,12 +895,32 @@ class BillingController extends Controller
                             OrderDetail::where('order_id', '=', $order_id)->where('item_id', '=', $getProduct->id)->update($field1);
                         } else {
                             $qty                = $post_qty;
-                            $discount_amount    = 0;
-                            $subtotal           = (($getProduct->retail_price_inc_tax * $qty) - $discount_amount);
+                            /* discount calculation */
+                                $discount_amount    = 0;
+                                $today = now(); // Get current date and time
+                                $minDiscountedPrice = \DB::table('product_discount_vouchers as pdv')
+                                                        ->join('coupons as c', 'pdv.voucher_code', '=', 'c.voucher_code') // Join with coupons table
+                                                        ->where('pdv.product_id', $getProduct->id) // Filter by product_id
+                                                        ->whereDate('c.from_date', '<=', $today) // Coupon must be active
+                                                        ->whereDate('c.to_date', '>=', $today) // Coupon must not be expired
+                                                        ->orderBy('pdv.retail_discounted_price', 'asc')
+                                                        ->select('pdv.*', 'c.from_date', 'c.to_date') // Select needed columns
+                                                        ->first();
+                                if($minDiscountedPrice){
+                                    $per_unit_discount          = (($minDiscountedPrice)?$minDiscountedPrice->retail_discount:0);
+                                    $per_unit_discounted_price  = (($minDiscountedPrice)?$minDiscountedPrice->retail_discounted_price:0);
+                                    $discount_amount            = ($per_unit_discount * $qty);
+                                    $price                      = $per_unit_discounted_price;
+                                    $subtotal                   = (($price * $qty));
+                                } else {
+                                    $price                      = $getProduct->retail_price_inc_tax;
+                                    $subtotal                   = (($price * $qty) - $discount_amount);
+                                }
+                            /* discount calculation */
                             $field1             = [
                                 'order_id'          => $order_id,
                                 'item_id'           => $getProduct->id,
-                                'price'             => $getProduct->retail_price_inc_tax,
+                                'price'             => $price,
                                 'qty'               => $qty,
                                 'discount_amount'   => $discount_amount,
                                 'subtotal'          => $subtotal,

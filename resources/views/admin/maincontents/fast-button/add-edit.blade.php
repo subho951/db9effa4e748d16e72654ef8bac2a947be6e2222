@@ -27,7 +27,7 @@ $current_url                    = url()->current();
       $status                  = $row->status;
     } else {
       $product_id              = '';
-      $qty                     = '';
+      $qty                     = 1;
       $status                  = '';
     }
     ?>
@@ -38,7 +38,7 @@ $current_url                    = url()->current();
           <form method="POST" action="" enctype="multipart/form-data">
             @csrf
             <div class="row">
-              <div class="mb-3 col-md-12">
+              <div class="mb-3 col-md-6">
                  <label for="product_id" class="form-label">Product <small class="text-danger">*</small></label>
                  <select name="product_id" class="form-control" id="product_id" required>
                   <option value="" selected>Select Product</option>
@@ -47,11 +47,11 @@ $current_url                    = url()->current();
                   <?php } }?>
                 </select>
               </div>
-              
-              <div class="mb-3 col-md-6">
+              <input class="form-control no-space" type="hidden" min="1" id="qty" name="qty" value="<?=$qty?>" required />
+              <!-- <div class="mb-3 col-md-6">
                  <label for="qty" class="form-label">Quantity <small class="text-danger">*</small></label>
                  <input class="form-control no-space" type="number" min="1" id="qty" name="qty" value="<?=$qty?>" required />
-              </div>
+              </div> -->
 
               <div class="mb-3 col-md-6">
                 <label for="username" class="form-label d-block">Status <small class="text-danger">*</small></label>

@@ -2,9 +2,9 @@
     <div class="row">
         <div class="col-md-12">
             <div>
-                <ul class="d-flex justify-content-end right-bar-list align-items-center flex-wrap">
+                <ul class="d-flex justify-content-between justify-content-sm-end right-bar-list align-items-center">
                     <li>
-                        <a href="<?=url('admin/dashboard')?>" class="my-btn btn-sky"><i class="fa fa-arrow-left"></i> Back To Dashboard</a>
+                        <a href="<?=url('admin/dashboard')?>" class="my-btn btn-sky"><i class="fa fa-arrow-left"></i><span class="d-none d-sm-block"> Back To Dashboard</span></a>
                     </li>
                     <li>
                         <i class="bx bx-time"></i><?=date('h:i A')?>

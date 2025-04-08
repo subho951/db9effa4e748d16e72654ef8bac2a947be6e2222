@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-md-12">
             <div>
-                <ul class="d-flex justify-content-end right-bar-list align-items-center flex-wrap">
+                <ul class="d-flex justify-content-between justify-content-sm-end right-bar-list align-items-center">
                     <!-- <li>
                         <a href="<?=url('user/dashboard')?>" class="my-btn btn-sky"><i class="fa fa-arrow-left"></i> Back To Dashboard</a>
                     </li> -->

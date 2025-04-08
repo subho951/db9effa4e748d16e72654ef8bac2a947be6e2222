@@ -24,6 +24,28 @@ $current_url                    = url()->current();
     .dropdown div:hover {
         background: #f0f0f0;
     }
+    .btn-sky{
+      background: #696cff;
+      color: #fff;
+      border-radius: 5px;
+      outline: none;
+      border: 1px solid transparent;
+      padding: 5px 10px;
+      transition: all .3s ease-in-out;
+      display: flex;
+      justify-content: center;
+      align-items: center
+    }
+    .btn-sky i{
+      margin-left: 5px;
+    }
+    .btn-sky:hover{
+      background: transparent;
+      color: #000;
+      border-radius: 5px;
+      outline: none;
+      border: 1px solid #696cff;
+    }
 </style>
 <div class="container-xxl flex-grow-1 container-p-y">
 <h4 class="py-3 mb-4">
@@ -80,44 +102,44 @@ $current_url                    = url()->current();
       }
       ?>
    <section class="info-body">
-      <div class="container-fluid">
+      <div class="containers-fluid">
          <div class="row">
             <div class="col-12">
                <small class="text-danger">Star (*) marked fields are mandatory</small><br>
                <small class="text-dark">* ch=character size/limit of the input field.</small>
                <form method="POST" action="" enctype="multipart/form-data">
                   @csrf
-                  <div class="container">
+                  <div class="containers">
                      <div class="form-container">
                         <!-- <div class="form-header mb-4">
                            <h4>Product Input Fields</h4>
                            <button type="submit" class="my-btn btn-sky">Save</button>
                         </div> -->
                         <div class="row g-3">
-                           <h5 class="mb-3">Basic Info</h5>
-                           <div class="col-md-3">
+                           <h5 class="mt-4 mb-0">Basic Info</h5>
+                           <div class="col-md-4">
                               <label class="form-label" for="sku">SKU&nbsp;(10ch) <small class="text-danger">*</small></label>
                               <input type="text" class="form-control" placeholder="Enter SKU" id="sku" name="sku" value="<?=$sku?>" required>
                            </div>
-                           <div class="col-md-3">
+                           <div class="col-md-4">
                               <label class="form-label" for="barcode">Barcode&nbsp;(25ch) <small class="text-danger">*</small></label>
                               <input type="text" class="form-control" placeholder="Enter Barcode" id="barcode" name="barcode" value="<?=$barcode?>" required>
                            </div>
-                           <div class="col-md-2">
+                           <div class="col-md-4">
                               <label class="form-label" for="shop_stock">Shop Stock&nbsp;(5ch) <small class="text-danger">*</small></label>
                               <input type="number" class="form-control" id="shop_stock" name="shop_stock" min="1" value="<?=$shop_stock?>">
                            </div>
-                           <div class="col-md-2">
+                           <div class="col-md-4">
                               <label class="form-label" for="warehouse_stock">Warehouse Stock&nbsp;(5ch) <small class="text-danger">*</small></label>
                               <input type="number" class="form-control" id="warehouse_stock" name="warehouse_stock" min="1" value="<?=$warehouse_stock?>">
                            </div>
-                           <div class="col-md-2 align-items-center">
+                           <!-- <div class="col-md-2 align-items-center">
                               <label class="form-label" for="warehouse_stock">Status</label>
                               <div class="form-check form-switch mt-0">
                                  <input class="form-check-input" type="checkbox" name="status" role="switch" id="status" <?=(($status == 1)?'checked':'')?>>
                                  <label class="form-check-label" for="status">Active</label>
                               </div>
-                           </div>
+                           </div> -->
 
                            <div class="col-md-4">
                               <label class="form-label" for="name">Product Name <small class="text-danger">*</small></label>
@@ -132,7 +154,7 @@ $current_url                    = url()->current();
                               <input type="text" class="form-control" placeholder="Enter Shelf Tag Short Name" id="shelf_tag_short_name" name="shelf_tag_short_name" value="<?=$shelf_tag_short_name?>" required>
                            </div>
 
-                           <div class="col-md-3">
+                           <div class="col-md-4">
                               <label class="form-label" for="supplier_id">Supplier Name <small class="text-danger">*</small></label>
                               <select name="supplier_id" class="form-control" id="supplier_id" required>
                                  <option value="" selected>Select Supplier</option>
@@ -141,7 +163,7 @@ $current_url                    = url()->current();
                                  <?php } }?>
                                </select>
                            </div>
-                           <div class="col-md-3">
+                           <div class="col-md-4">
                               <label class="form-label" for="brand_id">Brand <small class="text-danger">*</small></label>
                               <select name="brand_id" class="form-control" id="brand_id" required>
                                  <option value="" selected>Select Brand</option>
@@ -150,7 +172,7 @@ $current_url                    = url()->current();
                                  <?php } }?>
                                </select>
                            </div>
-                           <div class="col-md-3">
+                           <div class="col-md-4">
                               <label class="form-label" for="size_id">Size <small class="text-danger">*</small></label>
                               <select name="size_id" class="form-control" id="size_id" required>
                                  <option value="" selected>Select Size</option>
@@ -159,37 +181,45 @@ $current_url                    = url()->current();
                                  <?php } }?>
                                </select>
                            </div>
-                           <div class="col-md-3">
+                           <div class="col-md-4">
                               <label class="form-label" for="style">Style</label>
                               <input type="text" class="form-control" placeholder="Enter Style" name="style" id="style" value="<?=$style?>">
                            </div>
 
+                           <div class="col-md-4 align-items-center">
+                              <label class="form-label" for="warehouse_stock">Status</label>
+                              <div class="form-check form-switch mt-0">
+                                 <input class="form-check-input" type="checkbox" name="status" role="switch" id="status" <?=(($status == 1)?'checked':'')?>>
+                                 <label class="form-check-label" for="status">Active</label>
+                              </div>
+                           </div>
+
                            <h5 class="mb-3">Pricing</h5>
-                           <div class="col-md-2">
+                           <div class="col-md-4">
                               <label class="form-label" for="cost_price_ex_tax">Cost (Excl. Tax) ($)</label>
                               <input type="text" class="form-control" placeholder="Enter Cost Ex. Tax" name="cost_price_ex_tax" id="cost_price_ex_tax" value="<?=$cost_price_ex_tax?>" required>
                            </div>
-                           <div class="col-md-2">
+                           <div class="col-md-4">
                               <label class="form-label" for="cost_price_inc_tax">Cost (Incl. Tax) ($)</label>
                               <input type="hidden" name="cost_price_tax" id="cost_price_tax" value="<?=$cost_price_tax?>">
                               <input type="text" class="form-control" placeholder="Enter Cost Inc. Tax" name="cost_price_inc_tax" id="cost_price_inc_tax" value="<?=$cost_price_inc_tax?>" required readonly>
                            </div>
-                           <div class="col-md-2">
+                           <div class="col-md-4">
                               <label class="form-label" for="markup_type">Markup (%)</label>
                               <div class="form-check form-switch mt-0">
                                  <input class="form-check-input" type="checkbox" name="markup_type" role="switch" id="markup_type" <?=(($markup_type == 'PERCENTAGE')?'checked':'')?>>
                                  <label class="form-check-label" for="markup_type" id="markup_type_text">Flat</label>
                               </div>
                            </div>
-                           <div class="col-md-2">
+                           <div class="col-md-4">
                               <label class="form-label" for="markup_amount">Markup ($)</label>
                               <input type="text" class="form-control" placeholder="Enter Markup in $" name="markup_amount" id="markup_amount" value="<?=$markup_amount?>" value="<?=$markup_amount?>" required>
                            </div>
-                           <div class="col-md-2">
+                           <div class="col-md-4">
                               <label class="form-label" for="added_amount">Added ($)</label>
                               <input type="text" class="form-control" placeholder="Enter Markup in %" name="added_amount" id="added_amount" value="<?=$added_amount?>" value="<?=$added_amount?>" required readonly>
                            </div>
-                           <div class="col-md-2">
+                           <div class="col-md-4">
                               <label class="form-label" for="retail_price_inc_tax">Retail Price (Incl. Tax) ($)</label>
                               <input type="text" class="form-control" placeholder="Enter Retail Price" name="retail_price_inc_tax" id="retail_price_inc_tax" value="<?=$retail_price_inc_tax?>" value="<?=$retail_price_inc_tax?>" required readonly>
                            </div>
@@ -255,7 +285,7 @@ $current_url                    = url()->current();
                                        <div class="col-lg-2">
                                           <input type="text" class="form-control" placeholder="retail less discount" name="retail_discount[]" id="retail_discount<?=$sl?>" value="<?=$discountVoucher->retail_discount?>" readonly>
                                        </div>
-                                       <div class="col-lg-2">
+                                       <div class="col-lg-2 d-flex align-items-center gap-2">
                                           <input type="text" class="form-control" placeholder="retail discounted price" name="retail_discounted_price[]" id="retail_discounted_price<?=$sl?>" value="<?=$discountVoucher->retail_discounted_price?>" readonly>
                                           <a href="javascript:void(0);" class="remove_button"><i class="fa fa-minus-circle text-danger"></i></a>
                                        </div>
@@ -282,8 +312,9 @@ $current_url                    = url()->current();
                                     <div class="col-lg-2">
                                        <input type="text" class="form-control" placeholder="retail less discount" name="retail_discount[]" id="retail_discount1" readonly>
                                     </div>
-                                    <div class="col-lg-2">
+                                    <div class="col-lg-2 d-flex align-items-center gap-2">
                                        <input type="text" class="form-control" placeholder="retail discounted price" name="retail_discounted_price[]" id="retail_discounted_price1" readonly>
+                                       <a style="opacity: 0;" class="d-none d-lg-block"><i class="fa fa-minus-circle text-danger"></i></a>
                                     </div>
                                  </div>
                               </div>
@@ -361,8 +392,9 @@ $current_url                    = url()->current();
                                           <label class="form-check-label" for="discount_type1" id="discount_type_text1">Flat</label>
                                        </div>
                                     </div>
-                                    <div class="col-lg-2">
+                                    <div class="col-lg-2 d-flex align-items-center gap-2">
                                        <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount1">
+                                       <a style="opacity: 0;"  class="d-none d-lg-block"><i class="fa fa-minus-circle text-danger"></i></a>
                                     </div>
                                  </div>
                               </div>
@@ -513,7 +545,7 @@ $current_url                    = url()->current();
                                     <div class="col-lg-2">\
                                        <input type="text" class="form-control" placeholder="retail less discount" name="retail_discount[]" id="retail_discount' + x + '" readonly>\
                                     </div>\
-                                    <div class="col-lg-2">\
+                                    <div class="col-lg-2 d-flex align-items-center gap-2">\
                                        <input type="text" class="form-control" placeholder="retail discounted price" name="retail_discounted_price[]" id="retail_discounted_price' + x + '" readonly>\
                                        <a href="javascript:void(0);" class="remove_button"><i class="fa fa-minus-circle text-danger"></i></a>\
                                     </div>\
@@ -633,11 +665,9 @@ $current_url                    = url()->current();
                                           <label class="form-check-label" for="discount_type' + x + '" id="discount_type_text' + x + '">Flat</label>\
                                        </div>\
                                     </div>\
-                                    <div class="col-lg-2">\
+                                    <div class="col-lg-2 d-flex align-items-center gap-2">\
                                        <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount' + x + '">\
-                                    </div>\
-                                    <div class="col-lg-2">\
-                                       <a href="javascript:void(0);" class="remove_button2"><i class="fa fa-minus-circle text-danger"></i></a>\
+                                        <a href="javascript:void(0);" class="remove_button2"><i class="fa fa-minus-circle text-danger"></i></a>\
                                     </div>\
                                  </div>'; //New input field html
                $(wrapper).append(fieldHTML); //Add field html

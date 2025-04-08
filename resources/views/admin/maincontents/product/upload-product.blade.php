@@ -15,11 +15,11 @@ $controllerRoute = $module['controller_route'];
             <form method="POST" action="" enctype="multipart/form-data">
               @csrf
               <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-4 my-2 my-md-0">
                   <label for="title">Title</label>
                   <input type="text" name="title" id="title" class="form-control" required>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4 my-2 my-md-0">
                   <label for="filename">File</label>
                   <input type="file" name="filename" id="filename" class="form-control" required>
                 </div>

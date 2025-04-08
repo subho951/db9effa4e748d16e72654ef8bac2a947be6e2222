@@ -76,6 +76,23 @@ $controllerRoute = $module['controller_route'];
       border: 2px solid #04163d;
       transition: all .3s ease-in-out;
       box-shadow: 0 9px 20px -10px #a5a5a5;
+      position: absolute; left: 90px; top: 8px;
+  }
+  @media(max-width: 767px) {
+    div.dt-container div.dt-layout-row {
+      display: flex !important;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .buttons-export {
+      top: 11px;
+  }
+  }
+  @media(max-width: 575px) {
+    div.dt-container div.dt-layout-row {
+      flex-wrap: wrap;
+    }
   }
 </style>
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -91,16 +108,16 @@ $controllerRoute = $module['controller_route'];
             <a href="<?=url('admin/' . $controllerRoute . '/upload-product/')?>" class="btn btn-outline-success btn-sm float-right">Upload <?=$module['title']?></a>
             <form method="GET" action="" style="border: 1px solid #04163d24;padding: 10px;border-radius: 10px;margin-top: 10px;">
               <input type="hidden" name="mode" value="filter">
-              <div class="row">
+              <div class="row align-items-center">
                 <div class="col-lg-3 col-md-3">
-                  <select class="form-control" name="status">
+                  <select class="form-control my-2 my-md-0" name="status">
                     <option value="" <?=(($status == '')?'selected':'')?>>Select Status</option>
                     <option value="1" <?=(($status == '1')?'selected':'')?>>Active</option>
                     <option value="0" <?=(($status == '0')?'selected':'')?>>Inactive</option>
                   </select>
                 </div>
                 <div class="col-lg-3 col-md-3">
-                  <select class="form-control" name="brand_id">
+                  <select class="form-control my-2 my-md-0" name="brand_id">
                     <option value="" selected>Select Brand</option>
                     <?php if($brands){ foreach($brands as $brand){?>
                       <option value="<?=$brand->id?>" <?=(($brand_id == $brand->id)?'selected':'')?>><?=$brand->name?></option>
@@ -108,7 +125,7 @@ $controllerRoute = $module['controller_route'];
                   </select>
                 </div>
                 <div class="col-lg-3 col-md-3">
-                  <select class="form-control" name="supplier_id">
+                  <select class="form-control my-2 my-md-0" name="supplier_id">
                     <option value="" selected>Select Supplier</option>
                     <?php if($suppliers){ foreach($suppliers as $supplier){?>
                       <option value="<?=$supplier->id?>" <?=(($supplier_id == $supplier->id)?'selected':'')?>><?=$supplier->name?></option>
@@ -124,7 +141,7 @@ $controllerRoute = $module['controller_route'];
               </div>
             </form>
           </h5>
-          <div class="dt-responsive table-responsive">
+          <div class="dt-responsive table-responsive" style="position: relative">
             <button class="dt-button buttons-export" tabindex="0" aria-controls="simpletable" type="button" onclick="openAdminPINModal2();"><span>Export</span></button>
             <table id="simpletable" class="table table-striped table-bordered nowrap">
               <thead>

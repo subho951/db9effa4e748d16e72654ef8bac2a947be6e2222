@@ -93,7 +93,7 @@ $controllerRoute = $module['controller_route'];
                 <form method="GET" action="" enctype="multipart/form-data">
                     <input type="hidden" name="mode" value="product_search">
                     @csrf
-                    <div class="row g-3">
+                    <div class="row align-items-center g-3">
                         <div class="col-lg-3 col-md-3">
                           <select class="form-control" name="status">
                             <option value="" <?=(($status == '')?'selected':'')?>>Select Status</option>

@@ -19,8 +19,8 @@ $current_url          = url()->current();
                             <div class="col-md-6">
                                 <ul class="payment-methord">
                                     <li>
-                                        <a href="javascript:void(0);" class="my-btn outline-sky text-sky mb-4">
-                                            <input type="radio" class="radioOption" name="payment_mode" id="payment_mode1" value="CASH" <?=(($getOrder)?(($getOrder->payment_mode == 'CASH')?'checked':''):'')?> style="display: none;">
+                                        <a href="javascript:void(0);" class="my-btn outline-sky text-sky mb-4" type="button" data-bs-toggle="modal" data-bs-target="#cashModal">
+                                            <!-- <input type="radio" class="radioOption" name="payment_mode" id="payment_mode1" value="CASH" <?=(($getOrder)?(($getOrder->payment_mode == 'CASH')?'checked':''):'')?> style="display: none;"> -->
                                             <label for="payment_mode1"><?=(($getOrder)?(($getOrder->payment_mode == 'CASH')?'<i class="fa fa-check"></i>':''):'')?>&nbsp;CASH</label>
                                         </a>
                                     </li>
@@ -37,9 +37,17 @@ $current_url          = url()->current();
                                         </a>
                                     </li>
                                     <?php if($getOrder->payment_mode != ''){?>
-                                    <li>
-                                        <a href="javascript:void(0);" class="my-btn btn-green mb-4" type="button" data-bs-toggle="modal" data-bs-target="#placeOrderModal">FINALISE</a>
-                                    </li>
+                                        <?php if($getOrder->payment_mode == 'CASH'){?>
+                                            <li>
+                                                <p>
+                                                    <small>Cash Tendered : $<?=number_format($getOrder->cash_tendered, 2)?></small><br>
+                                                    <small>Cash Returned : $<?=number_format($getOrder->cash_return, 2)?></small>
+                                                </p>
+                                            </li>
+                                        <?php }?>
+                                        <li>
+                                            <a href="javascript:void(0);" class="my-btn btn-green mb-4" type="button" data-bs-toggle="modal" data-bs-target="#placeOrderModal">FINALISE</a>
+                                        </li>
                                     <?php }?>
                                 </ul>
                             </div>
@@ -252,7 +260,35 @@ $current_url          = url()->current();
                     <input type="hidden" name="note" id="note" value="<?=$getOrder->note?>">
                     <div class="row">
                         <div class="col-md-12 mt-3 mb-3">
-                            <input type="text" class="form-control" name="card_holder_name" id="card_holder_name" placeholder="Voucher Number">
+                            <label for="voucher_number">Voucher Number</label>
+                            <input type="text" class="form-control" name="voucher_number" id="voucher_number" placeholder="Voucher Number">
+                        </div>
+                        <div class="col-md-12">
+                            <button type="submit" class="my-btn btn-sky">APPLY</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="cashModal" tabindex="-1" aria-labelledby="adminpinmodalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog  modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header p-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="" id="cash-form">
+                    @csrf
+                    <input type="hidden" name="order_id" id="order_id" value="<?=(($getOrder)?$getOrder->id:0)?>">
+                    <input type="hidden" name="key" id="key" value="db9effa4e748d16e72654ef8bac2a947be6e2222">
+                    <input type="hidden" name="payment_mode" id="payment_mode1" value="CASH">
+                    <input type="hidden" name="note" id="note" value="<?=$getOrder->note?>">
+                    <div class="row">
+                        <div class="col-md-12 mt-3 mb-3">
+                            <label for="cash_tendered">Cash Tendered</label>
+                            <input type="text" class="form-control" name="cash_tendered" id="cash_tendered" placeholder="Cash Tendered">
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="my-btn btn-sky">APPLY</button>
@@ -472,6 +508,41 @@ $current_url          = url()->current();
                 }
             });
         });
+        $("#cash-form").submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                type: "POST",
+                url: base_url + "/user/billing/billing-select-payment-mode",
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                dataType: "JSON",
+                beforeSend: function () {
+                    $("#loader").show();
+                },
+                success: function (res) {
+                    $("#loader").hide();
+                    if(res.status){
+                        $('#cashModal').modal('hide');
+                        toastAlert("success", res.message);
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    }else{
+                        toastAlert("error", res.message);
+                    }
+                },
+                error:function (xhr, ajaxOptions, thrownError){
+                    $("#loader").hide();
+                    var res = xhr.responseJSON;
+                    if(!res.status) {
+                        toastAlert("error", res.message);
+                    }
+                }
+            });
+        });
     });
     function placeOrder(orderId){
         $('#placeOrderModal').modal('hide');
@@ -486,7 +557,7 @@ $current_url          = url()->current();
             success: function(res) {
                 $("#loader").hide();
                 if(res.status){
-                    var redirect_url = base_url + '/user/billing/past-orders';
+                    var redirect_url = base_url + '/user/billing/list';
                     toastAlert("success", res.message, true, redirect_url);
                 }else{
                     toastAlert("error", res.message);

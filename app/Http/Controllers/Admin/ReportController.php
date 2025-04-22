@@ -69,11 +69,11 @@ class ReportController extends Controller
             if ($request->isMethod('get') && $request->has('mode')) {
                 // $brand_id           = $request->brand_id;
                 // $supplier_id        = $request->supplier_id;
-                $fromDate          = $request->from_date;
-                $toDate            = $request->to_date;
-                $deliveryMode      = $request->delivery_mode;
-                $paymentMode       = $request->payment_mode;
-                $operatorId        = $request->operator_id;                
+                $fromDate           = $request->from_date;
+                $toDate             = $request->to_date;
+                $deliveryMode       = $request->delivery_mode;
+                $paymentMode        = $request->payment_mode;
+                $operatorId         = $request->operator_id;                
 
                 $data['rows']       = Order::query()
                                         ->where('status', 5) // fixed condition
@@ -83,7 +83,33 @@ class ReportController extends Controller
                                         ->when(request('payment_mode'), fn ($query, $paymentMode) => $query->where('payment_mode', $paymentMode))
                                         ->when(request('operator_id'), fn ($query, $operatorId) => $query->where('operator_id', $operatorId))
                                         ->get();
-                if(count($data['rows']) > 0){
+                $response           = [];
+                if($data['rows']){
+                    foreach($data['rows'] as $row){
+                        $getOrderDetails = OrderDetail::where('order_id', $row->id)->get();
+                        if($getOrderDetails){
+                            foreach($getOrderDetails as $getOrderDetail){
+                                $getProduct = Product::where('id', $getOrderDetail->item_id)->first();
+                                if($getProduct){
+                                    $profit     = ($getProduct->retail_price_inc_tax - $getProduct->cost_price_inc_tax);
+                                    $gp         = (($profit / $getProduct->cost_price_inc_tax) * 100);
+                                    $response[]           = [
+                                        'sku'           => $getProduct->sku,
+                                        'product_name'  => $getProduct->receipt_short_name,
+                                        'qty'           => $getOrderDetail->qty,
+                                        'buy_ex'        => number_format($getProduct->cost_price_inc_tax,2),
+                                        'sell_ex'       => number_format($getProduct->retail_price_inc_tax,2),
+                                        'gp'            => number_format($gp,2),
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+                $data['response'] = $response;
+                // Helper::pr($response,0);
+                // Helper::pr($data['rows']);
+                if(count($response) > 0){
                     $data['is_search'] = 1;
                 }
             }

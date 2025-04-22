@@ -28,6 +28,7 @@ $current_url          = url()->current();
                         <th>AMOUNT</th>
                         <th>OPERATOR</th>
                         <th>DELIVERY MODE</th>
+                        <th>PAYMENT MODE</th>
                         <th>DATE/TIME</th>
                         <!-- <th>NOTE</th> -->
                         <th width="8%">ACTION</th>
@@ -46,6 +47,15 @@ $current_url          = url()->current();
                             <td>$<?=number_format($row->net_amount,2)?></td>
                             <td><?=(($getOperator)?$getOperator->name:'')?></td>
                             <td><?=$row->delivery_mode?></td>
+                            <td>
+                                <?=$row->payment_mode?>
+                                <?php if($row->payment_mode == 'CASH'){?>
+                                    <p>
+                                        <small>Cash Tendered : $<?=number_format($row->cash_tendered, 2)?></small><br>
+                                        <small>Cash Returned : $<?=number_format($row->cash_return, 2)?></small>
+                                    </p>
+                                <?php }?>
+                            </td>
                             <td><?=date_format(date_create($row->order_date), "M d, Y")?><br><?=date_format(date_create($row->order_time), "h:i A")?></td>
                             <!-- <td><?=$row->note?></td> -->
                             <td>
@@ -79,7 +89,7 @@ $current_url          = url()->current();
                         </tr>
                     <?php } } else {?>
                         <tr>
-                            <td colspan="8" style="color: red !important; text-align: center;">No past orders found</td>
+                            <td colspan="9" style="color: red !important; text-align: center;">No past orders found</td>
                         </tr>
                     <?php }?>
                 </tbody>

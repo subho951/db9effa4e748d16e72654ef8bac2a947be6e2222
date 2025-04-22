@@ -40,6 +40,7 @@ $current_url          = url()->current();
                             <th>ITEMS</th>
                             <th>AMOUNT</th>
                             <th>DELIVERY MODE</th>
+                            <th>PAYMENT MODE</th>
                             <th>DATE/TIME</th>
                             <th width="12%">ACTION</th>
                         </tr>
@@ -59,6 +60,15 @@ $current_url          = url()->current();
                                 <td><?=$orderItemCount?></td>
                                 <td>$<?=number_format($row->net_amount,2)?></td>
                                 <td><?=$row->delivery_mode?></td>
+                                <td>
+                                    <?=$row->payment_mode?>
+                                    <?php if($row->payment_mode == 'CASH'){?>
+                                        <p>
+                                            <small>Cash Tendered : $<?=number_format($row->cash_tendered, 2)?></small><br>
+                                            <small>Cash Returned : $<?=number_format($row->cash_return, 2)?></small>
+                                        </p>
+                                    <?php }?>
+                                </td>
                                 <td><?=date_format(date_create($row->order_date), "M d, Y")?><br><?=date_format(date_create($row->order_time), "h:i A")?></td>
                                 <td>
                                     <?php if($row->delivery_mode != 'Take'){?>
@@ -91,7 +101,7 @@ $current_url          = url()->current();
                             </tr>
                         <?php } } else {?>
                             <tr>
-                                <td colspan="7" style="color: red !important; text-align: center;">No past orders found</td>
+                                <td colspan="9" style="color: red !important; text-align: center;">No past orders found</td>
                             </tr>
                         <?php }?>
                     </tbody>

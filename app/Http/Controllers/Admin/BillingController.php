@@ -642,23 +642,50 @@ class BillingController extends Controller
             $requestData        = $request->all();
             // Helper::pr($requestData);
             if($requestData['key'] == env('PROJECT_KEY')){
-                $payment_mode      = $requestData['payment_mode'];
                 $order_id           = $requestData['order_id'];
                 $note               = $requestData['note'];
                 $getOrder           = Order::where('id', '=', $order_id)->first();
-                if($getOrder){
-                    Order::where('id', '=', $order_id)->update(['payment_mode' => $payment_mode, 'status' => 2, 'note' => $note]);
-                    $apiStatus                          = TRUE;
-                    http_response_code(200);
-                    $apiMessage                         = 'Order payment mode selected as ' . $payment_mode . ' successfully';
-                    $apiExtraField                      = 'response_code';
-                    $apiExtraData                       = http_response_code();
+                $payment_mode       = $requestData['payment_mode'];
+                if($payment_mode == 'CASH'){
+                    $cash_tendered      = $requestData['cash_tendered'];
+                    if($cash_tendered < $getOrder->net_amount){
+                        $apiStatus          = FALSE;
+                        http_response_code(200);
+                        $apiMessage         = 'Cash tendered can\'t be less than order amount';
+                        $apiExtraField      = 'response_code';
+                        $apiExtraData       = http_response_code();
+                    } else {
+                        if($getOrder){
+                            $cash_return = ($cash_tendered - $getOrder->net_amount);
+                            Order::where('id', '=', $order_id)->update(['payment_mode' => $payment_mode, 'status' => 2, 'note' => $note, 'cash_tendered' => $cash_tendered, 'cash_return' => $cash_return]);
+                            $apiStatus                          = TRUE;
+                            http_response_code(200);
+                            $apiMessage                         = 'Order payment mode selected as ' . $payment_mode . ' successfully';
+                            $apiExtraField                      = 'response_code';
+                            $apiExtraData                       = http_response_code();
+                        } else {
+                            $apiStatus          = FALSE;
+                            http_response_code(200);
+                            $apiMessage         = 'Order not found';
+                            $apiExtraField      = 'response_code';
+                            $apiExtraData       = http_response_code();
+                        }
+                    }
                 } else {
-                    $apiStatus          = FALSE;
-                    http_response_code(200);
-                    $apiMessage         = 'Order not found';
-                    $apiExtraField      = 'response_code';
-                    $apiExtraData       = http_response_code();
+                    if($getOrder){
+                        Order::where('id', '=', $order_id)->update(['payment_mode' => $payment_mode, 'status' => 2, 'note' => $note]);
+                        $apiStatus                          = TRUE;
+                        http_response_code(200);
+                        $apiMessage                         = 'Order payment mode selected as ' . $payment_mode . ' successfully';
+                        $apiExtraField                      = 'response_code';
+                        $apiExtraData                       = http_response_code();
+                    } else {
+                        $apiStatus          = FALSE;
+                        http_response_code(200);
+                        $apiMessage         = 'Order not found';
+                        $apiExtraField      = 'response_code';
+                        $apiExtraData       = http_response_code();
+                    }
                 }
             } else {
                 http_response_code(400);
@@ -1123,7 +1150,7 @@ class BillingController extends Controller
             $data['module']                 = $this->data;
             $title                          = 'Past Orders';
             $page_name                      = 'billing.past-orders';
-            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'note', 'delivery_mode', 'pdf_invoice', 'pickup_email', 'delivery_email')->where('status', '=', 5)->orderBy('id', 'DESC')->get();
+            $data['rows']                   = Order::select('id', 'order_no', 'order_date', 'order_time', 'net_amount', 'operator_id', 'note', 'delivery_mode', 'pdf_invoice', 'pickup_email', 'delivery_email', 'cash_tendered', 'cash_return', 'payment_mode')->where('status', '=', 5)->orderBy('id', 'DESC')->get();
             echo $this->admin_after_login_billing_layout($title,$page_name,$data);
         }
         public function billingInvoice($order_id){

@@ -21,7 +21,7 @@ $current_url          = url()->current();
                 <div class="my-1 my-md-4">
                     <div class="row">
                         <div class="col-6 d-flex"><input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan / Enter Barcode Or SKU" maxlength="13"></div>
-                        <div class="col-6 d-flex justify-content-end"><a href="javascript:void(0);" class="my-btn btn-sky enter-btn" onclick="addToCart();">Enter</a></div>
+                        <div class="col-6 d-flex justify-content-end"><a href="javascript:void(0);" class="my-btn btn-sky enter-btn" id="add-to-cart" onclick="addToCart();">Enter</a></div>
                     </div>
                 </div>
                 <div class="row mt-0 mt-sm-2 mt-md-4">
@@ -233,6 +233,14 @@ $current_url          = url()->current();
 </div>
 <script type="text/javascript">
     var base_url = '<?=url('/')?>';
+    $(function(){
+        $('#add-to-cart').on('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission if inside a form
+                $('#add-to-cart').click(); // Trigger the button
+            }
+        });
+    });
     function addToCart(){
         var barcode = $('#barcode').val();
         var order_id = '<?=(($getOrder)?$getOrder->id:0)?>';
@@ -252,9 +260,11 @@ $current_url          = url()->current();
                         $('#order-item').empty();
                         $('#order-item').html(res.data.item_table_html);
                         $('#barcode').val('');
+                        $("#barcode").focus();
                     }else{
                         toastAlert("error", res.message);
                         $('#barcode').val('');
+                        $("#barcode").focus();
                     }
                 },
                 error:function (xhr, ajaxOptions, thrownError){
@@ -263,12 +273,14 @@ $current_url          = url()->current();
                     if(!res.status) {
                         toastAlert("error", res.message);
                         $('#barcode').val('');
+                        $("#barcode").focus();
                     }
                 }
             });
         } else {
             toastAlert('error', 'Barcode or SKU number length will be minimum 10 characters long. Please enter right barcode or SKU number');
             $('#barcode').val('');
+            $("#barcode").focus();
         }
     }
     function itemDelete(itemId, orderId){
@@ -291,8 +303,10 @@ $current_url          = url()->current();
                         // setTimeout(function() {
                         //     location.reload();
                         // }, 3000);
+                        $("#barcode").focus();
                     }else{
                         toastAlert("error", res.message);
+                        $("#barcode").focus();
                     }
                 },
                 error:function (xhr, ajaxOptions, thrownError){
@@ -300,11 +314,13 @@ $current_url          = url()->current();
                     var res = xhr.responseJSON;
                     if(!res.status) {
                         toastAlert("error", res.message);
+                        $("#barcode").focus();
                     }
                 }
             });
         } else {
             toastAlert("error", "Delete action cancelled");
+            $("#barcode").focus();
         }
     }
     function orderChangeStatus(orderId, orderStatus, modalName){
@@ -326,6 +342,7 @@ $current_url          = url()->current();
                     }, 1000);
                 }else{
                     toastAlert("error", res.message);
+                    $("#barcode").focus();
                 }
             },
             error:function (xhr, ajaxOptions, thrownError){
@@ -333,6 +350,7 @@ $current_url          = url()->current();
                 var res = xhr.responseJSON;
                 if(!res.status) {
                     toastAlert("error", res.message);
+                    $("#barcode").focus();
                 }
             }
         });
@@ -354,8 +372,10 @@ $current_url          = url()->current();
                     toastAlert("success", res.message);
                     $('#order-item').empty();
                     $('#order-item').html(res.data.item_table_html);
+                    $("#barcode").focus();
                 }else{
                     toastAlert("error", res.message);
+                    $("#barcode").focus();
                 }
             },
             error:function (xhr, ajaxOptions, thrownError){
@@ -363,6 +383,7 @@ $current_url          = url()->current();
                 var res = xhr.responseJSON;
                 if(!res.status) {
                     toastAlert("error", res.message);
+                    $("#barcode").focus();
                 }
             }
         });
@@ -385,8 +406,10 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         $('#order-item').empty();
                         $('#order-item').html(res.data.item_table_html);
+                        $("#barcode").focus();
                     }else{
                         toastAlert("error", res.message);
+                        $("#barcode").focus();
                     }
                 },
                 error:function (xhr, ajaxOptions, thrownError){
@@ -394,6 +417,7 @@ $current_url          = url()->current();
                     var res = xhr.responseJSON;
                     if(!res.status) {
                         toastAlert("error", res.message);
+                        $("#barcode").focus();
                     }
                 }
             });

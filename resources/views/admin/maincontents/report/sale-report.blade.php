@@ -116,21 +116,17 @@ $controllerRoute                = $module['controller_route'];
         <div class="card-body">
           <p><button type="button" class="btn btn-info btn-sm" id="printReport"><i class="fa fa-print"></i>&nbsp;PRINT</button></p>
           <div class="dt-responsive table-responsive" id="reportTable">
-            <table class="table table-striped table-bordered nowrap">
+            <!-- <table class="table table-striped table-bordered nowrap">
               <thead>
                 <tr>
                   <th scope="col" class="form-label">#</th>
                   <th scope="col" class="form-label">Order No.</th>
-                  <!-- <th scope="col">Order Date/Time</th> -->
                   <th scope="col" class="form-label">Operator</th>
                   <th scope="col" class="form-label">Customer Info</th>
                   <th scope="col" class="form-label">Delivery Info</th>
                   <th scope="col" class="form-label">Net Amount</th>
                   <th scope="col" class="form-label">Payment Mode</th>
                   <th scope="col" class="form-label">Payment Info</th>
-                  <!-- <th scope="col">Payment Amount</th>
-                  <th scope="col">Payment Date/Time</th> -->
-                  <!-- <th scope="col">Note</th> -->
                 </tr>
               </thead>
               <tbody>
@@ -142,10 +138,6 @@ $controllerRoute                = $module['controller_route'];
                       <?=date_format(date_create($row->created_at), "M d, Y")?><br>
                       <?=date_format(date_create($row->created_at), "h:i A")?>
                     </td>
-                    <!-- <td>
-                      <?=date_format(date_create($row->created_at), "M d, Y")?><br>
-                      <?=date_format(date_create($row->created_at), "h:i A")?>
-                    </td> -->
                     <td>
                       <?php
                       $getOperator = Admin::select('id', 'name')->where('id', '=', $row->operator_id)->first();
@@ -179,13 +171,40 @@ $controllerRoute                = $module['controller_route'];
                       $<?=number_format($row->payment_amount,2)?><br>
                       <?=date_format(date_create($row->payment_date_time), "M d, Y h:i A")?>
                     </td>
-                    <!-- <td>$<?=number_format($row->payment_amount,2)?></td>
-                    <td><?=date_format(date_create($row->payment_date_time), "M d, Y h:i A")?></td> -->
-                    <!-- <td><?=$row->note?></td> -->
                   </tr>
                 <?php } } else {?>
                   <tr>
                     <td colspan="12" style="text-align: center;color: red;">No Orders Found !!!</td>
+                  </tr>
+                <?php }?>
+              </tbody>
+            </table> -->
+            <table class="table table-striped table-bordered nowrap">
+              <thead>
+                <tr>
+                  <th align="center" scope="col" class="form-label">#</th>
+                  <th align="center" scope="col" class="form-label">SKU</th>
+                  <th align="center" scope="col" class="form-label">Product (short name)</th>
+                  <th align="center" scope="col" class="form-label">Qty (sold)</th>
+                  <th align="center" scope="col" class="form-label">Buy</th>
+                  <th align="center" scope="col" class="form-label">Sell</th>
+                  <th align="center" scope="col" class="form-label">Gross Profit (%)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if(count($response)>0){ $sl=1; foreach($response as $row){?>
+                  <tr style="page-break-inside: avoid;">
+                    <th scope="row" style="text-align:center;"><?=$sl++?></th>
+                    <td align="center"><?=$row['sku']?></td>
+                    <td align="center"><?=$row['product_name']?></td>
+                    <td align="center"><?=$row['qty']?></td>
+                    <td align="center">$<?=$row['buy_ex']?></td>
+                    <td align="center">$<?=$row['sell_ex']?></td>
+                    <td align="center"><?=$row['gp']?>%</td>
+                  </tr>
+                <?php } } else {?>
+                  <tr>
+                    <td colspan="7" style="text-align: center;color: red;">No Orders Found !!!</td>
                   </tr>
                 <?php }?>
               </tbody>

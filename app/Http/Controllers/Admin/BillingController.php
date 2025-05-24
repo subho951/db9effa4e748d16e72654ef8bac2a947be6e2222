@@ -14,6 +14,8 @@ use App\Models\ProductDiscountVoucher;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderDetail;
+use App\Models\WarehouseStock;
+use App\Models\ShopStock;
 
 use Auth;
 use Session;
@@ -758,6 +760,34 @@ class BillingController extends Controller
                         file_put_contents($pdfFilePath, $output);
                         Order::where('id', '=', $order_id)->update(['pdf_invoice' => $filename]);
                     /* invoice pdf generate */
+                    /* shop stock deduct */
+                        $getOrderDetails           = OrderDetail::where('order_id', '=', $order_id)->get();
+                        if($getOrderDetails){
+                            foreach($getOrderDetails as $getOrderDetail){
+                                $order_item_id  = $getOrderDetail->id;
+                                $product_id     = $getOrderDetail->item_id;
+                                $qty            = $getOrderDetail->qty;
+
+                                $getProduct     = Product::where('id', $product_id)->first();
+                                $opening_qty2                = (($getProduct)?$getProduct->shop_stock:0);
+                                $txn_qty2                    = $qty;
+                                $closing_qty2                = ($opening_qty2 - $txn_qty2);
+                                $fields12                   = [
+                                    'txn_type'              => 'OUT',
+                                    'stock_date'            => date('Y-m-d'),
+                                    'product_id'            => $product_id,
+                                    'opening_qty'           => $opening_qty2,
+                                    'txn_qty'               => $txn_qty2,
+                                    'closing_qty'           => $closing_qty2,
+                                    'note'                  => 'For order #' . $order_no,
+                                    'order_id'              => $order_id,
+                                    'order_item_id'         => $order_item_id,
+                                ];
+                                ShopStock::insert($fields12);
+                                Product::where('id', $product_id)->update(['shop_stock' => $closing_qty2]);
+                            }
+                        }
+                    /* shop stock deduct */
                     $apiStatus                          = TRUE;
                     http_response_code(200);
                     $apiMessage                         = 'Order placed successfully';

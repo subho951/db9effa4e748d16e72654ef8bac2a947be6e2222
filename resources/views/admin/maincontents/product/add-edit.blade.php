@@ -126,12 +126,12 @@ $current_url                    = url()->current();
                               <input type="text" class="form-control" placeholder="Enter Barcode" id="barcode" name="barcode" value="<?=$barcode?>" required>
                            </div>
                            <div class="col-md-4">
-                              <label class="form-label" for="shop_stock">Shop Stock&nbsp;(5ch) <small class="text-danger">*</small></label>
-                              <input type="number" class="form-control" id="shop_stock" name="shop_stock" min="1" value="<?=$shop_stock?>">
+                              <label class="form-label" for="shop_stock">Shop Stock&nbsp;(5ch) (Opening) <small class="text-danger">*</small></label>
+                              <input type="number" class="form-control" id="shop_stock" name="shop_stock" min="1" value="<?=$shop_stock?>" <?=((empty($row))?'':'readonly')?>>
                            </div>
                            <div class="col-md-4">
-                              <label class="form-label" for="warehouse_stock">Warehouse Stock&nbsp;(5ch) <small class="text-danger">*</small></label>
-                              <input type="number" class="form-control" id="warehouse_stock" name="warehouse_stock" min="1" value="<?=$warehouse_stock?>">
+                              <label class="form-label" for="warehouse_stock">Warehouse Stock&nbsp;(5ch) (Opening) <small class="text-danger">*</small></label>
+                              <input type="number" class="form-control" id="warehouse_stock" name="warehouse_stock" min="1" value="<?=$warehouse_stock?>" <?=((empty($row))?'':'readonly')?>>
                            </div>
                            <!-- <div class="col-md-2 align-items-center">
                               <label class="form-label" for="warehouse_stock">Status</label>

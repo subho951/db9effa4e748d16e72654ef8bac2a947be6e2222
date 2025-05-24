@@ -252,6 +252,13 @@ Route::get('/db-test', function () {
                 Route::get('billing/billing-invoice-email/{id}', 'BillingController@billingInvoiceEmail');
                 Route::get('billing/billing-pdf-invoice/{id}', 'BillingController@billingPDFInvoice');
             /* billing */
+            /* stock */
+                Route::get('stock/warehouse-stock', 'StockController@warehouseStock');
+                Route::post('stock/manage-warehouse-stock', 'StockController@manageWarehouseStock');
+                Route::get('stock/warehouse-stock-history/{id}', 'StockController@warehouseStockHistory');
+                Route::get('stock/shop-stock', 'StockController@shopStock');
+                Route::get('stock/shop-stock-history/{id}', 'StockController@shopStockHistory');
+            /* stock */
             /* reports */
                 Route::match(['get', 'post'], 'report/advance-search-report', 'ReportController@advanceSearchReport');
                 Route::match(['get', 'post'], 'report/sale-report', 'ReportController@saleReport');

@@ -17,6 +17,8 @@ use App\Models\ProductMultipleBuy;
 use App\Models\UploadProduct;
 use App\Models\Admin;
 use App\Models\ShelfTag;
+use App\Models\WarehouseStock;
+use App\Models\ShopStock;
 
 use Illuminate\Support\Facades\File;
 use Picqer\Barcode\BarcodeGeneratorPNG;
@@ -191,6 +193,7 @@ class ProductController extends Controller
             $generalSetting           = GeneralSetting::find('1');
             if($request->isMethod('post')){
                 $postData = $request->all();
+                // Helper::pr($postData);
                 $rules = [
                     'sku'                       => 'required',
                     'barcode'                   => 'required',
@@ -257,17 +260,19 @@ class ProductController extends Controller
                             $retail_discounted_price    = $postData['retail_discounted_price'];
                             if(count($voucher_code) > 0){
                                 for($k=0;$k<count($voucher_code);$k++){
-                                    $fields2 = [
-                                        'voucher_code'                      => $voucher_code[$k],
-                                        'product_id'                        => $product_id,
-                                        'coupon_id'                         => $coupon_id[$k],
-                                        'discount_value'                    => $discount_value[$k],
-                                        'discount_type'                     => $discount_type[$k],
-                                        'retail_discount'                   => $retail_discount[$k],
-                                        'retail_discounted_price'           => $retail_discounted_price[$k],
-                                    ];
-                                    // Helper::pr($fields2);
-                                    ProductDiscountVoucher::insert($fields2);
+                                    if($voucher_code[$k] != ''){
+                                        $fields2 = [
+                                            'voucher_code'                      => $voucher_code[$k],
+                                            'product_id'                        => $product_id,
+                                            'coupon_id'                         => $coupon_id[$k],
+                                            'discount_value'                    => $discount_value[$k],
+                                            'discount_type'                     => $discount_type[$k],
+                                            'retail_discount'                   => $retail_discount[$k],
+                                            'retail_discounted_price'           => $retail_discounted_price[$k],
+                                        ];
+                                        // Helper::pr($fields2);
+                                        ProductDiscountVoucher::insert($fields2);
+                                    }
                                 }
                             }
                         /* discount vouchers */
@@ -310,6 +315,36 @@ class ProductController extends Controller
                                 }
                             }
                         /* multiple buys */
+                        /* warehouse stock opening entry */
+                            $opening_qty                = 0;
+                            $txn_qty                    = $postData['warehouse_stock'];
+                            $closing_qty                = ($opening_qty + $txn_qty);
+                            $fields11                   = [
+                                'txn_type'          => 'IN',
+                                'stock_date'        => date('Y-m-d'),
+                                'product_id'        => $product_id,
+                                'opening_qty'       => $opening_qty,
+                                'txn_qty'           => $txn_qty,
+                                'closing_qty'       => $closing_qty,
+                                'note'              => 'Opening stock',
+                            ];
+                            WarehouseStock::insert($fields11);
+                        /* warehouse stock opening entry */
+                        /* shop stock opening entry */
+                            $opening_qty                = 0;
+                            $txn_qty                    = $postData['shop_stock'];
+                            $closing_qty                = ($opening_qty + $txn_qty);
+                            $fields11                   = [
+                                'txn_type'          => 'IN',
+                                'stock_date'        => date('Y-m-d'),
+                                'product_id'        => $product_id,
+                                'opening_qty'       => $opening_qty,
+                                'txn_qty'           => $txn_qty,
+                                'closing_qty'       => $closing_qty,
+                                'note'              => 'Opening stock',
+                            ];
+                            ShopStock::insert($fields11);
+                        /* shop stock opening entry */
                         return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Inserted Successfully !!!');
                     } else {
                         return redirect()->back()->with('error_message', $this->data['title'].' Already Exists !!!');
@@ -476,6 +511,34 @@ class ProductController extends Controller
                                 }
                             }
                         /* multiple buys */
+                        /* warehouse stock opening entry */
+                            // $opening_qty                = 0;
+                            // $txn_qty                    = $postData['warehouse_stock'];
+                            // $closing_qty                = ($opening_qty + $txn_qty);
+                            // $fields11                   = [
+                            //     'txn_type'          => 'IN',
+                            //     'product_id'        => $product_id,
+                            //     'opening_qty'       => $opening_qty,
+                            //     'txn_qty'           => $txn_qty,
+                            //     'closing_qty'       => $closing_qty,
+                            //     'note'              => 'Opening stock',
+                            // ];
+                            // WarehouseStock::insert($fields11);
+                        /* warehouse stock opening entry */
+                        /* shop stock opening entry */
+                            // $opening_qty                = 0;
+                            // $txn_qty                    = $postData['shop_stock'];
+                            // $closing_qty                = ($opening_qty + $txn_qty);
+                            // $fields11                   = [
+                            //     'txn_type'          => 'IN',
+                            //     'product_id'        => $product_id,
+                            //     'opening_qty'       => $opening_qty,
+                            //     'txn_qty'           => $txn_qty,
+                            //     'closing_qty'       => $closing_qty,
+                            //     'note'              => 'Opening stock',
+                            // ];
+                            // ShopStock::insert($fields11);
+                        /* shop stock opening entry */
                         return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Updated Successfully !!!');
                     } else {
                         return redirect()->back()->with('error_message', $this->data['title'].' Already Exists !!!');

@@ -149,6 +149,25 @@ $user_type = session('type');
          </li>
       </ul>
    </li>
+   <!-- Stock -->
+   <li class="menu-item <?=(($pageSegment == 'stock')?'open':'')?>">
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
+         <i class="menu-icon tf-icons fa fa-list-alt"></i>
+         <div data-i18n="Stocks">Stocks</div>
+      </a>
+      <ul class="menu-sub">
+         <li class="menu-item <?=(($pageFunction == 'warehouse-stock')?'active':'')?>">
+            <a href="<?=url('admin/stock/warehouse-stock')?>" class="menu-link">
+               <div data-i18n="Warehouse">Warehouse</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageFunction == 'shop-stock')?'active':'')?>">
+            <a href="<?=url('admin/stock/shop-stock')?>" class="menu-link">
+               <div data-i18n="Shop">Shop</div>
+            </a>
+         </li>
+      </ul>
+   </li>
    <!-- Billing -->
    <li class="menu-item <?=(($pageSegment == 'billing')?'open':'')?>">
       <a href="javascript:void(0);" class="menu-link menu-toggle">

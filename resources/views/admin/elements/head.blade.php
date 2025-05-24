@@ -3,6 +3,7 @@
 <title><?=$title?></title>
 <meta name="description" content="<?=$generalSetting->meta_description?>" />
 <meta name="keywords" content="<?=$generalSetting->meta_title?>">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <!-- Canonical SEO -->
 <!-- <link rel="canonical" href="https://themeselection.com/item/sneat-dashboard-pro-bootstrap/"> -->
 <!-- Favicon -->

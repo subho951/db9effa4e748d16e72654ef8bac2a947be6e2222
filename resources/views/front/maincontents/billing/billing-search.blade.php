@@ -12,7 +12,7 @@ $current_url          = url()->current();
             <div class="order-summary-left">
                 <div class="mb-3 d-flex justify-content-between">
                     <p class="order-header">ORDER #: <?=(($getOrder)?$getOrder->order_no:'')?></p>
-                    <a href="<?=url('user/billing/billing-ongoing')?>" class="my-btn btn-orange">Ongoing Orders</i></a>
+                    <!-- <a href="<?=url('user/billing/billing-ongoing')?>" class="my-btn btn-orange">Ongoing Orders</i></a> -->
                     <a href="<?=url('user/billing/past-orders')?>" class="my-btn btn-orange">Past Orders</i></a>
                 </div>
                 <div class="my-5">

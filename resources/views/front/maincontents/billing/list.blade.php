@@ -21,7 +21,7 @@ $current_url          = url()->current();
                 <div class="my-1 my-md-4">
                     <div class="row">
                         <div class="col-6 d-flex"><input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan / Enter Barcode Or SKU" maxlength="13"></div>
-                        <div class="col-6 d-flex justify-content-end"><a href="javascript:void(0);" class="my-btn btn-sky enter-btn" id="add-to-cart" onclick="addToCart();">Enter</a></div>
+                        <div class="col-6 d-flex justify-content-end"><a href="javascript:void(0);" class="my-btn btn-sky enter-btn" id="addToCartBtn">Enter</a></div>
                     </div>
                 </div>
                 <div class="row mt-0 mt-sm-2 mt-md-4">
@@ -233,14 +233,20 @@ $current_url          = url()->current();
 </div>
 <script type="text/javascript">
     var base_url = '<?=url('/')?>';
-    $(function(){
-        $('#add-to-cart').on('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault(); // Prevent form submission if inside a form
-                $('#add-to-cart').click(); // Trigger the button
-            }
-        });
-    });
+    // $(function(){
+    //     $('#add-to-cart').on('keydown', function(e) {
+    //         if (e.key === 'Enter') {
+    //             e.preventDefault(); // Prevent form submission if inside a form
+    //             $('#add-to-cart').click(); // Trigger the button
+    //         }
+    //     });
+    // });
+
+    // Get references
+    const skuInput = document.getElementById('barcode');
+    const addToCartBtn = document.getElementById('addToCartBtn');
+
+
     function addToCart(){
         var barcode = $('#barcode').val();
         var order_id = '<?=(($getOrder)?$getOrder->id:0)?>';
@@ -283,6 +289,18 @@ $current_url          = url()->current();
             $("#barcode").focus();
         }
     }
+
+    // Bind click event
+    addToCartBtn.addEventListener('click', addToCart);
+
+    // Bind Enter key on input
+    skuInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault(); // Prevent form submission if inside a form
+        addToCartBtn.click(); // Simulate button click
+      }
+    });
+    
     function itemDelete(itemId, orderId){
         // Show confirmation box
         if (confirm("Are you sure you want to delete this product from cart ?")) {

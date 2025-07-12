@@ -673,7 +673,7 @@ class BillingController extends Controller
                             $apiExtraData       = http_response_code();
                         }
                     }
-                } else {
+                } elseif($payment_mode == 'CARD'){
                     if($getOrder){
                         Order::where('id', '=', $order_id)->update(['payment_mode' => $payment_mode, 'status' => 2, 'note' => $note]);
                         $apiStatus                          = TRUE;
@@ -681,6 +681,63 @@ class BillingController extends Controller
                         $apiMessage                         = 'Order payment mode selected as ' . $payment_mode . ' successfully';
                         $apiExtraField                      = 'response_code';
                         $apiExtraData                       = http_response_code();
+                    } else {
+                        $apiStatus          = FALSE;
+                        http_response_code(200);
+                        $apiMessage         = 'Order not found';
+                        $apiExtraField      = 'response_code';
+                        $apiExtraData       = http_response_code();
+                    }
+                } else {
+                    if($getOrder){
+                        $card_holder_name = $requestData['card_holder_name'];
+                        $getCoupon           = Coupon::where('voucher_code', '=', $card_holder_name)->first();
+                        if($getCoupon){
+                            $discount_type      = $getCoupon->discount_type;
+                            $discount_amount    = $getCoupon->discount_amount;
+                            $from_date          = $getCoupon->from_date;
+                            $to_date            = $getCoupon->to_date;
+                            $subtotal           = $getOrder->subtotal;
+                            $delivery_amount    = $getOrder->delivery_amount;
+
+                            $currentDate        = date('Y-m-d');
+                            if(($currentDate >= $from_date) && ($currentDate <= $to_date)){
+                                if($discount_type == 'Flat'){
+                                    $discAmt = $discount_amount;
+                                } else {
+                                    $discAmt = (($subtotal * $discount_amount) / 100);
+                                }
+                                $discounted_amount = ($subtotal - $discAmt);
+                                $net_amount = ($discounted_amount + $delivery_amount);
+                                $fields = [
+                                    'discount_amount'       => $discAmt,
+                                    'discounted_amount'     => $discounted_amount,
+                                    'delivery_amount'       => $delivery_amount,
+                                    'net_amount'            => $net_amount,
+                                    'payment_mode'          => $payment_mode,
+                                    'status'                => 2,
+                                    'note'                  => $note
+                                ];
+                                Order::where('id', '=', $order_id)->update($fields);
+                                $apiStatus                          = TRUE;
+                                http_response_code(200);
+                                $apiMessage                         = 'Coupon code applied successfully';
+                                $apiExtraField                      = 'response_code';
+                                $apiExtraData                       = http_response_code();
+                            } else {
+                                $apiStatus          = FALSE;
+                                http_response_code(200);
+                                $apiMessage         = 'Coupon code expired';
+                                $apiExtraField      = 'response_code';
+                                $apiExtraData       = http_response_code();
+                            }
+                        } else {
+                            $apiStatus          = FALSE;
+                            http_response_code(200);
+                            $apiMessage         = 'Coupon code not found';
+                            $apiExtraField      = 'response_code';
+                            $apiExtraData       = http_response_code();
+                        }
                     } else {
                         $apiStatus          = FALSE;
                         http_response_code(200);

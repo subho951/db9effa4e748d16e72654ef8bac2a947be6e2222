@@ -40,14 +40,18 @@ $current_url          = url()->current();
                                         <?php if($getOrder->payment_mode == 'CASH'){?>
                                             <li>
                                                 <p>
-                                                    <small>Cash Tendered : $<?=number_format($getOrder->cash_tendered, 2)?></small><br>
-                                                    <small>Cash Returned : $<?=number_format($getOrder->cash_return, 2)?></small>
+                                                    <small>Cash tendered : $<?=number_format($getOrder->cash_tendered, 2)?></small><br>
+                                                    <small>Cash to be returned : $<?=number_format($getOrder->cash_return, 2)?></small>
                                                 </p>
                                             </li>
                                         <?php }?>
-                                        <li>
-                                            <a href="javascript:void(0);" class="my-btn btn-green mb-4" type="button" data-bs-toggle="modal" data-bs-target="#placeOrderModal">FINALISE</a>
-                                        </li>
+                                        <?php if($getOrder->payment_mode != 'VOUCHER'){?>
+                                            <li>
+                                                <a href="javascript:void(0);" class="my-btn btn-green mb-4" type="button" data-bs-toggle="modal" data-bs-target="#placeOrderModal">FINALISE</a>
+                                            </li>
+                                        <?php } else {?>
+                                            <h6 class="text-success">You have to pay $<?=number_format($getOrder->net_amount, 2)?> by using CASH or CARD to finalize this order</h6>
+                                        <?php }?>
                                     <?php }?>
                                 </ul>
                             </div>
@@ -171,7 +175,7 @@ $current_url          = url()->current();
             </div>
             <div class="modal-body">
                 <form action="javascript: void(0)" class="otp-form" name="otp-form">
-                    <h1 class="modal-title fs-4 text-center w-100 text-black mb-2" id="adminpinmodalLabel">Are you sure that you want to place this order?</h1>
+                    <h1 class="modal-title fs-4 text-center w-100 text-black mb-2" id="adminpinmodalLabel">Are you sure that you want to finalize this order ?</h1>
                     <div class="mt-4 d-flex justify-content-center"> 
                         <button class="btn btn-success text-black px-4 mx-1" onclick="placeOrder(<?=(($getOrder)?$getOrder->id:0)?>);">Yes</button> 
                         <button type="button" class="btn btn-danger text-black px-4 mx-1" data-bs-dismiss="modal" aria-label="Close">No</button> 
@@ -424,7 +428,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         setTimeout(function() {
                             location.reload();
-                        }, 2000);
+                        }, 1000);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -458,7 +462,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         setTimeout(function() {
                             location.reload();
-                        }, 2000);
+                        }, 1000);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -492,7 +496,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         setTimeout(function() {
                             location.reload();
-                        }, 2000);
+                        }, 1000);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -527,7 +531,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         setTimeout(function() {
                             location.reload();
-                        }, 2000);
+                        }, 1000);
                     }else{
                         toastAlert("error", res.message);
                     }

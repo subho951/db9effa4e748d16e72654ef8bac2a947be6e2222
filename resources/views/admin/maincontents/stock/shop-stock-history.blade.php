@@ -12,7 +12,7 @@ $current_url          = url()->current();
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">
-            Current Stock : <span><?=(($product)?$product->warehouse_stock:'')?></span>
+            Current Stock : <span><?=(($product)?$product->shop_stock:'')?></span>
           </h5>
           <div class="row">
             <div class="col-lg-12 col-md-12">

@@ -43,6 +43,7 @@ Route::get('/db-test', function () {
             Route::get('/signout', 'App\Http\Controllers\FrontController@logout');
             /* billing */
                 Route::get('billing/list', 'App\Http\Controllers\BillingController@list');
+                Route::post('billing/billing-item-return', 'BillingController@billingItemReturn');
                 Route::get('billing/billing-item/{id}', 'App\Http\Controllers\BillingController@billingItem');
                 Route::post('billing/add-to-cart', 'App\Http\Controllers\BillingController@addToCart');
                 Route::post('billing/item-delete', 'App\Http\Controllers\BillingController@itemDelete');
@@ -227,6 +228,7 @@ Route::get('/db-test', function () {
             /* page */
             /* billing */
                 Route::get('billing/list', 'BillingController@list');
+                Route::post('billing/billing-item-return', 'BillingController@billingItemReturn');
                 Route::get('billing/billing-item/{id}', 'BillingController@billingItem');
                 Route::post('billing/add-to-cart', 'BillingController@addToCart');
                 Route::post('billing/item-delete', 'BillingController@itemDelete');

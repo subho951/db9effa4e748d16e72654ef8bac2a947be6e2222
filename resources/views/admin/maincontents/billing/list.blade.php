@@ -78,6 +78,7 @@ $current_url          = url()->current();
                     <div class="col-7 d-flex justify-content-end">
                         <a href="javascript:vold(0)" type="button" data-bs-toggle="modal" data-bs-target="#adminpinmodal" class="my-btn btn-yellow d-block Modify-btn" id="price-modify-btn">Modify</a>
                         <a href="javascript:vold(0)" type="button" class="my-btn btn-sky d-block Modify-btn" id="price-update-btn" style="display: none !important;">Update</a>
+                        <a href="javascript:vold(0)" type="button" class="my-btn btn-sky d-block Modify-btn" id="price-return-btn" onclick="itemReturn(<?=(($getOrder)?$getOrder->id:0)?>);">Return</a>
                     </div>
                 </div>
             </div>
@@ -583,4 +584,35 @@ $current_url          = url()->current();
             });
         });
     });
+    function itemReturn(orderId){
+        $.ajax({
+            url: base_url + "/admin/billing/billing-item-return",
+            type: "POST",
+            data: {"_token": "{{ csrf_token() }}", key : "db9effa4e748d16e72654ef8bac2a947be6e2222", order_id : orderId},
+            beforeSend: function () {
+                $("#loader").show();
+            },
+            success: function(res) {
+                $("#loader").hide();
+                if(res.status){
+                    var redirectUrl = base_url + '/admin/billing/list';
+                    toastAlert("success", res.message);
+                    setTimeout(function() {
+                        window.location.href = redirectUrl;
+                    }, 1000);
+                }else{
+                    toastAlert("error", res.message);
+                    $("#barcode").focus();
+                }
+            },
+            error:function (xhr, ajaxOptions, thrownError){
+                $("#loader").hide();
+                var res = xhr.responseJSON;
+                if(!res.status) {
+                    toastAlert("error", res.message);
+                    $("#barcode").focus();
+                }
+            }
+        });
+    }
 </script>

@@ -328,6 +328,62 @@ class BillingController extends Controller
             }
             $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
         }
+        public function billingItemReturn(Request $request){
+            $apiStatus          = TRUE;
+            $apiMessage         = '';
+            $apiResponse        = [];
+            $apiExtraField      = '';
+            $apiExtraData       = '';
+            $requestData        = $request->all();
+            if($requestData['key'] == env('PROJECT_KEY')){
+                $order_id           = $requestData['order_id'];
+                $getOrder         = Order::where('id', '=', $order_id)->first();
+                if($getOrder){
+                    $getOrderItems = OrderDetail::where('order_id', '=', $order_id)->get();
+                    $subtotal_tot = 0;
+                    if($getOrderItems){
+                        foreach($getOrderItems as $getOrderItem){
+                            $price          = (0 - $getOrderItem->price);
+                            $qty            = $getOrderItem->qty;
+                            $id             = $getOrderItem->id;
+                            $subtotal       = ($price * $qty);
+
+                            $subtotal_tot   += $subtotal;
+
+                            $fields         = [
+                                'price'     => $price,
+                                'subtotal'  => $subtotal,
+                            ];
+                            OrderDetail::where('id', '=', $id)->update($fields);
+                        }
+                    }
+                    
+                    $fields2         = [
+                        'subtotal'              => $subtotal_tot,
+                        'discounted_amount'     => $subtotal_tot,
+                        'net_amount'            => $subtotal_tot,
+                    ];
+                    Order::where('id', '=', $order_id)->update($fields2);
+
+                    $apiMessage                         = 'Items return marked successfully';
+                    $apiExtraField                      = 'response_code';
+                    $apiExtraData                       = http_response_code();
+                } else {
+                    $apiStatus          = FALSE;
+                    http_response_code(200);
+                    $apiMessage         = 'Product not found';
+                    $apiExtraField      = 'response_code';
+                    $apiExtraData       = http_response_code();
+                }
+            } else {
+                http_response_code(400);
+                $apiStatus          = FALSE;
+                $apiMessage         = $this->getResponseCode(http_response_code());
+                $apiExtraField      = 'response_code';
+                $apiExtraData       = http_response_code();
+            }
+            $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
+        }
         public function billingChangeStatus(Request $request){
             $apiStatus          = TRUE;
             $apiMessage         = '';
@@ -822,24 +878,47 @@ class BillingController extends Controller
                                 $order_item_id  = $getOrderDetail->id;
                                 $product_id     = $getOrderDetail->item_id;
                                 $qty            = $getOrderDetail->qty;
+                                $price              = $getOrderDetail->price;
 
-                                $getProduct     = Product::where('id', $product_id)->first();
-                                $opening_qty2                = (($getProduct)?$getProduct->shop_stock:0);
-                                $txn_qty2                    = $qty;
-                                $closing_qty2                = ($opening_qty2 - $txn_qty2);
-                                $fields12                   = [
-                                    'txn_type'              => 'OUT',
-                                    'stock_date'            => date('Y-m-d'),
-                                    'product_id'            => $product_id,
-                                    'opening_qty'           => $opening_qty2,
-                                    'txn_qty'               => $txn_qty2,
-                                    'closing_qty'           => $closing_qty2,
-                                    'note'                  => 'For order #' . $order_no,
-                                    'order_id'              => $order_id,
-                                    'order_item_id'         => $order_item_id,
-                                ];
-                                ShopStock::insert($fields12);
-                                Product::where('id', $product_id)->update(['shop_stock' => $closing_qty2]);
+                                if($price > 0){
+                                    $getProduct         = Product::where('id', $product_id)->first();
+                                    $opening_qty2       = (($getProduct)?$getProduct->shop_stock:0);
+                                    $txn_qty2           = $qty;
+                                    $closing_qty2       = ($opening_qty2 - $txn_qty2);
+
+                                    $fields12                   = [
+                                        'txn_type'              => 'OUT',
+                                        'stock_date'            => date('Y-m-d'),
+                                        'product_id'            => $product_id,
+                                        'opening_qty'           => $opening_qty2,
+                                        'txn_qty'               => $txn_qty2,
+                                        'closing_qty'           => $closing_qty2,
+                                        'note'                  => 'For order #' . $order_no,
+                                        'order_id'              => $order_id,
+                                        'order_item_id'         => $order_item_id,
+                                    ];
+                                    ShopStock::insert($fields12);
+                                    Product::where('id', $product_id)->update(['shop_stock' => $closing_qty2]);
+                                } else {
+                                    $getProduct         = Product::where('id', $product_id)->first();
+                                    $opening_qty2       = (($getProduct)?$getProduct->shop_stock:0);
+                                    $txn_qty2           = $qty;
+                                    $closing_qty2       = ($opening_qty2 + $txn_qty2);
+
+                                    $fields12                   = [
+                                        'txn_type'              => 'IN',
+                                        'stock_date'            => date('Y-m-d'),
+                                        'product_id'            => $product_id,
+                                        'opening_qty'           => $opening_qty2,
+                                        'txn_qty'               => $txn_qty2,
+                                        'closing_qty'           => $closing_qty2,
+                                        'note'                  => 'For order #' . $order_no,
+                                        'order_id'              => $order_id,
+                                        'order_item_id'         => $order_item_id,
+                                    ];
+                                    ShopStock::insert($fields12);
+                                    Product::where('id', $product_id)->update(['shop_stock' => $closing_qty2]);
+                                }
                             }
                         }
                     /* shop stock deduct */

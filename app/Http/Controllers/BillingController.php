@@ -337,31 +337,39 @@ class BillingController extends Controller
             $requestData        = $request->all();
             if($requestData['key'] == env('PROJECT_KEY')){
                 $order_id           = $requestData['order_id'];
-                $getOrder         = Order::where('id', '=', $order_id)->first();
+                $order_details_id   = $requestData['order_details_id'];
+                $getOrder           = Order::where('id', '=', $order_id)->first();
                 if($getOrder){
-                    $getOrderItems = OrderDetail::where('order_id', '=', $order_id)->get();
+                    $getOrderItem = OrderDetail::where('order_id', '=', $order_id)->where('id', '=', $order_details_id)->first();
+                    $discount_tot = 0;
                     $subtotal_tot = 0;
-                    if($getOrderItems){
-                        foreach($getOrderItems as $getOrderItem){
-                            $price          = (0 - $getOrderItem->price);
-                            $qty            = $getOrderItem->qty;
-                            $id             = $getOrderItem->id;
-                            $subtotal       = ($price * $qty);
+                    if($getOrderItem){
+                        $price          = (0 - $getOrderItem->price);
+                        $qty            = $getOrderItem->qty;
+                        $id             = $getOrderItem->id;
+                        $subtotal       = ($price * $qty);
 
-                            $subtotal_tot   += $subtotal;
+                        $fields         = [
+                            'price'     => $price,
+                            'subtotal'  => $subtotal,
+                        ];
+                        OrderDetail::where('id', '=', $id)->update($fields);
+                    }
 
-                            $fields         = [
-                                'price'     => $price,
-                                'subtotal'  => $subtotal,
-                            ];
-                            OrderDetail::where('id', '=', $id)->update($fields);
+                    $carts = OrderDetail::where('order_id', '=', $order_id)->get();
+                    if($carts){
+                        foreach($carts as $cart){
+                            $discount_tot   += $cart->discount_amount;
+                            $subtotal_tot   += $cart->subtotal;
                         }
                     }
+
+                    $net_amount = ($subtotal_tot - $discount_tot);
                     
                     $fields2         = [
                         'subtotal'              => $subtotal_tot,
-                        'discounted_amount'     => $subtotal_tot,
-                        'net_amount'            => $subtotal_tot,
+                        'discounted_amount'     => $discount_tot,
+                        'net_amount'            => $net_amount,
                     ];
                     Order::where('id', '=', $order_id)->update($fields2);
 

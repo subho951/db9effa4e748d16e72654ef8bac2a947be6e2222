@@ -7,6 +7,18 @@ $current_url          = url()->current();
     .hidden-important {
         display: none !important;
     }
+    .order-row {
+        padding: 10px;
+        border: 1px solid #ddd;
+        margin-bottom: 5px;
+        cursor: pointer;
+    }
+
+    .order-row.selected {
+        border: 2px solid #000;
+        background: #e7f1ff;
+        font-weight: 700;
+    }
 </style>
 <div class="row">
     <!-- Sidebar Section -->
@@ -109,10 +121,16 @@ $current_url          = url()->current();
                     </thead>
                     <tbody>
                         <?php $totItemQty = 0; if($getOrderItems){ foreach($getOrderItems as $getOrderItem){?>
-                            <tr>
+                            <tr class="order-row">
                                 <td>
+                                    <?php if($getOrderItem->subtotal >= 0){?>
+                                        <input type="radio" name="order_details_id" id="order_details_id<?=$getOrderItem->id?>" value="<?=$getOrderItem->id?>" style="display:none;">
+                                    <?php }?>
                                     <span><?=$getOrderItem->product_name?></span>
-                                    <!-- <small style="font-size: 10px;color: #0096eb;">SKU : <?=$getOrderItem->product_sku?></small> -->
+                                    <!-- <p><small style="font-size: 9px;color: #0096eb;">SKU : <?=$getOrderItem->product_sku?></small></p> -->
+                                    <?php if($getOrderItem->subtotal < 0){?>
+                                        <small style="font-size: 9px; color:#000;" class="badge bg-warning">RETURN</small>
+                                    <?php }?>
                                 </td>
                                 <td class="text-center">
                                     <button class="btn-plus-minus" onclick="itemQtyDecrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">-</button>
@@ -233,6 +251,19 @@ $current_url          = url()->current();
 </div>
 <script type="text/javascript">
     var base_url = '<?=url('/')?>';
+
+    $(document).ready(function () {
+        $(".order-row").click(function () {
+            // Select the radio button inside this row
+            $(this).find('input[type="radio"]').prop("checked", true);
+
+            // Remove highlight from other rows
+            $(".order-row").removeClass("selected");
+
+            // Highlight the clicked row
+            $(this).addClass("selected");
+        });
+    });
     // $(function(){
     //     $('#add-to-cart').on('keydown', function(e) {
     //         if (e.key === 'Enter') {
@@ -585,34 +616,39 @@ $current_url          = url()->current();
         });
     });
     function itemReturn(orderId){
-        $.ajax({
-            url: base_url + "/admin/billing/billing-item-return",
-            type: "POST",
-            data: {"_token": "{{ csrf_token() }}", key : "db9effa4e748d16e72654ef8bac2a947be6e2222", order_id : orderId},
-            beforeSend: function () {
-                $("#loader").show();
-            },
-            success: function(res) {
-                $("#loader").hide();
-                if(res.status){
-                    var redirectUrl = base_url + '/admin/billing/list';
-                    toastAlert("success", res.message);
-                    setTimeout(function() {
-                        window.location.href = redirectUrl;
-                    }, 1000);
-                }else{
-                    toastAlert("error", res.message);
-                    $("#barcode").focus();
+        let order_details_id = $('input[name="order_details_id"]:checked').val();
+        if(order_details_id != undefined){
+            $.ajax({
+                url: base_url + "/admin/billing/billing-item-return",
+                type: "POST",
+                data: {"_token": "{{ csrf_token() }}", key : "db9effa4e748d16e72654ef8bac2a947be6e2222", order_id : orderId, order_details_id : order_details_id},
+                beforeSend: function () {
+                    $("#loader").show();
+                },
+                success: function(res) {
+                    $("#loader").hide();
+                    if(res.status){
+                        var redirectUrl = base_url + '/admin/billing/list';
+                        toastAlert("success", res.message);
+                        setTimeout(function() {
+                            window.location.href = redirectUrl;
+                        }, 1000);
+                    }else{
+                        toastAlert("error", res.message);
+                        $("#barcode").focus();
+                    }
+                },
+                error:function (xhr, ajaxOptions, thrownError){
+                    $("#loader").hide();
+                    var res = xhr.responseJSON;
+                    if(!res.status) {
+                        toastAlert("error", res.message);
+                        $("#barcode").focus();
+                    }
                 }
-            },
-            error:function (xhr, ajaxOptions, thrownError){
-                $("#loader").hide();
-                var res = xhr.responseJSON;
-                if(!res.status) {
-                    toastAlert("error", res.message);
-                    $("#barcode").focus();
-                }
-            }
-        });
+            });
+        } else {
+            toastAlert("warning", 'Please select return item !!!');
+        }
     }
 </script>

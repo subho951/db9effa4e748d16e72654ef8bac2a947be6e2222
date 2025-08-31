@@ -10,10 +10,16 @@
         </thead>
         <tbody>
             <?php $totItemQty = 0; if($getOrderItems){ foreach($getOrderItems as $getOrderItem){?>
-                <tr>
+                <tr class="order-row">
                     <td>
+                        <?php if($getOrderItem->subtotal >= 0){?>
+                            <input type="radio" name="order_details_id" id="order_details_id<?=$getOrderItem->id?>" value="<?=$getOrderItem->id?>" style="display:none;">
+                        <?php }?>
                         <span><?=$getOrderItem->product_name?></span>
                         <!-- <small style="font-size: 10px;color: #0096eb;">SKU : <?=$getOrderItem->product_sku?></small> -->
+                        <?php if($getOrderItem->subtotal < 0){?>
+                            <small style="font-size: 9px; color:#000;" class="badge bg-warning">RETURN</small>
+                        <?php }?>
                     </td>
                     <td class="text-center">
                         <button class="btn-plus-minus" onclick="itemQtyDecrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">-</button>

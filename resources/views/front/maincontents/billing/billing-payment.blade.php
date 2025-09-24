@@ -62,7 +62,7 @@ $current_url          = url()->current();
             <div class="order-summery-left-bottom">
                 <div class="row my-4">
                     <div class="col-md-12 d-flex justify-content-start">
-                        <a href="<?=url('user/billing/list')?>" class="my-btn btn-sky">BACK</a>
+                        <a href="<?=url('user/billing/billing-delivery-address/' . Helper::encoded($getOrder->id))?>" class="my-btn btn-sky">BACK</a>
                     </div>
                 </div>
             </div>

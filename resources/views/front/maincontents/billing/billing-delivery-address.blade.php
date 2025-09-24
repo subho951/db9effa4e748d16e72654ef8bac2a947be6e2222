@@ -74,7 +74,7 @@ $current_url          = url()->current();
                                                             <div class="row">
                                                                 <div class="col-md-12 d-flex justify-content-between">
                                                                     <a href="<?=url('user/billing/list')?>" class="my-btn btn-orange">CANCEL</a>
-                                                                    <button type="submit" class="my-btn btn-green">OK</button>
+                                                                    <button type="submit" class="my-btn btn-green">Save</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -113,8 +113,8 @@ $current_url          = url()->current();
                                     <div class="order-summery-left-bottom">
                                         <div class="row mt-5">
                                             <div class="col-md-12 d-flex justify-content-between">
-                                                <button type="submit" class="my-btn btn-green">OK</button>
                                                 <a href="<?=url('user/billing/list')?>" class="my-btn btn-orange">CANCEL</a>
+                                                <button type="submit" class="my-btn btn-green">Save</button>
                                             </div>
                                         </div>
                                     </div>
@@ -127,7 +127,7 @@ $current_url          = url()->current();
             <div class="order-summery-left-bottom">
                 <div class="row my-4">
                     <div class="col-md-12 d-flex justify-content-between">
-                        <a class="my-btn btn-orange w-auto" href="javascript: vold(0)" type="button" data-bs-toggle="modal" data-bs-target="#adminpinmodal">Admin</a>
+                        <!-- <a class="my-btn btn-orange w-auto" href="javascript: vold(0)" type="button" data-bs-toggle="modal" data-bs-target="#adminpinmodal">Admin</a> -->
                         <?php if($getOrder){ if($getOrder->delivery_mode != ''){?>
                             <?php if($getOrder->delivery_mode == 'Take'){?>
                                 <a href="<?=url('user/billing/billing-payment/' . Helper::encoded((($getOrder)?$getOrder->id:0)))?>" class="my-btn btn-green btn-lg">PAYMENT</a>

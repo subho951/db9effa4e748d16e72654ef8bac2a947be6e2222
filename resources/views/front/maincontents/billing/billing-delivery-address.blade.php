@@ -162,7 +162,7 @@ $current_url          = url()->current();
                             <tr>
                                 <td>
                                     <span><?=$getOrderItem->product_name?></span><br>
-                                    <small style="font-size: 10px;color: #0096eb;">SKU : <?=$getOrderItem->product_sku?></small>
+                                    <!-- <small style="font-size: 10px;color: #0096eb;">SKU : <?=$getOrderItem->product_sku?></small> -->
                                 </td>
                                 <td class="text-center">
                                     <button class="btn-plus-minus" onclick="itemQtyDecrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">-</button>

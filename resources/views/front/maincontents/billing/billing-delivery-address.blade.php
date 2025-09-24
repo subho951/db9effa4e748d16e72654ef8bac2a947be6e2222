@@ -73,8 +73,8 @@ $current_url          = url()->current();
                                                         <div class="order-summery-left-bottom">
                                                             <div class="row">
                                                                 <div class="col-md-12 d-flex justify-content-between">
-                                                                    <button type="submit" class="my-btn btn-green">OK</button>
                                                                     <a href="<?=url('user/billing/list')?>" class="my-btn btn-orange">CANCEL</a>
+                                                                    <button type="submit" class="my-btn btn-green">OK</button>
                                                                 </div>
                                                             </div>
                                                         </div>

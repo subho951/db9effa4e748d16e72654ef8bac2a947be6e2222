@@ -7,6 +7,11 @@ $current_url          = url()->current();
     .hidden-important {
         display: none !important;
     }
+    .disabled-link {
+        pointer-events: none; /* Prevent clicking */
+        opacity: 0.6;         /* Optional: make it look disabled */
+        cursor: not-allowed;
+    }
 </style>
 <div class="row">
     <!-- Sidebar Section -->
@@ -57,7 +62,11 @@ $current_url          = url()->current();
                     </div>
                     <div class="col-7">
                         <div class="d-flex justify-content-end">
-                            <a href="<?=url('user/billing/billing-recall')?>" class="my-btn btn-yellow me-3">Recall</a>
+                            <?php if(count($getOrderItems) > 0){ ?>
+                                <a href="<?=url('user/billing/billing-recall')?>" class="my-btn btn-yellow me-3 disabled-link" onclick="return false;">Recall</a>
+                            <?php } else {?>
+                                <a href="<?=url('user/billing/billing-recall')?>" class="my-btn btn-yellow me-3">Recall</a>
+                            <?php }?>
                             <!-- <a href="javascript: void(0);" onclick="myFunction()" class="my-btn btn-yellow">Hold</a> -->
                             <a href="javascript: void(0);" class="my-btn btn-yellow me-3" type="button" data-bs-toggle="modal" data-bs-target="#holdSaleModal">Hold</a>
                         </div>

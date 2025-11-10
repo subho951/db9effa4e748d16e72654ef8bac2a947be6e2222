@@ -142,19 +142,21 @@ $controllerRoute = $module['controller_route'];
             </form>
           </h5>
           <div class="dt-responsive table-responsive" style="position: relative">
-            <button class="dt-button buttons-export" tabindex="0" aria-controls="simpletable" type="button" onclick="openAdminPINModal2();"><span>Export</span></button>
+            <button class="dt-button buttons-export" tabindex="0" aria-controls="simpletable" type="button"><span>Export</span></button>
+            <!-- <button class="dt-button buttons-export" tabindex="0" aria-controls="simpletable" type="button" onclick="openAdminPINModal2();"><span>Export</span></button> -->
             <table id="simpletable" class="table table-striped table-bordered nowrap">
               <thead>
                 <tr>
                   <th scope="col"><?=(($status != '')?'<u>Active</u>':'Active')?></th>
                   <th scope="col">SKU</th>
-                  <th scope="col">Barcode</th>
-                  <th scope="col">Stock</th>
-                  <th scope="col"><?=(($brand_id != '')?'<u>Brand</u>':'Brand')?></th>
+                  <th scope="col">Product Name</th>
                   <th scope="col">Variety</th>
                   <th scope="col">Vol</th>
-                  <th scope="col"><?=(($supplier_id != '')?'<u>Supplier</u>':'Supplier')?></th>
                   <th scope="col">Retail</th>
+                  <!-- <th scope="col"><?=(($brand_id != '')?'<u>Brand</u>':'Brand')?></th> -->
+                  <th scope="col"><?=(($supplier_id != '')?'<u>Supplier</u>':'Supplier')?></th>
+                  <th scope="col">Barcode</th>
+                  <!-- <th scope="col">Stock</th> -->
                 </tr>
               </thead>
               <tbody>
@@ -168,11 +170,10 @@ $controllerRoute = $module['controller_route'];
                       <?php }?>
                     </td>
                     <td>
-                      <a href="javascript:void(0);" onclick="openAdminPINModal(<?=$row->id?>);"><?=$row->sku?></a>
+                      <a href="<?=url('admin/products/edit/'.Helper::encoded($row->id))?>"><?=$row->sku?></a>
+                      <!-- <a href="javascript:void(0);" onclick="openAdminPINModal(<?=$row->id?>);"><?=$row->sku?></a> -->
                     </td>
-                    <td><?=$row->barcode?></td>
-                    <td><?=$row->shop_stock?></td>
-                    <td><?=$row->brand_name?></td>
+                    <td><?=$row->name?></td>
                     <td>
                       <?php
                       $discountVouchers = ProductDiscountVoucher::select('voucher_code', 'retail_discounted_price')->where('product_id', $row->id)->where('status', 1)->get();
@@ -184,8 +185,11 @@ $controllerRoute = $module['controller_route'];
                       </ul>
                     </td>
                     <td><?=$row->size_name?> <?=$row->unit_name?></td>
-                    <td><?=$row->supplier_name?></td>
                     <td>$<?=number_format($row->retail_price_inc_tax,2)?></td>
+                    <!-- <td><?=$row->brand_name?></td> -->
+                    <td><?=$row->supplier_name?></td>
+                    <td><?=$row->barcode?></td>
+                    <!-- <td><?=$row->shop_stock?></td> -->
                   </tr>
                 <?php } }?>
               </tbody>
@@ -246,13 +250,15 @@ $controllerRoute = $module['controller_route'];
                       @csrf\
                       <input type="hidden" name="key" id="key" value="db9effa4e748d16e72654ef8bac2a947be6e2222">\
                       <input type="hidden" name="product_id" id="product_id" value="'+productId+'">\
+                      <input type="text" style="display:none">\
+                      <input type="password" style="display:none">\
                       <div class="modal-body">\
                           <h1 class="modal-title fs-4 text-center w-100 text-black mb-2" id="adminpinmodalLabel">Enter Your Admin Pin</h1>\
                           <div class="otp-input-fields">\
-                            <input type="password" class="otp__digit otp__field__1" autocomplete="off" name="pin1" id="pin1">\
-                            <input type="password" class="otp__digit otp__field__2" autocomplete="off" name="pin2" id="pin2">\
-                            <input type="password" class="otp__digit otp__field__3" autocomplete="off" name="pin3" id="pin3">\
-                            <input type="password" class="otp__digit otp__field__4" autocomplete="off" name="pin4" id="pin4">\
+                            <input type="password" class="otp__digit otp__field__1" autocomplete="off" name="pin1" id="pin1" autocomplete="new-password">\
+                            <input type="password" class="otp__digit otp__field__2" autocomplete="off" name="pin2" id="pin2" autocomplete="new-password">\
+                            <input type="password" class="otp__digit otp__field__3" autocomplete="off" name="pin3" id="pin3" autocomplete="new-password">\
+                            <input type="password" class="otp__digit otp__field__4" autocomplete="off" name="pin4" id="pin4" autocomplete="new-password">\
                           </div>\
                           <div class="mt-4 d-flex justify-content-center">\
                             <button class="btn btn-green text-black px-4 validate">Submit</button>\
@@ -278,10 +284,10 @@ $controllerRoute = $module['controller_route'];
                       <div class="modal-body">\
                           <h1 class="modal-title fs-4 text-center w-100 text-black mb-2" id="adminpinmodalLabel">Enter Your Admin Pin</h1>\
                           <div class="otp-input-fields">\
-                            <input type="password" class="otp__digit otp__field__1" autocomplete="off" name="pin1" id="pin1">\
-                            <input type="password" class="otp__digit otp__field__2" autocomplete="off" name="pin2" id="pin2">\
-                            <input type="password" class="otp__digit otp__field__3" autocomplete="off" name="pin3" id="pin3">\
-                            <input type="password" class="otp__digit otp__field__4" autocomplete="off" name="pin4" id="pin4">\
+                            <input type="password" class="otp__digit otp__field__1" autocomplete="off" name="pin1" id="pin5">\
+                            <input type="password" class="otp__digit otp__field__2" autocomplete="off" name="pin2" id="pin6">\
+                            <input type="password" class="otp__digit otp__field__3" autocomplete="off" name="pin3" id="pin7">\
+                            <input type="password" class="otp__digit otp__field__4" autocomplete="off" name="pin4" id="pin8">\
                           </div>\
                           <div class="mt-4 d-flex justify-content-center">\
                             <button class="btn btn-green text-black px-4 validate">Submit</button>\
@@ -307,5 +313,36 @@ $controllerRoute = $module['controller_route'];
       }, 1000);
       $('.buttons-export').show();
     <?php } ?>
-  })
+  });
+</script>
+<script>
+  $(document).on('input', '.otp__digit', function () {
+      // Allow only digits and limit to 1 character
+      this.value = this.value.replace(/\D/g, '').slice(0, 1);
+
+      const inputs = $('.otp__digit');
+      const index = inputs.index(this);
+
+      // Move to next input automatically
+      if (this.value && index < inputs.length - 1) {
+          inputs.eq(index + 1).focus();
+      }
+
+      // Auto-submit if all 4 digits are filled
+      const allFilled = inputs.toArray().every(inp => $(inp).val().length === 1);
+      if (allFilled) {
+          $('.validate').prop('disabled', true); // prevent double submission
+          $('#myForm').submit();
+      }
+  });
+
+  $(document).on('keyup', '.otp__digit', function (e) {
+      const inputs = $('.otp__digit');
+      const index = inputs.index(this);
+
+      // Move backward on backspace if empty
+      if (e.key === 'Backspace' && !$(this).val() && index > 0) {
+          inputs.eq(index - 1).focus();
+      }
+  });
 </script>

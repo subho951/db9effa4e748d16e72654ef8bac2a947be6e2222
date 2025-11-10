@@ -154,6 +154,13 @@ Route::get('/db-test', function () {
                     Route::get('suppliers/delete/{id}', 'SupplierController@delete');
                     Route::get('suppliers/change-status/{id}', 'SupplierController@change_status');
                 /* suppliers */
+                /* Delivery Location */
+                    Route::get('delivery-locations/list', 'DeliveryLocationController@list');
+                    Route::match(['get', 'post'], 'delivery-locations/add', 'DeliveryLocationController@add');
+                    Route::match(['get', 'post'], 'delivery-locations/edit/{id}', 'DeliveryLocationController@edit');
+                    Route::get('delivery-locations/delete/{id}', 'DeliveryLocationController@delete');
+                    Route::get('delivery-locations/change-status/{id}', 'DeliveryLocationController@change_status');
+                /* Delivery Location */
                 /* shipping charges */
                     Route::get('shipping-charges/list', 'ShippingChargeController@list');
                     Route::match(['get', 'post'], 'shipping-charges/add', 'ShippingChargeController@add');

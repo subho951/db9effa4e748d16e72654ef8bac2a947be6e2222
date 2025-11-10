@@ -48,7 +48,7 @@ $current_url                    = url()->current();
     }
 </style>
 <div class="container-xxl flex-grow-1 container-p-y">
-<h4 class="py-3 mb-4">
+<h4>
    <span class="text-muted fw-light"><a href="<?=url('admin/dashboard')?>">Dashboard</a> /</span>
    <span class="text-muted fw-light"><a href="<?=url('admin/' . $controllerRoute . '/list/')?>"><?=$module['title']?> List</a> /</span>
    <?=$page_header?>
@@ -62,6 +62,8 @@ $current_url                    = url()->current();
          $shelf_tag_short_name             = $row->shelf_tag_short_name;
          $barcode                          = $row->barcode;
          $brand_id                         = $row->brand_id;
+         $supplier_sku                     = $row->supplier_sku;
+         $supplier_product_name            = $row->supplier_product_name;
          $supplier_id                      = $row->supplier_id;
          $size_id                          = $row->size_id;
          $style                            = $row->style;
@@ -84,6 +86,8 @@ $current_url                    = url()->current();
          $shelf_tag_short_name             = '';
          $barcode                          = '';
          $brand_id                         = '';
+         $supplier_sku                     = '';
+         $supplier_product_name            = '';
          $supplier_id                      = '';
          $size_id                          = '';
          $style                            = '';
@@ -105,33 +109,32 @@ $current_url                    = url()->current();
       <div class="containers-fluid">
          <div class="row">
             <div class="col-12">
-               <small class="text-danger">Star (*) marked fields are mandatory</small><br>
+               <small class="text-danger">Star (*) marked fields are mandatory</small>
                <small class="text-dark">* ch=character size/limit of the input field.</small>
                <form method="POST" action="" enctype="multipart/form-data">
                   @csrf
                   <div class="containers">
                      <div class="form-container">
-                        <!-- <div class="form-header mb-4">
-                           <h4>Product Input Fields</h4>
-                           <button type="submit" class="my-btn btn-sky">Save</button>
-                        </div> -->
-                        <div class="row g-3">
-                           <h5 class="mt-4 mb-0">Basic Info</h5>
-                           <div class="col-md-4">
-                              <label class="form-label" for="sku">SKU&nbsp;(10ch) <small class="text-danger">*</small></label>
-                              <input type="text" class="form-control" placeholder="Enter SKU" id="sku" name="sku" value="<?=$sku?>" required>
+                        <div class="row">
+                           <h5>
+                              <button type="submit" class="btn btn-primary me-2">Save</button>
+                              <a href="<?=url('admin/' . $controllerRoute . '/list/')?>" class="btn btn-secondary me-2">Cancel</a>
+                           </h5>
+                           <div class="col-md-3">
+                              <label class="form-label" for="sku">SKU <small class="text-danger">*</small></label>
+                              <input type="text" class="form-control" placeholder="Enter SKU" id="sku" name="sku" value="<?=$sku?>" minlength="10" maxlength="10" onkeypress="return isNumber(event)" required style="width: 40%;">
                            </div>
-                           <div class="col-md-4">
-                              <label class="form-label" for="barcode">Barcode&nbsp;(25ch) <small class="text-danger">*</small></label>
-                              <input type="text" class="form-control" placeholder="Enter Barcode" id="barcode" name="barcode" value="<?=$barcode?>" required>
+                           <div class="col-md-3">
+                              <label class="form-label" for="barcode">Barcode <small class="text-danger">*</small></label>
+                              <input type="text" class="form-control" placeholder="Enter Barcode" id="barcode" name="barcode" value="<?=$barcode?>" minlength="25" maxlength="25" onkeypress="return isNumber(event)" required style="width: 82%;">
                            </div>
-                           <div class="col-md-4">
-                              <label class="form-label" for="shop_stock">Shop Stock&nbsp;(5ch) (Opening) <small class="text-danger">*</small></label>
-                              <input type="number" class="form-control" id="shop_stock" name="shop_stock" min="1" value="<?=$shop_stock?>" <?=((empty($row))?'':'readonly')?>>
+                           <div class="col-md-3">
+                              <label class="form-label" for="shop_stock">Shop Stock (Opening) <small class="text-danger">*</small></label>
+                              <input type="text" class="form-control" id="shop_stock" name="shop_stock" value="<?=$shop_stock?>" minlength="5" maxlength="5" onkeypress="return isNumber(event)" <?=((empty($row))?'':'readonly')?> style="width: 25%;">
                            </div>
-                           <div class="col-md-4">
-                              <label class="form-label" for="warehouse_stock">Warehouse Stock&nbsp;(5ch) (Opening) <small class="text-danger">*</small></label>
-                              <input type="number" class="form-control" id="warehouse_stock" name="warehouse_stock" min="1" value="<?=$warehouse_stock?>" <?=((empty($row))?'':'readonly')?>>
+                           <div class="col-md-3">
+                              <label class="form-label" for="warehouse_stock">Warehouse Stock (Opening)</label>
+                              <input type="text" class="form-control" id="warehouse_stock" name="warehouse_stock" min="1" value="<?=$warehouse_stock?>" minlength="5" maxlength="5" onkeypress="return isNumber(event)" <?=((empty($row))?'':'readonly')?> style="width: 25%;">
                            </div>
                            <!-- <div class="col-md-2 align-items-center">
                               <label class="form-label" for="warehouse_stock">Status</label>
@@ -173,6 +176,14 @@ $current_url                    = url()->current();
                                </select>
                            </div>
                            <div class="col-md-4">
+                              <label class="form-label" for="supplier_sku">Supplier SKU</label>
+                              <input type="text" class="form-control" placeholder="Enter Supplier SKU" id="supplier_sku" name="supplier_sku" value="<?=$supplier_sku?>">
+                           </div>
+                           <div class="col-md-4">
+                              <label class="form-label" for="supplier_product_name">Supplier Product Name</label>
+                              <input type="text" class="form-control" placeholder="Enter Supplier Product Name" id="supplier_product_name" name="supplier_product_name" value="<?=$supplier_product_name?>">
+                           </div>
+                           <div class="col-md-4">
                               <label class="form-label" for="size_id">Size <small class="text-danger">*</small></label>
                               <select name="size_id" class="form-control" id="size_id" required>
                                  <option value="" selected>Select Size</option>
@@ -205,14 +216,14 @@ $current_url                    = url()->current();
                               <input type="text" class="form-control" placeholder="Enter Cost Inc. Tax" name="cost_price_inc_tax" id="cost_price_inc_tax" value="<?=$cost_price_inc_tax?>" required readonly>
                            </div>
                            <div class="col-md-4">
-                              <label class="form-label" for="markup_type">Markup (%)</label>
+                              <label class="form-label" for="markup_type">Markup (<span class="markup-icon"></span>)</label>
                               <div class="form-check form-switch mt-0">
                                  <input class="form-check-input" type="checkbox" name="markup_type" role="switch" id="markup_type" <?=(($markup_type == 'PERCENTAGE')?'checked':'')?>>
                                  <label class="form-check-label" for="markup_type" id="markup_type_text">Flat</label>
                               </div>
                            </div>
                            <div class="col-md-4">
-                              <label class="form-label" for="markup_amount">Markup ($)</label>
+                              <label class="form-label" for="markup_amount">Markup (<span class="markup-icon"></span>)</label>
                               <input type="text" class="form-control" placeholder="Enter Markup in $" name="markup_amount" id="markup_amount" value="<?=$markup_amount?>" value="<?=$markup_amount?>" required>
                            </div>
                            <div class="col-md-4">
@@ -442,13 +453,23 @@ $current_url                    = url()->current();
        textbox.addEventListener('input', removeSpacesOnInput);
    });
    $(document).ready(function() {
+      if ($('#markup_type').is(':checked')) {
+         $('.markup-icon').text('%');
+         $('#markup_type_text').text('Percentage');
+      } else {
+         $('.markup-icon').text('$');
+         $('#markup_type_text').text('Flat');
+      }
+
       $('#markup_type').change(function() {
          if ($(this).is(':checked')) {
             $('#markup_type_text').text('Percentage');
             var markup_type         = 'PERCENTAGE';
+            $('.markup-icon').text('%');
          } else {
             $('#markup_type_text').text('Flat');
             var markup_type         = 'FLAT';
+            $('.markup-icon').text('$');
          }
          var cost_price_inc_tax     = parseFloat($('#cost_price_inc_tax').val());
          var markup_amount          = parseFloat($('#markup_amount').val());
@@ -472,8 +493,10 @@ $current_url                    = url()->current();
          var markup_amount          = parseFloat($('#markup_amount').val());
          if ($('#markup_type').is(':checked')) {
             var markup_type         = 'PERCENTAGE';
+            $('.markup-icon').text('%');
          } else {
             var markup_type         = 'FLAT';
+            $('.markup-icon').text('$');
          }
          if(markup_type == 'PERCENTAGE'){
             var added_amount = ((cost_price_inc_tax * markup_amount) / 100);
@@ -489,8 +512,10 @@ $current_url                    = url()->current();
          var markup_amount          = parseFloat($('#markup_amount').val());
          if ($('#markup_type').is(':checked')) {
             var markup_type         = 'PERCENTAGE';
+            $('.markup-icon').text('%');
          } else {
             var markup_type         = 'FLAT';
+            $('.markup-icon').text('$');
          }
          if(markup_type == 'PERCENTAGE'){
             var added_amount = ((cost_price_inc_tax * markup_amount) / 100);
@@ -746,5 +771,13 @@ $current_url                    = url()->current();
              console.error("Error processing selection");
          },
       });
+   }
+   function isNumber(evt) {
+      evt = (evt) ? evt : window.event;
+      var charCode = (evt.which) ? evt.which : evt.keyCode;
+      if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+         return false;
+      }
+      return true;
    }
 </script>

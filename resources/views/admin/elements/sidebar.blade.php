@@ -72,7 +72,7 @@ $user_type = session('type');
       </ul>
    </li>
    <!-- Masters -->
-   <li class="menu-item <?=(($pageSegment == 'locations' || $pageSegment == 'brands' || $pageSegment == 'suppliers' || $pageSegment == 'shipping-charges' || $pageSegment == 'coupons' || $pageSegment == 'fast-buttons' || $pageSegment == 'units' || $pageSegment == 'sizes')?'open':'')?>">
+   <li class="menu-item <?=(($pageSegment == 'locations' || $pageSegment == 'brands' || $pageSegment == 'suppliers' || $pageSegment == 'delivery-locations' || $pageSegment == 'shipping-charges' || $pageSegment == 'coupons' || $pageSegment == 'fast-buttons' || $pageSegment == 'units' || $pageSegment == 'sizes')?'open':'')?>">
       <a href="javascript:void(0);" class="menu-link menu-toggle">
          <i class="menu-icon tf-icons fa fa-database"></i>
          <div data-i18n="Masters">Masters</div>
@@ -91,6 +91,11 @@ $user_type = session('type');
          <li class="menu-item <?=(($pageSegment == 'suppliers')?'active':'')?>">
             <a href="<?=url('admin/suppliers/list')?>" class="menu-link">
                <div data-i18n="Suppliers">Suppliers</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'delivery-locations')?'active':'')?>">
+            <a href="<?=url('admin/delivery-locations/list')?>" class="menu-link">
+               <div data-i18n="Delivery Locations">Delivery Locations</div>
             </a>
          </li>
          <li class="menu-item <?=(($pageSegment == 'shipping-charges')?'active':'')?>">

@@ -43,7 +43,7 @@ $current_url          = url()->current();
                     </div>
                     <div class="col-7">
                         <div class="d-flex justify-content-end">
-                            <a href="javascript: void(0);" class="my-btn btn-yellow me-3" type="button" data-bs-toggle="modal" data-bs-target="#cancelSaleModal">Cancel Sale</a>
+                            <a href="javascript: void(0);" class="my-btn btn-yellow me-3" type="button" data-bs-toggle="modal" data-bs-target="#cancelSaleModal">Cancel Item</a>
                             <a href="<?=url('user/billing/billing-search/' . Helper::encoded((($getOrder)?$getOrder->id:'')))?>" class="my-btn btn-sky enter-btn">Search</a>
                         </div>
                     </div>
@@ -250,17 +250,11 @@ $current_url          = url()->current();
 <script type="text/javascript">
     var base_url = '<?=url('/')?>';
 
-    $(document).ready(function () {
-        $(".order-row").click(function () {
-            // Select the radio button inside this row
-            $(this).find('input[type="radio"]').prop("checked", true);
-
-            // Remove highlight from other rows
-            $(".order-row").removeClass("selected");
-
-            // Highlight the clicked row
-            $(this).addClass("selected");
-        });
+    // ✅ Delegated click handler (works after adding new rows)
+    $(document).on('click', '.order-row', function() {
+        $(this).find('input[type="radio"]').prop("checked", true);
+        $(".order-row").removeClass("selected");
+        $(this).addClass("selected");
     });
 
     // $(function(){

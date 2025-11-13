@@ -130,11 +130,11 @@ $current_url                    = url()->current();
                            </div>
                            <div class="col-md-3">
                               <label class="form-label" for="shop_stock">Shop Stock (Opening) <small class="text-danger">*</small></label>
-                              <input type="text" class="form-control" id="shop_stock" name="shop_stock" value="<?=$shop_stock?>" minlength="5" maxlength="5" onkeypress="return isNumber(event)" <?=((empty($row))?'':'readonly')?> style="width: 25%;">
+                              <input type="text" class="form-control" id="shop_stock" name="shop_stock" value="<?=$shop_stock?>" minlength="1" maxlength="1" onkeypress="return isNumber(event)" <?=((empty($row))?'':'readonly')?> style="width: 25%;">
                            </div>
                            <div class="col-md-3">
                               <label class="form-label" for="warehouse_stock">Warehouse Stock (Opening)</label>
-                              <input type="text" class="form-control" id="warehouse_stock" name="warehouse_stock" min="1" value="<?=$warehouse_stock?>" minlength="5" maxlength="5" onkeypress="return isNumber(event)" <?=((empty($row))?'':'readonly')?> style="width: 25%;">
+                              <input type="text" class="form-control" id="warehouse_stock" name="warehouse_stock" min="1" value="<?=$warehouse_stock?>" minlength="1" maxlength="1" onkeypress="return isNumber(event)" <?=((empty($row))?'':'readonly')?> style="width: 25%;">
                            </div>
                            <!-- <div class="col-md-2 align-items-center">
                               <label class="form-label" for="warehouse_stock">Status</label>
@@ -159,7 +159,7 @@ $current_url                    = url()->current();
 
                            <div class="col-md-4">
                               <label class="form-label" for="supplier_id">Supplier Name <small class="text-danger">*</small></label>
-                              <select name="supplier_id" class="form-control" id="supplier_id" required>
+                              <select name="supplier_id" class="form-select" id="supplier_id" required>
                                  <option value="" selected>Select Supplier</option>
                                  <?php if($suppliers){ foreach($suppliers as $supplier){?>
                                  <option value="<?=$supplier->id?>" <?=(($supplier->id == $supplier_id)?'selected':'')?>><?=$supplier->name?></option>
@@ -168,12 +168,14 @@ $current_url                    = url()->current();
                            </div>
                            <div class="col-md-4">
                               <label class="form-label" for="brand_id">Brand <small class="text-danger">*</small></label>
-                              <select name="brand_id" class="form-control" id="brand_id" required>
+                              <select name="brand_id" class="form-select" id="brand_id" required>
                                  <option value="" selected>Select Brand</option>
+                                 <option value="New">New</option>
                                  <?php if($brands){ foreach($brands as $brand){?>
                                  <option value="<?=$brand->id?>" <?=(($brand->id == $brand_id)?'selected':'')?>><?=$brand->name?></option>
                                  <?php } }?>
                                </select>
+                               <input type="text" class="form-control" placeholder="Enter Brand Name" id="brand_name" name="brand_name" style="display:none;">
                            </div>
                            <div class="col-md-4">
                               <label class="form-label" for="supplier_sku">Supplier SKU</label>
@@ -185,7 +187,7 @@ $current_url                    = url()->current();
                            </div>
                            <div class="col-md-4">
                               <label class="form-label" for="size_id">Size <small class="text-danger">*</small></label>
-                              <select name="size_id" class="form-control" id="size_id" required>
+                              <select name="size_id" class="form-select" id="size_id" required>
                                  <option value="" selected>Select Size</option>
                                  <?php if($sizes){ foreach($sizes as $size){?>
                                  <option value="<?=$size->id?>" <?=(($size->id == $size_id)?'selected':'')?>><?=$size->name?> <?=$size->unit_name?></option>
@@ -647,6 +649,15 @@ $current_url                    = url()->current();
 <script type="text/javascript">
 
    $(document).ready(function(){
+      $('#brand_id').on('change', function(){
+         var brand_id = $('#brand_id').val();
+         if(brand_id == 'New'){
+            $('#brand_name').show();
+         } else {
+            $('#brand_name').hide();
+         }
+      });
+
       $('#multiple_buys').change(function() {
          if ($(this).is(':checked')) {
             $('.multiple-buy-section').show();

@@ -226,6 +226,18 @@ class ProductController extends Controller
                         /* cover image */
                         $barcode_image_url = '';
                         $barcode_image_url = $this->generateBarcode($postData['barcode']);
+
+                        /* new brand name */
+                            $brand_id = $postData['brand_id'];
+                            if($brand_id == 'New'){
+                                $brand_name = $postData['brand_name'];
+                                $brandField = [
+                                    'name' => $brand_name
+                                ];
+                                $brand_id = Brand::insertGetId($brandField);
+                            }
+                        /* new brand name */
+
                         $fields = [
                             'sku'                       => $postData['sku'],
                             'name'                      => $postData['name'],
@@ -233,7 +245,7 @@ class ProductController extends Controller
                             'shelf_tag_short_name'      => $postData['shelf_tag_short_name'],
                             'barcode'                   => $postData['barcode'],
                             'barcode_image_url'         => $barcode_image_url,
-                            'brand_id'                  => $postData['brand_id'],
+                            'brand_id'                  => $brand_id,
                             'supplier_sku'              => $postData['supplier_sku'],
                             'supplier_product_name'     => $postData['supplier_product_name'],
                             'supplier_id'               => $postData['supplier_id'],
@@ -421,6 +433,18 @@ class ProductController extends Controller
                         // Ensure barcode directory exists
                         $barcode_image_url = '';
                         $barcode_image_url = $this->generateBarcode($postData['barcode']);
+
+                        /* new brand name */
+                            $brand_id = $postData['brand_id'];
+                            if($brand_id == 'New'){
+                                $brand_name = $postData['brand_name'];
+                                $brandField = [
+                                    'name' => $brand_name
+                                ];
+                                $brand_id = Brand::insertGetId($brandField);
+                            }
+                        /* new brand name */
+
                         $fields = [
                             'sku'                       => $postData['sku'],
                             'name'                      => $postData['name'],
@@ -428,7 +452,7 @@ class ProductController extends Controller
                             'shelf_tag_short_name'      => $postData['shelf_tag_short_name'],
                             'barcode'                   => $postData['barcode'],
                             'barcode_image_url'         => $barcode_image_url,
-                            'brand_id'                  => $postData['brand_id'],
+                            'brand_id'                  => $brand_id,
                             'supplier_sku'              => $postData['supplier_sku'],
                             'supplier_product_name'     => $postData['supplier_product_name'],
                             'supplier_id'               => $postData['supplier_id'],

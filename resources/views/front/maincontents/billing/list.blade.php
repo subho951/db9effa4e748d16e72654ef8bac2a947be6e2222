@@ -43,7 +43,7 @@ $current_url          = url()->current();
                     </div>
                     <div class="col-7">
                         <div class="d-flex justify-content-end">
-                            <a href="javascript: void(0);" class="my-btn btn-yellow me-3" type="button" data-bs-toggle="modal" data-bs-target="#cancelSaleModal">Cancel Item</a>
+                            <a href="javascript: void(0);" class="my-btn btn-yellow me-3 disabled-link" type="button" data-bs-toggle="modal" data-bs-target="#cancelSaleModal" id="cancel-item-btn">Cancel Item</a>
                             <a href="<?=url('user/billing/billing-search/' . Helper::encoded((($getOrder)?$getOrder->id:'')))?>" class="my-btn btn-sky enter-btn">Search</a>
                         </div>
                     </div>
@@ -118,30 +118,34 @@ $current_url          = url()->current();
                     </thead>
                     <tbody>
                         <?php $totItemQty = 0; if($getOrderItems){ foreach($getOrderItems as $getOrderItem){?>
-                            <tr class="order-row">
+                            <tr class="order-row" data-item-id="<?=$getOrderItem->id?>">
                                 <td>
                                     <?php if($getOrderItem->subtotal >= 0){?>
                                         <input type="radio" name="order_details_id" id="order_details_id<?=$getOrderItem->id?>" value="<?=$getOrderItem->id?>" style="display:none;">
                                     <?php }?>
-                                    <span><?=$getOrderItem->product_name?></span>
+                                    <span style="<?= (($getOrderItem->status == 4)?'color: red;':'')?>"><?=$getOrderItem->product_name?></span>
                                     <!-- <small style="font-size: 10px;color: #0096eb;">SKU : <?=$getOrderItem->product_sku?></small> -->
                                     <?php if($getOrderItem->subtotal < 0){?>
                                         <small style="font-size: 9px; color:#000;" class="badge bg-warning">RETURN</small>
                                     <?php }?>
                                 </td>
                                 <td class="text-center">
-                                    <button class="btn-plus-minus" onclick="itemQtyDecrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">-</button>
+                                    <?php if($getOrderItem->status != 4){?>
+                                        <button class="btn-plus-minus" onclick="itemQtyDecrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">-</button>
+                                    <?php }?>
                                     <input type="hidden" id="qty-val-<?=$getOrderItem->item_id?>" value="<?=$getOrderItem->qty?>">
-                                    <span id="qty-text-<?=$getOrderItem->item_id?>"><?=$getOrderItem->qty?></span>
-                                    <button class="btn-plus-minus" onclick="itemQtyIncrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">+</button>
-                                    <?php $totItemQty += $getOrderItem->qty; ?>
+                                    <span id="qty-text-<?=$getOrderItem->item_id?>" style="<?= (($getOrderItem->status == 4)?'color: red;':'')?>"><?=$getOrderItem->qty?></span>
+                                    <?php if($getOrderItem->status != 4){?>
+                                        <button class="btn-plus-minus" onclick="itemQtyIncrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">+</button>
+                                        <?php $totItemQty += $getOrderItem->qty; ?>
+                                    <?php }?>
                                 </td>
                                 <!-- <td class="text-end">
                                 $<?=number_format($getOrderItem->subtotal,2)?>
                                     <a href="javascript:void(0);" onclick="itemDelete(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);"><i class='bx bxs-trash'></i></a>
                                 </td> -->
                                 <td class="text-end">
-                                    <span class="price-text">$<?=number_format($getOrderItem->price,2)?></span>
+                                    <span class="price-text" style="<?= (($getOrderItem->status == 4)?'color: red;':'')?>">$<?=number_format($getOrderItem->price,2)?></span>
                                     <input type="text" class="form-control price-val" name="product_price" value="<?=$getOrderItem->price?>" style="display: none;">
                                     <input type="hidden" name="item_id" value="<?=$getOrderItem->item_id?>" style="display: none;">
                                     <a href="javascript:void(0);" onclick="itemDelete(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);"><i class='bx bxs-trash'></i></a>
@@ -216,9 +220,10 @@ $current_url          = url()->current();
             </div>
             <div class="modal-body">
                 <form action="javascript: void(0)" class="otp-form" name="otp-form">
-                    <h1 class="modal-title fs-4 text-center w-100 text-black mb-2" id="adminpinmodalLabel">Are you sure that you want to cancel the order?</h1>
+                    <h1 class="modal-title fs-4 text-center w-100 text-black mb-2" id="adminpinmodalLabel">Are you sure that you want to cancel this item?</h1>
                     <div class="mt-4 d-flex justify-content-center"> 
-                        <button class="btn btn-success text-black px-4 mx-1" onclick="orderChangeStatus(<?=(($getOrder)?$getOrder->id:0)?>, 4, 'cancelSaleModal')">Yes</button> 
+                        <!-- <button class="btn btn-success text-black px-4 mx-1" onclick="orderChangeStatus(<?=(($getOrder)?$getOrder->id:0)?>, 4, 'cancelSaleModal')">Yes</button> -->
+                        <button class="btn btn-success text-black px-4 mx-1" id="confirmCancelBtn">Yes</button>
                         <button type="button" class="btn btn-danger text-black px-4 mx-1" data-bs-dismiss="modal" aria-label="Close">No</button> 
                     </div>
                 </form>
@@ -253,18 +258,18 @@ $current_url          = url()->current();
     // ✅ Delegated click handler (works after adding new rows)
     $(document).on('click', '.order-row', function() {
         $(this).find('input[type="radio"]').prop("checked", true);
-        $(".order-row").removeClass("selected");
-        $(this).addClass("selected");
-    });
+        
+        $('#cancel-item-btn').removeClass('disabled-link');
+        $('#price-modify-btn').removeClass('disabled-link');
 
-    // $(function(){
-    //     $('#add-to-cart').on('keydown', function(e) {
-    //         if (e.key === 'Enter') {
-    //             e.preventDefault(); // Prevent form submission if inside a form
-    //             $('#add-to-cart').click(); // Trigger the button
-    //         }
-    //     });
-    // });
+        $('.order-row').removeClass('selected');
+        // $('.price-val').hide();
+        // $('.price-text').show();
+
+        $(this).addClass("selected");
+        // $(this).find('.price-text').hide();
+        // $(this).find('.price-val').show().focus();
+    });
 
     // Get references
     const skuInput = document.getElementById('barcode');
@@ -365,19 +370,29 @@ $current_url          = url()->current();
             $("#barcode").focus();
         }
     }
-    function orderChangeStatus(orderId, orderStatus, modalName){
-        $('#' + modalName).modal('hide');
+    function orderChangeStatus(orderId, status, modalId, itemId = null){
+        console.log("Order ID:", orderId);
+        console.log("Item ID:", itemId);
+        console.log("Status:", status);
+
         $.ajax({
             url: base_url + "/user/billing/billing-change-status",
             type: "POST",
-            data: {"_token": "{{ csrf_token() }}", key : "db9effa4e748d16e72654ef8bac2a947be6e2222", order_status : orderStatus, order_id : orderId},
+            data: {
+                "_token": "{{ csrf_token() }}",
+                key : "db9effa4e748d16e72654ef8bac2a947be6e2222",
+                order_id: orderId,
+                item_id: itemId,
+                status: status
+            },
             beforeSend: function () {
                 $("#loader").show();
             },
             success: function(res) {
                 $("#loader").hide();
                 if(res.status){
-                    var redirectUrl = base_url + '/user/billing/list';
+                    $('#' + modalId).modal('hide');
+                    var redirectUrl = base_url + '/admin/billing/list';
                     toastAlert("success", res.message);
                     setTimeout(function() {
                         window.location.href = redirectUrl;
@@ -642,4 +657,19 @@ $current_url          = url()->current();
             toastAlert("warning", 'Please select return item !!!');
         }
     }
+    $(document).on('click', '#cancel-item-btn', function() {
+        // Get selected row item ID
+        let selectedItemId = $('.order-row.selected').data('item-id');
+
+        // Store in modal button (so you can access later)
+        $('#cancelSaleModal').attr('data-item-id', selectedItemId);
+    });
+    $(document).on('click', '#confirmCancelBtn', function() {
+        let modal = $('#cancelSaleModal');
+        let itemId = modal.data('item-id'); // retrieve item ID stored earlier
+        let orderId = <?= (($getOrder) ? $getOrder->id : 0) ?>; // from PHP
+        let status = 4; // cancel status code
+
+        orderChangeStatus(orderId, status, 'cancelSaleModal', itemId);
+    });
 </script>

@@ -105,7 +105,7 @@ class BillingController extends Controller
             $data['getOrderItems']          = DB::table('order_details')
                                                 ->join('products', 'order_details.item_id', '=', 'products.id')
                                                 ->select('order_details.*', 'products.name as product_name', 'products.sku as product_sku')
-                                                ->where('order_details.status', '=', 1)
+                                                // ->where('order_details.status', '=', 1)
                                                 ->where('order_details.order_id', '=', $order_id)
                                                 ->orderBy('order_details.id', 'ASC')
                                                 ->get();
@@ -400,19 +400,46 @@ class BillingController extends Controller
             $apiExtraData       = '';
             $requestData        = $request->all();
             if($requestData['key'] == env('PROJECT_KEY')){
-                $order_status       = $requestData['order_status'];
+                $order_id           = $requestData['order_id'];
+                $item_id            = $requestData['item_id'];
+                $status             = $requestData['status'];
+
+                $order_status       = $status;
                 if($order_status == 3){
                     $statusName = 'Hold';
                 } elseif($order_status == 4){
                     $statusName = 'Cancelled';
                 }
-                $order_id           = $requestData['order_id'];
+
                 $getOrder           = Order::where('id', '=', $order_id)->first();
                 if($getOrder){
-                    Order::where('id', '=', $order_id)->update(['status' => $order_status]);
+                    // Order::where('id', '=', $order_id)->update(['status' => $order_status]);
+                    OrderDetail::where('id', '=', $item_id)->update(['status' => $order_status, 'subtotal' => 0]);
+
+                    /* update amounts */
+                        $subtotal = 0;
+                        $getItems = OrderDetail::where('order_id', '=', $order_id)->get();
+                        if($getItems){
+                            foreach($getItems as $getItem){
+                                $subtotal += $getItem->subtotal;
+                            }
+                        }
+
+                        $discounted_amount = ($subtotal - $getOrder->discount_amount);
+                        $net_amount = ($discounted_amount + $getOrder->delivery_amount);
+                        $fields = [
+                            'subtotal'              => $subtotal,
+                            'discount_amount'       => $getOrder->discount_amount,
+                            'discounted_amount'     => $discounted_amount,
+                            'delivery_amount'       => $getOrder->delivery_amount,
+                            'net_amount'            => $net_amount,
+                        ];
+                        Order::where('id', '=', $order_id)->update($fields);
+                    /* update amounts */
+
                     $apiStatus                          = TRUE;
                     http_response_code(200);
-                    $apiMessage                         = 'Order marked as ' . $statusName . ' successfully';
+                    $apiMessage                         = 'Order item marked as ' . $statusName . ' successfully';
                     $apiExtraField                      = 'response_code';
                     $apiExtraData                       = http_response_code();
                 } else {

@@ -41,7 +41,7 @@ class UnitController extends Controller
                     'name'                      => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = Unit::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->first();
+                    $checkData = Unit::where('name', '=', $postData['name'])->where('status', '!=', 3)->first();
                     if(!$checkData){
                         $fields = [
                             'name'                    => strtoupper($postData['name']),
@@ -76,7 +76,7 @@ class UnitController extends Controller
                     'name'                      => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = Unit::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->where('id', '!=', $id)->first();
+                    $checkData = Unit::where('name', '=', $postData['name'])->where('status', '!=', 3)->where('id', '!=', $id)->first();
                     if(!$checkData){
                         $fields = [
                             'name'                    => strtoupper($postData['name']),

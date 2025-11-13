@@ -49,7 +49,7 @@ class SizeController extends Controller
                     'name'                      => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = Size::where('name', 'LIKE', '%'.$postData['name'].'%')->where('unit_id', '=', $postData['unit_id'])->where('status', '!=', 3)->first();
+                    $checkData = Size::where('name', '=', $postData['name'])->where('unit_id', '=', $postData['unit_id'])->where('status', '!=', 3)->first();
                     if(!$checkData){
                         $fields = [
                             'unit_id'                 => $postData['unit_id'],
@@ -88,7 +88,7 @@ class SizeController extends Controller
                     'name'                      => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = Size::where('name', 'LIKE', '%'.$postData['name'].'%')->where('unit_id', '=', $postData['unit_id'])->where('status', '!=', 3)->where('id', '!=', $id)->first();
+                    $checkData = Size::where('name', '=', $postData['name'])->where('unit_id', '=', $postData['unit_id'])->where('status', '!=', 3)->where('id', '!=', $id)->first();
                     if(!$checkData){
                         $fields = [
                             'unit_id'                 => $postData['unit_id'],

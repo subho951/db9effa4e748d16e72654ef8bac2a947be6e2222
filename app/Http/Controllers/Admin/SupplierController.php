@@ -50,7 +50,7 @@ class SupplierController extends Controller
                     'status'                        => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = Supplier::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->first();
+                    $checkData = Supplier::where('name', '=', $postData['name'])->where('status', '!=', 3)->first();
                     if(!$checkData){
                         $fields = [
                             'name'                      => $postData['name'],
@@ -107,7 +107,7 @@ class SupplierController extends Controller
                     'status'                        => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = Supplier::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->where('id', '!=', $id)->first();
+                    $checkData = Supplier::where('name', '=', $postData['name'])->where('status', '!=', 3)->where('id', '!=', $id)->first();
                     if(!$checkData){
                         $fields = [
                             'name'                      => $postData['name'],

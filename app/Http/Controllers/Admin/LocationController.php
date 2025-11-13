@@ -48,7 +48,7 @@ class LocationController extends Controller
                     'status'                        => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = Location::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->first();
+                    $checkData = Location::where('name', '=', $postData['name'])->where('status', '!=', 3)->first();
                     if(!$checkData){
                         $fields = [
                             'name'                      => $postData['name'],
@@ -100,7 +100,7 @@ class LocationController extends Controller
                     'status'                        => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = Location::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->where('id', '!=', $id)->first();
+                    $checkData = Location::where('name', '=', $postData['name'])->where('status', '!=', 3)->where('id', '!=', $id)->first();
                     if(!$checkData){
                         $fields = [
                             'name'                      => $postData['name'],

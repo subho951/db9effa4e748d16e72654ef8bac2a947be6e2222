@@ -1099,11 +1099,11 @@ class ProductController extends Controller
                 $pin2           = $requestData['pin2'];
                 $pin3           = $requestData['pin3'];
                 $pin4           = $requestData['pin4'];
-                $product_id     = $requestData['product_id'];
                 $completePin    = $pin1.$pin2.$pin3.$pin4;
                 $getAdmin       = Admin::where('id','=',1)->first();
                 if(Hash::check($completePin, $getAdmin->password)){
-                    $redirectUrl = url('admin/products/edit/'.Helper::encoded($product_id));
+                    $redirectUrl = url('admin/products/list/');
+                    // $redirectUrl = url('admin/products/edit/'.Helper::encoded($product_id));
                     // $apiResponse['redirectUrl'] = $redirectUrl;
                     // http_response_code(200);
                     // $apiStatus          = TRUE;
@@ -1172,4 +1172,32 @@ class ProductController extends Controller
             // $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
         }
     /* validate admin pin products */
+    public function updateDiscountVoucherStatus(Request $request)
+    {
+        $id = $request->id;
+        $status = $request->status;
+
+        // Example: Update in DB
+        $updated = ProductDiscountVoucher::where('id', $id)
+                    ->update(['status' => $status]);
+
+        return response()->json([
+            'success' => $updated,
+            'message' => 'Discount voucher status updated successfully'
+        ]);
+    }
+    public function updateMultiBuyStatus(Request $request)
+    {
+        $id = $request->id;
+        $status = $request->status;
+
+        // Example: Update in DB
+        $updated = ProductMultipleBuy::where('id', $id)
+                    ->update(['status' => $status]);
+
+        return response()->json([
+            'success' => $updated,
+            'message' => 'Multibuy status updated successfully'
+        ]);
+    }
 }

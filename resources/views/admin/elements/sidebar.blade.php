@@ -21,6 +21,101 @@ $user_type = session('type');
    .menu-sub .menu-item .menu-link{
       font-size: 13px;
    }
+
+   .modal-backdrop.show
+   {
+      z-index: 9;
+   }
+  /* admin pin modal */
+  .otp-input-fields {
+      margin: auto;
+      background-color: white;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      /* gap: 10px; */
+      padding:10px;
+    }
+    .otp-input-fields input {
+      height: 40px;
+      width: 40px;
+      background-color: transparent;
+      border-radius: 4px;
+      border: 1px solid #01CA6A;
+      text-align: center;
+      outline: none;
+      font-size: 16px;
+      margin: 0 10px;
+      /* Firefox */
+    }
+    .otp-input-fields input::-webkit-outer-spin-button, .otp-input-fields input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .otp-input-fields input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .otp-input-fields input:focus {
+      border-width: 2px;
+      border-color: #01CA6A;
+      font-size: 20px;
+    }
+    
+    .result {
+      max-width: 400px;
+      margin: auto;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .result p {
+      font-size: 24px;
+      font-family: "Antonio", sans-serif;
+      opacity: 1;
+      transition: color 0.5s ease;
+    }
+    .result p._ok {
+      color: #01CA6A;
+    }
+    .result p._notok {
+      color: red;
+      border-radius: 3px;
+    }
+    #adminpinmodal.modal .btn-close{
+      transform: translate(4px, 6px);
+    }
+    .validate {
+      border-radius: 20px;
+      height: 40px;
+      background-color: #01CA6A;
+      border: 1px solid #01CA6A;
+      width: 140px
+  }
+  .buttons-export {
+      padding: 2px 20px;
+      background-color: #04163d;
+      color: #FFF;
+      border-radius: 50px;
+      border: 2px solid #04163d;
+      transition: all .3s ease-in-out;
+      box-shadow: 0 9px 20px -10px #a5a5a5;
+      position: absolute; left: 90px; top: 8px;
+  }
+  @media(max-width: 767px) {
+    div.dt-container div.dt-layout-row {
+      display: flex !important;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .buttons-export {
+      top: 11px;
+  }
+  }
+  @media(max-width: 575px) {
+    div.dt-container div.dt-layout-row {
+      flex-wrap: wrap;
+    }
+  }
 </style>
 <div class="app-brand demo ">
    <a href="<?=url('admin/dashboard')?>" class="app-brand-link">
@@ -133,7 +228,10 @@ $user_type = session('type');
       </a>
       <ul class="menu-sub">
          <li class="menu-item <?=(($pageFunction == 'list')?'active':'')?>">
-            <a href="<?=url('admin/products/list')?>" class="menu-link">
+            <!-- <a href="<?=url('admin/products/list')?>" class="menu-link">
+               <div data-i18n="List">List</div>
+            </a> -->
+            <a href="javascript:void(0);" class="menu-link" onclick="openAdminPINModal();">
                <div data-i18n="List">List</div>
             </a>
          </li>
@@ -233,3 +331,74 @@ $user_type = session('type');
       </a>
    </li>
 </ul>
+
+<!-- Admin PIN Modal -->
+<div class="modal fade" id="adminpinmodal" tabindex="-1" aria-labelledby="adminpinmodalLabel" aria-hidden="true">
+    
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+   function openAdminPINModal(){
+      var modalHTML = '';
+      var actionurl = '<?=url("/admin/products/validate-admin-pin-product")?>';
+      modalHTML = '<div class="modal-dialog modal-dialog-centered">\
+                     <div class="modal-content">\
+                     <div class="modal-header p-0">\
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>\
+                     </div>\
+                     <form method="POST" action="'+actionurl+'" id="myForm">\
+                        @csrf\
+                        <input type="hidden" name="key" id="key" value="db9effa4e748d16e72654ef8bac2a947be6e2222">\
+                        <input type="text" style="display:none">\
+                        <input type="password" style="display:none">\
+                        <div class="modal-body">\
+                           <h1 class="modal-title fs-4 text-center w-100 text-black mb-2" id="adminpinmodalLabel">Enter Your Admin Pin</h1>\
+                           <div class="otp-input-fields">\
+                              <input type="password" class="otp__digit otp__field__1" autocomplete="off" name="pin1" id="pin1" autocomplete="new-password">\
+                              <input type="password" class="otp__digit otp__field__2" autocomplete="off" name="pin2" id="pin2" autocomplete="new-password">\
+                              <input type="password" class="otp__digit otp__field__3" autocomplete="off" name="pin3" id="pin3" autocomplete="new-password">\
+                              <input type="password" class="otp__digit otp__field__4" autocomplete="off" name="pin4" id="pin4" autocomplete="new-password">\
+                           </div>\
+                           <div class="mt-4 d-flex justify-content-center">\
+                              <button class="btn btn-green text-black px-4 validate">Submit</button>\
+                           </div>\
+                        </div>\
+                     </form>\
+                     </div>\
+                  </div>';
+      $('#adminpinmodal').html(modalHTML);
+      $('#adminpinmodal').modal('show');
+   }
+</script>
+<script>
+  $(document).on('input', '.otp__digit', function () {
+      // Allow only digits and limit to 1 character
+      this.value = this.value.replace(/\D/g, '').slice(0, 1);
+
+      const inputs = $('.otp__digit');
+      const index = inputs.index(this);
+
+      // Move to next input automatically
+      if (this.value && index < inputs.length - 1) {
+          inputs.eq(index + 1).focus();
+      }
+
+      // Auto-submit if all 4 digits are filled
+      const allFilled = inputs.toArray().every(inp => $(inp).val().length === 1);
+      if (allFilled) {
+          $('.validate').prop('disabled', true); // prevent double submission
+          $('#myForm').submit();
+      }
+  });
+
+  $(document).on('keyup', '.otp__digit', function (e) {
+      const inputs = $('.otp__digit');
+      const index = inputs.index(this);
+
+      // Move backward on backspace if empty
+      if (e.key === 'Backspace' && !$(this).val() && index > 0) {
+          inputs.eq(index - 1).focus();
+      }
+  });
+</script>

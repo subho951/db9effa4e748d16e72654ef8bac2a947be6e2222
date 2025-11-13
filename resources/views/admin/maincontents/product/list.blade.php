@@ -1,5 +1,6 @@
 <?php
 use App\Models\ProductDiscountVoucher;
+use App\Models\ProductMultipleBuy;
 use App\Helpers\Helper;
 $controllerRoute = $module['controller_route'];
 ?>
@@ -175,14 +176,43 @@ $controllerRoute = $module['controller_route'];
                     </td>
                     <td><?=$row->name?></td>
                     <td>
-                      <?php
-                      $discountVouchers = ProductDiscountVoucher::select('voucher_code', 'retail_discounted_price')->where('product_id', $row->id)->where('status', 1)->get();
-                      ?>
-                      <ul>
-                        <?php if($discountVouchers){ foreach($discountVouchers as $discountVoucher){?>
-                          <li><?=$discountVoucher->voucher_code?> : $<?=number_format($discountVoucher->retail_discounted_price,2)?></li>
-                        <?php } }?>
-                      </ul>
+                      <!-- Discount Vouchers -->
+                        <?php $discountVouchers = ProductDiscountVoucher::select('id', 'voucher_code', 'retail_discounted_price', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
+                        <ul>
+                          <?php if(count($discountVouchers) > 0){?>
+                            <small style="font-weight: bold; text-decoration:underline;">Discount Vouchers</small>
+                            <?php foreach($discountVouchers as $discountVoucher){?>
+                              <li>
+                                <?=$discountVoucher->voucher_code?> : $<?=number_format($discountVoucher->retail_discounted_price,2)?>
+                                <span>
+                                  <div class="form-check form-switch" style="display: inline;">
+                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="discount_voucher_switch" name="discount_voucher_switch" value="<?= $discountVoucher->id?>" <?=(($discountVoucher->status)?'checked':'')?>>
+                                  </div>
+                                  </span>
+                              </li>
+                            <?php }?>
+                          <?php }?>
+                        </ul>
+                      <!-- Discount Vouchers -->
+                      <!-- Multiple Buys -->
+                        <?php $multipleBuys = ProductMultipleBuy::select('id', 'first_barcode', 'second_barcode', 'barcode_discount_type', 'discount_amount', 'discounted_amount', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
+                        <ul>
+                          <?php if(count($multipleBuys) > 0){?>
+                            <small style="font-weight: bold; text-decoration:underline;">Multiple Buys</small>
+                            <?php foreach($multipleBuys as $multipleBuy){?>
+                              <li>
+                                <?= $multipleBuy->first_barcode?> and <?= $multipleBuy->second_barcode?> = true, then <?= (($multipleBuy->barcode_discount_type == 'PERCENTAGE')?$multipleBuy->discount_amount . '%':'$' . $multipleBuy->discount_amount)?> ($<?= $multipleBuy->discounted_amount?>)
+                                <span>
+                                  <div class="form-check form-switch" style="display: inline;">
+                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="multiplebuy_switch" name="multiplebuy_switch" value="<?= $multipleBuy->id?>" <?=(($multipleBuy->status)?'checked':'')?>>
+                                 </div>
+                                </span>
+                              </li>
+                            <?php }?>
+                            <br><br>
+                          <?php }?>
+                        </ul>
+                      <!-- Multiple Buys -->
                     </td>
                     <td><?=$row->size_name?> <?=$row->unit_name?></td>
                     <td>$<?=number_format($row->retail_price_inc_tax,2)?></td>
@@ -344,5 +374,38 @@ $controllerRoute = $module['controller_route'];
       if (e.key === 'Backspace' && !$(this).val() && index > 0) {
           inputs.eq(index - 1).focus();
       }
+  });
+</script>
+<script>
+  $(document).on('change', '.form-check-input', function() {
+      var base_url = '<?=url('/')?>';
+      let switchId = $(this).attr('id');              // e.g. "multiplebuy_switch"
+      let id = $(this).attr('value');              // e.g. "multiplebuy_switch"
+      let status = $(this).is(':checked') ? 1 : 0;    // 1 = ON, 0 = OFF
+      
+      if(switchId == 'multiplebuy_switch'){
+        url = base_url + '/admin/products/update-multibuy-switch-status';
+      } else {
+        url = base_url + '/admin/products/update-discountvoucher-switch-status';
+      }
+      $.ajax({
+          url: url,           // your API endpoint
+          type: 'POST',
+          data: {
+              "_token": "{{ csrf_token() }}",
+              id: id,
+              status: status,
+          },
+          beforeSend: function() {
+              // toastAlert('warning', 'Updating switch status...');
+          },
+          success: function(response) {
+              // console.log('Switch updated successfully:', response);
+              toastAlert("success", response.message);
+          },
+          error: function(xhr) {
+              console.error('Error updating switch:', xhr.responseText);
+          }
+      });
   });
 </script>

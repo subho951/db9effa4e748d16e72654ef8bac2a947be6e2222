@@ -50,7 +50,7 @@ class DeliveryLocationController extends Controller
                     'status'                        => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = DeliveryLocation::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->first();
+                    $checkData = DeliveryLocation::where('name', '=', $postData['name'])->where('status', '!=', 3)->first();
                     if(!$checkData){
                         $fields = [
                             'name'                      => $postData['name'],
@@ -107,7 +107,7 @@ class DeliveryLocationController extends Controller
                     'status'                        => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = DeliveryLocation::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->where('id', '!=', $id)->first();
+                    $checkData = DeliveryLocation::where('name', '=', $postData['name'])->where('status', '!=', 3)->where('id', '!=', $id)->first();
                     if(!$checkData){
                         $fields = [
                             'name'                      => $postData['name'],

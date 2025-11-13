@@ -52,7 +52,7 @@ class ShippingChargeController extends Controller
                     'status'                        => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = ShippingCharge::where('location_id', 'LIKE', '%'.$postData['location_id'].'%')->where('status', '!=', 3)->first();
+                    $checkData = ShippingCharge::where('location_id', '=', $postData['location_id'])->where('status', '!=', 3)->first();
                     if(!$checkData){
                         $fields = [
                             'location_id'               => $postData['location_id'],
@@ -96,7 +96,7 @@ class ShippingChargeController extends Controller
                     'status'                        => 'required',
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = ShippingCharge::where('location_id', 'LIKE', '%'.$postData['location_id'].'%')->where('status', '!=', 3)->where('id', '!=', $id)->first();
+                    $checkData = ShippingCharge::where('location_id', '=', $postData['location_id'])->where('status', '!=', 3)->where('id', '!=', $id)->first();
                     if(!$checkData){
                         $fields = [
                             'location_id'               => $postData['location_id'],

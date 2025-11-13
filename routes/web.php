@@ -217,6 +217,8 @@ Route::get('/db-test', function () {
                 Route::post('products/print-products', 'ProductController@printProducts');
                 Route::post('products/validate-admin-pin-product', 'ProductController@validateAdminPinProduct');
                 Route::post('products/validate-admin-pin-export', 'ProductController@validateAdminPinExport');
+                Route::post('products/update-discountvoucher-switch-status', 'ProductController@updateDiscountVoucherStatus');
+                Route::post('products/update-multibuy-switch-status', 'ProductController@updateMultiBuyStatus');
             /* customer */
             /* customer */
                 Route::get('customer/list', 'CustomerController@list');

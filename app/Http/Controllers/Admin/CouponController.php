@@ -55,7 +55,7 @@ class CouponController extends Controller
                     'to_date'                   => 'required'
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = Coupon::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->first();
+                    $checkData = Coupon::where('name', '=', $postData['name'])->where('status', '!=', 3)->first();
                     if(!$checkData){
                         $fields = [
                             'name'                  => $postData['name'],
@@ -107,7 +107,7 @@ class CouponController extends Controller
                     'to_date'                   => 'required'
                 ];
                 if($this->validate($request, $rules)){
-                    $checkData = Coupon::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->where('id', '!=', $id)->first();
+                    $checkData = Coupon::where('name', '=', $postData['name'])->where('status', '!=', 3)->where('id', '!=', $id)->first();
                     if(!$checkData){
                         $fields = [
                             'name'                  => $postData['name'],

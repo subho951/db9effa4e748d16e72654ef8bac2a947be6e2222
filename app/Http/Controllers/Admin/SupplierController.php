@@ -52,6 +52,11 @@ class SupplierController extends Controller
                 if($this->validate($request, $rules)){
                     $checkData = Supplier::where('name', '=', $postData['name'])->where('status', '!=', 3)->first();
                     if(!$checkData){
+                        if($postData['email2'] != ''){
+                            if($postData['email'] == $postData['email2']){
+                                return redirect()->back()->with('error_message', 'First Email and 2nd Email cannot be same !!!');
+                            }
+                        }
                         $fields = [
                             'name'                      => $postData['name'],
                             'contact_person_name'       => $postData['contact_person_name'],
@@ -109,6 +114,11 @@ class SupplierController extends Controller
                 if($this->validate($request, $rules)){
                     $checkData = Supplier::where('name', '=', $postData['name'])->where('status', '!=', 3)->where('id', '!=', $id)->first();
                     if(!$checkData){
+                        if($postData['email2'] != ''){
+                            if($postData['email'] == $postData['email2']){
+                                return redirect()->back()->with('error_message', 'First Email and 2nd Email cannot be same !!!');
+                            }
+                        }
                         $fields = [
                             'name'                      => $postData['name'],
                             'contact_person_name'       => $postData['contact_person_name'],

@@ -1,5 +1,6 @@
 <?php
 use App\Models\ProductDiscountVoucher;
+use App\Models\ProductMultipleBuy;
 use App\Helpers\Helper;
 $controllerRoute = $module['controller_route'];
 ?>
@@ -146,13 +147,15 @@ $controllerRoute = $module['controller_route'];
                             <th scope="col">SKU</th>
                             <th scope="col">Tag</th>
                             <th scope="col"><?=(($brand_id != '')?'<u>Brand</u>':'Brand')?></th>
-                            <th scope="col">Variety</th>
-                            <th scope="col">Vol</th>
-                            <th scope="col">Supplier</th>
-                            <th scope="col">DiscCode</th>
+                            <th scope="col">Name</th>
+                            <!-- <th scope="col">Vol</th> -->
+                            <!-- <th scope="col">Supplier</th> -->
+                            <th scope="col">Price</th>
+                            <!-- <th scope="col">DiscCode</th>
                             <th scope="col"><?=(($discount_type != '')?'<u>DiscType</u>':'DiscType')?></th>
                             <th scope="col">Disc</th>
-                            <th scope="col">SellDisc</th>
+                            <th scope="col">SellDisc</th> -->
+                            <th scope="col">Variety</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -162,18 +165,20 @@ $controllerRoute = $module['controller_route'];
                                     <td><input type="checkbox" class="checkItem" name="product_id[]" value="<?=$row->id?>"></td>
                                     <td><?=$row->brand_name?></td>
                                     <td>
-                                      <?php
+                                      <!-- <?php
                                       $discountVouchers = ProductDiscountVoucher::select('voucher_code', 'retail_discounted_price')->where('product_id', $row->id)->where('status', 1)->get();
                                       ?>
                                       <ul>
                                         <?php if($discountVouchers){ foreach($discountVouchers as $discountVoucher){?>
                                           <li><?=$discountVoucher->voucher_code?> : $<?=number_format($discountVoucher->retail_discounted_price,2)?></li>
                                         <?php } }?>
-                                      </ul>
+                                      </ul> -->
+                                      <?=$row->shelf_tag_short_name?>
                                     </td>
-                                    <td><?=$row->size_name?> <?=$row->unit_name?></td>
-                                    <td><?=$row->supplier_name?></td>
-                                    <td colspan="4">
+                                    <!-- <td><?=$row->size_name?> <?=$row->unit_name?></td> -->
+                                    <!-- <td><?//=$row->supplier_name?></td> -->
+                                    <td><?=number_format($row->retail_price_inc_tax,2)?></td>
+                                    <!-- <td colspan="4">
                                       <table class="table table-striped table-bordered nowrap">
                                         <?php
                                         $discountVouchers = ProductDiscountVoucher::select('voucher_code', 'discount_type', 'retail_discount', 'retail_discounted_price')->where('product_id', $row->id)->where('status', 1)->get();
@@ -187,6 +192,35 @@ $controllerRoute = $module['controller_route'];
                                           </tr>
                                         <?php } }?>
                                       </table>
+                                    </td> -->
+                                    <td>
+                                      <!-- Discount Vouchers -->
+                                        <?php $discountVouchers = ProductDiscountVoucher::select('id', 'voucher_code', 'retail_discounted_price', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
+                                        <ul style="list-style: none; padding: 0; margin: 0;">
+                                          <?php if(count($discountVouchers) > 0){?>
+                                            <small style="font-weight: bold; text-decoration:underline;">Discount Vouchers</small>
+                                            <?php foreach($discountVouchers as $discountVoucher){?>
+                                              <li>
+                                                <?=$discountVoucher->voucher_code?> : $<?=number_format($discountVoucher->retail_discounted_price,2)?>
+                                              </li>
+                                            <?php }?>
+                                          <?php }?>
+                                        </ul>
+                                      <!-- Discount Vouchers -->
+                                      <!-- Multiple Buys -->
+                                        <?php $multipleBuys = ProductMultipleBuy::select('id', 'first_barcode', 'second_barcode', 'barcode_discount_type', 'discount_amount', 'discounted_amount', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
+                                        <ul style="list-style: none; padding: 0; margin: 0;">
+                                          <?php if(count($multipleBuys) > 0){?>
+                                            <small style="font-weight: bold; text-decoration:underline;">Multiple Buys</small>
+                                            <?php foreach($multipleBuys as $multipleBuy){?>
+                                              <li>
+                                                <?= $multipleBuy->first_barcode?> and <?= $multipleBuy->second_barcode?> = true, then <?= (($multipleBuy->barcode_discount_type == 'PERCENTAGE')?$multipleBuy->discount_amount . '%':'$' . $multipleBuy->discount_amount)?> ($<?= $multipleBuy->discounted_amount?>)
+                                              </li>
+                                            <?php }?>
+                                            <br><br>
+                                          <?php }?>
+                                        </ul>
+                                      <!-- Multiple Buys -->
                                     </td>
                                 </tr>
                             <?php } }?>

@@ -208,31 +208,31 @@ $current_url                    = url()->current();
                            </div>
 
                            <h5 class="mb-3">Pricing</h5>
-                           <div class="col-md-4">
+                           <div class="col-md-2">
                               <label class="form-label" for="cost_price_ex_tax">Cost (Excl. Tax) ($)</label>
                               <input type="text" class="form-control" placeholder="Enter Cost Ex. Tax" name="cost_price_ex_tax" id="cost_price_ex_tax" value="<?=$cost_price_ex_tax?>" required>
                            </div>
-                           <div class="col-md-4">
+                           <div class="col-md-2">
                               <label class="form-label" for="cost_price_inc_tax">Cost (Incl. Tax) ($)</label>
                               <input type="hidden" name="cost_price_tax" id="cost_price_tax" value="<?=$cost_price_tax?>">
                               <input type="text" class="form-control" placeholder="Enter Cost Inc. Tax" name="cost_price_inc_tax" id="cost_price_inc_tax" value="<?=$cost_price_inc_tax?>" required readonly>
                            </div>
-                           <div class="col-md-4">
+                           <div class="col-md-2">
                               <label class="form-label" for="markup_type">Markup (<span class="markup-icon"></span>)</label>
                               <div class="form-check form-switch mt-0">
                                  <input class="form-check-input" type="checkbox" name="markup_type" role="switch" id="markup_type" <?=(($markup_type == 'PERCENTAGE')?'checked':'')?>>
                                  <label class="form-check-label" for="markup_type" id="markup_type_text">Flat</label>
                               </div>
                            </div>
-                           <div class="col-md-4">
+                           <div class="col-md-2">
                               <label class="form-label" for="markup_amount">Markup (<span class="markup-icon"></span>)</label>
                               <input type="text" class="form-control" placeholder="Enter Markup in $" name="markup_amount" id="markup_amount" value="<?=$markup_amount?>" value="<?=$markup_amount?>" required>
                            </div>
-                           <div class="col-md-4">
+                           <div class="col-md-2">
                               <label class="form-label" for="added_amount">Added ($)</label>
                               <input type="text" class="form-control" placeholder="Enter Markup in %" name="added_amount" id="added_amount" value="<?=$added_amount?>" value="<?=$added_amount?>" required readonly>
                            </div>
-                           <div class="col-md-4">
+                           <div class="col-md-2">
                               <label class="form-label" for="retail_price_inc_tax">Retail Price (Incl. Tax) ($)</label>
                               <input type="text" class="form-control" placeholder="Enter Retail Price" name="retail_price_inc_tax" id="retail_price_inc_tax" value="<?=$retail_price_inc_tax?>" value="<?=$retail_price_inc_tax?>" required readonly>
                            </div>

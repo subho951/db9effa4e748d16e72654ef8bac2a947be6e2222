@@ -178,7 +178,7 @@ $controllerRoute = $module['controller_route'];
                     <td>
                       <!-- Discount Vouchers -->
                         <?php $discountVouchers = ProductDiscountVoucher::select('id', 'voucher_code', 'retail_discounted_price', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
-                        <ul>
+                        <ul style="list-style: none;">
                           <?php if(count($discountVouchers) > 0){?>
                             <small style="font-weight: bold; text-decoration:underline;">Discount Vouchers</small>
                             <?php foreach($discountVouchers as $discountVoucher){?>
@@ -196,7 +196,7 @@ $controllerRoute = $module['controller_route'];
                       <!-- Discount Vouchers -->
                       <!-- Multiple Buys -->
                         <?php $multipleBuys = ProductMultipleBuy::select('id', 'first_barcode', 'second_barcode', 'barcode_discount_type', 'discount_amount', 'discounted_amount', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
-                        <ul>
+                        <ul style="list-style: none;">
                           <?php if(count($multipleBuys) > 0){?>
                             <small style="font-weight: bold; text-decoration:underline;">Multiple Buys</small>
                             <?php foreach($multipleBuys as $multipleBuy){?>

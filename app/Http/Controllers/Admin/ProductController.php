@@ -885,11 +885,11 @@ class ProductController extends Controller
                 if($status != '' && $brand_id == '' && $discount_type == ''){
                     $data['rows']   = DB::table('products')
                                                 ->join('brands', 'products.brand_id', '=', 'brands.id')
-                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                // ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
                                                 ->join('sizes', 'products.size_id', '=', 'sizes.id')
                                                 ->join('units', 'sizes.unit_id', '=', 'units.id')
                                                 ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
-                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->select('products.*', 'brands.name as brand_name', 'sizes.name as size_name', 'units.name as unit_name')
                                                 ->where('products.status', '=', $status)
                                                 ->groupBy('products.id')
                                                 ->orderBy('products.id', 'DESC')
@@ -901,11 +901,11 @@ class ProductController extends Controller
                 } elseif($status == '' && $brand_id != '' && $discount_type == ''){
                     $data['rows']   = DB::table('products')
                                                 ->join('brands', 'products.brand_id', '=', 'brands.id')
-                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                // ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
                                                 ->join('sizes', 'products.size_id', '=', 'sizes.id')
                                                 ->join('units', 'sizes.unit_id', '=', 'units.id')
                                                 ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
-                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->select('products.*', 'brands.name as brand_name', 'sizes.name as size_name', 'units.name as unit_name')
                                                 ->where('products.status', '!=', 3)
                                                 ->where('products.brand_id', '=', $brand_id)
                                                 ->groupBy('products.id')
@@ -918,11 +918,11 @@ class ProductController extends Controller
                 } elseif($status == '' && $brand_id == '' && $discount_type != ''){
                     $data['rows']   = DB::table('products')
                                                 ->join('brands', 'products.brand_id', '=', 'brands.id')
-                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                // ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
                                                 ->join('sizes', 'products.size_id', '=', 'sizes.id')
                                                 ->join('units', 'sizes.unit_id', '=', 'units.id')
                                                 ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
-                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->select('products.*', 'brands.name as brand_name', 'sizes.name as size_name', 'units.name as unit_name')
                                                 ->where('products.status', '!=', 3)
                                                 ->where('product_discount_vouchers.discount_type', '=', $discount_type)
                                                 ->groupBy('products.id')
@@ -935,11 +935,11 @@ class ProductController extends Controller
                 } elseif($status != '' && $brand_id != '' && $discount_type == ''){
                     $data['rows']   = DB::table('products')
                                                 ->join('brands', 'products.brand_id', '=', 'brands.id')
-                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                // ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
                                                 ->join('sizes', 'products.size_id', '=', 'sizes.id')
                                                 ->join('units', 'sizes.unit_id', '=', 'units.id')
                                                 ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
-                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->select('products.*', 'brands.name as brand_name', 'sizes.name as size_name', 'units.name as unit_name')
                                                 ->where('products.status', '=', $status)
                                                 ->where('products.brand_id', '=', $brand_id)
                                                 ->groupBy('products.id')
@@ -952,11 +952,11 @@ class ProductController extends Controller
                 } elseif($status != '' && $brand_id == '' && $discount_type != ''){
                     $data['rows']   = DB::table('products')
                                                 ->join('brands', 'products.brand_id', '=', 'brands.id')
-                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                // ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
                                                 ->join('sizes', 'products.size_id', '=', 'sizes.id')
                                                 ->join('units', 'sizes.unit_id', '=', 'units.id')
                                                 ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
-                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->select('products.*', 'brands.name as brand_name', 'sizes.name as size_name', 'units.name as unit_name')
                                                 ->where('products.status', '=', $status)
                                                 ->where('product_discount_vouchers.discount_type', '=', $discount_type)
                                                 ->groupBy('products.id')
@@ -969,11 +969,11 @@ class ProductController extends Controller
                 } elseif($status == '' && $brand_id != '' && $discount_type != ''){
                     $data['rows']   = DB::table('products')
                                                 ->join('brands', 'products.brand_id', '=', 'brands.id')
-                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                // ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
                                                 ->join('sizes', 'products.size_id', '=', 'sizes.id')
                                                 ->join('units', 'sizes.unit_id', '=', 'units.id')
                                                 ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
-                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->select('products.*', 'brands.name as brand_name', 'sizes.name as size_name', 'units.name as unit_name')
                                                 ->where('products.status', '!=', 3)
                                                 ->where('products.brand_id', '=', $brand_id)
                                                 ->where('product_discount_vouchers.discount_type', '=', $discount_type)
@@ -987,11 +987,11 @@ class ProductController extends Controller
                 } elseif($status != '' && $brand_id != '' && $discount_type != ''){
                     $data['rows']   = DB::table('products')
                                                 ->join('brands', 'products.brand_id', '=', 'brands.id')
-                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                // ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
                                                 ->join('sizes', 'products.size_id', '=', 'sizes.id')
                                                 ->join('units', 'sizes.unit_id', '=', 'units.id')
                                                 ->leftjoin('product_discount_vouchers', 'products.id', '=', 'product_discount_vouchers.product_id')
-                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->select('products.*', 'brands.name as brand_name', 'sizes.name as size_name', 'units.name as unit_name')
                                                 ->where('products.status', '=', $status)
                                                 ->where('products.brand_id', '=', $brand_id)
                                                 ->where('product_discount_vouchers.discount_type', '=', $discount_type)
@@ -1037,15 +1037,16 @@ class ProductController extends Controller
                     $subject                        = 'PriceTag' . $sequence_no;
 
                     for($p=0;$p<count($product_id);$p++){
-                        $getProduct = Product::select('name', 'retail_price_inc_tax')->where('id', '=', $product_id[$p])->first();
+                        $getProduct = Product::select('name', 'retail_price_inc_tax', 'shelf_tag_short_name')->where('id', '=', $product_id[$p])->first();
                         $products[] = [
-                            'name'  => (($getProduct)?$getProduct->name:''),
+                            'name'  => (($getProduct)?$getProduct->shelf_tag_short_name:''),
                             'price' => (($getProduct)?$getProduct->retail_price_inc_tax:0),
                         ];
                         $discountVouchers = ProductDiscountVoucher::select('voucher_code', 'retail_discounted_price')->where('product_id', $product_id[$p])->where('status', 1)->get();
                         if($discountVouchers){ foreach($discountVouchers as $discountVoucher){
                             $products[] = [
-                                'name'  => (($getProduct)?$getProduct->name.' [<small style="font-size: 8px;">'.$discountVoucher->voucher_code.'</small>]':''),
+                                // 'name'  => (($getProduct)?$getProduct->name.' [<small style="font-size: 8px;">'.$discountVoucher->voucher_code.'</small>]':''),
+                                'name'  => (($getProduct)?$getProduct->shelf_tag_short_name:''),
                                 'price' => $discountVoucher->retail_discounted_price,
                             ];
                         } }

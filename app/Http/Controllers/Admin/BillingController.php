@@ -664,6 +664,7 @@ class BillingController extends Controller
                     $delivery_mode  = $getOrder->delivery_mode;
                     if($delivery_mode == 'Take'){
                         $fields = [
+                            'customer_tag'          => '',
                             'pickup_name'           => '',
                             'pickup_phone'          => '',
                             'pickup_email'          => '',
@@ -678,6 +679,7 @@ class BillingController extends Controller
                     }
                     if($delivery_mode == 'Deliver'){
                         $fields = [
+                            'customer_tag'          => $requestData['customer_tag'],
                             'pickup_name'           => '',
                             'pickup_phone'          => '',
                             'pickup_email'          => '',
@@ -692,6 +694,7 @@ class BillingController extends Controller
                     }
                     if($delivery_mode == 'Pickup'){
                         $fields = [
+                            'customer_tag'          => $requestData['customer_tag'],
                             'pickup_name'           => $requestData['pickup_name'],
                             'pickup_phone'          => $requestData['pickup_phone'],
                             'pickup_email'          => $requestData['pickup_email'],

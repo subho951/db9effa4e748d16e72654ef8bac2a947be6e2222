@@ -330,6 +330,20 @@ $user_type = session('type');
          <div data-i18n="Email Logs">Email Logs</div>
       </a>
    </li>
+   <!-- Settings -->
+   <li class="menu-item <?=(($pageSegment == 'settings')?'active':'')?>">
+      <a href="<?=url('admin/settings')?>" class="menu-link">
+         <i class="menu-icon tf-icons bx bx-cog"></i>
+         <div data-i18n="Settings">Settings</div>
+      </a>
+   </li>
+   <!-- Log Out -->
+   <li class="menu-item <?=(($pageSegment == 'logout')?'active':'')?>">
+      <a href="<?=url('admin/logout')?>" class="menu-link">
+         <i class="menu-icon tf-icons bx bx-power-off"></i>
+         <div data-i18n="Log Out">Log Out</div>
+      </a>
+   </li>
 </ul>
 
 <!-- Admin PIN Modal -->

@@ -32,8 +32,11 @@ $current_url          = url()->current();
                                             </div>
                                         </div>
                                         <div class="row">
-                                            <div class="col">
+                                            <div class="col-12 col-sm-6 col-md-6 mb-3">
                                               <input type="email" class="form-control" id="delivery_email" name="delivery_email" placeholder="Email (Optional)" aria-label="Email" value="<?=(($getOrder)?$getOrder->delivery_email:'')?>">
+                                            </div>
+                                            <div class="col-12 col-sm-6 col-md-6 mb-3">
+                                              <input type="text" class="form-control" placeholder="Tag" id="customer_tag" name="customer_tag" aria-label="Tag" value="<?=(($getOrder)?$getOrder->customer_tag:'')?>" minlength="3" maxlength="3">
                                             </div>
                                         </div>
                                         <div class="mt-4">
@@ -105,8 +108,11 @@ $current_url          = url()->current();
                                             </div>
                                         </div>
                                         <div class="row">
-                                            <div class="col">
+                                            <div class="col-12 col-sm-6 col-md-6 mb-3">
                                               <input type="email" class="form-control" id="pickup_email" name="pickup_email" placeholder="Email (Optional)" aria-label="Email" value="<?=(($getOrder)?$getOrder->pickup_email:'')?>">
+                                            </div>
+                                            <div class="col-12 col-sm-6 col-md-6 mb-3">
+                                              <input type="text" class="form-control" placeholder="Tag" id="customer_tag" name="customer_tag" aria-label="Tag" value="<?=(($getOrder)?$getOrder->customer_tag:'')?>" minlength="3" maxlength="3">
                                             </div>
                                         </div>
                                     </div>
@@ -453,39 +459,44 @@ $current_url          = url()->current();
             e.preventDefault();
             var pickup_phone    = $('#pickup_phone').val();
             var pickup_name     = $('#pickup_name').val();
+            var customer_tag    = $('#customer_tag').val();
             if(pickup_phone != ''){
                 if(pickup_name != ''){
-                    var formData = new FormData(this);
-                    $.ajax({
-                        type: "POST",
-                        url: base_url + "/admin/billing/save-delivery-address",
-                        data: formData,
-                        cache: false,
-                        contentType: false,
-                        processData: false,
-                        dataType: "JSON",
-                        beforeSend: function () {
-                            $("#loader").show();
-                        },
-                        success: function (res) {
-                            $("#loader").hide();
-                            if(res.status){
-                                toastAlert("success", res.message);
-                                setTimeout(function() {
-                                    location.reload();
-                                }, 2000);
-                            }else{
-                                toastAlert("error", res.message);
+                    if(customer_tag != ''){
+                        var formData = new FormData(this);
+                        $.ajax({
+                            type: "POST",
+                            url: base_url + "/admin/billing/save-delivery-address",
+                            data: formData,
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            dataType: "JSON",
+                            beforeSend: function () {
+                                $("#loader").show();
+                            },
+                            success: function (res) {
+                                $("#loader").hide();
+                                if(res.status){
+                                    toastAlert("success", res.message);
+                                    setTimeout(function() {
+                                        location.reload();
+                                    }, 2000);
+                                }else{
+                                    toastAlert("error", res.message);
+                                }
+                            },
+                            error:function (xhr, ajaxOptions, thrownError){
+                                $("#loader").hide();
+                                var res = xhr.responseJSON;
+                                if(!res.status) {
+                                    toastAlert("error", res.message);
+                                }
                             }
-                        },
-                        error:function (xhr, ajaxOptions, thrownError){
-                            $("#loader").hide();
-                            var res = xhr.responseJSON;
-                            if(!res.status) {
-                                toastAlert("error", res.message);
-                            }
-                        }
-                    });
+                        });
+                    } else {
+                        toastAlert("error", 'Please enter tag');
+                    }
                 } else {
                     toastAlert("error", 'Please enter pickup name');
                 }
@@ -501,43 +512,48 @@ $current_url          = url()->current();
             var delivery_suburb         = $('#delivery_suburb').val();
             var delivery_state          = $('#delivery_state').val();
             var delivery_postcode       = $('#delivery_postcode').val();
+            var customer_tag            = $('#customer_tag').val();
             if(delivery_name != ''){
                 if(delivery_phone != ''){
                     if(delivery_address != ''){
                         if(delivery_suburb != ''){
                             if(delivery_state != ''){
                                 if(delivery_postcode != ''){
-                                    var formData = new FormData(this);
-                                    $.ajax({
-                                        type: "POST",
-                                        url: base_url + "/admin/billing/save-delivery-address",
-                                        data: formData,
-                                        cache: false,
-                                        contentType: false,
-                                        processData: false,
-                                        dataType: "JSON",
-                                        beforeSend: function () {
-                                            $("#loader").show();
-                                        },
-                                        success: function (res) {
-                                            $("#loader").hide();
-                                            if(res.status){
-                                                toastAlert("success", res.message);
-                                                setTimeout(function() {
-                                                    location.reload();
-                                                }, 2000);
-                                            }else{
-                                                toastAlert("error", res.message);
+                                    if(customer_tag != ''){
+                                        var formData = new FormData(this);
+                                        $.ajax({
+                                            type: "POST",
+                                            url: base_url + "/admin/billing/save-delivery-address",
+                                            data: formData,
+                                            cache: false,
+                                            contentType: false,
+                                            processData: false,
+                                            dataType: "JSON",
+                                            beforeSend: function () {
+                                                $("#loader").show();
+                                            },
+                                            success: function (res) {
+                                                $("#loader").hide();
+                                                if(res.status){
+                                                    toastAlert("success", res.message);
+                                                    setTimeout(function() {
+                                                        location.reload();
+                                                    }, 2000);
+                                                }else{
+                                                    toastAlert("error", res.message);
+                                                }
+                                            },
+                                            error:function (xhr, ajaxOptions, thrownError){
+                                                $("#loader").hide();
+                                                var res = xhr.responseJSON;
+                                                if(!res.status) {
+                                                    toastAlert("error", res.message);
+                                                }
                                             }
-                                        },
-                                        error:function (xhr, ajaxOptions, thrownError){
-                                            $("#loader").hide();
-                                            var res = xhr.responseJSON;
-                                            if(!res.status) {
-                                                toastAlert("error", res.message);
-                                            }
-                                        }
-                                    });
+                                        });
+                                    } else {
+                                        toastAlert("error", 'Please enter tag');
+                                    }
                                 } else {
                                     toastAlert("error", 'Please enter delivery postcode');
                                 }

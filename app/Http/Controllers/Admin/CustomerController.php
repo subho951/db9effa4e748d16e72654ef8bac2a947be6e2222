@@ -29,10 +29,16 @@ class CustomerController extends Controller
             $data['module']                 = $this->data;
             $title                          = $this->data['title'].' List';
             $page_name                      = 'customer.list';
-            $data['rows']                   = Order::select('delivery_mode', 'pickup_name', 'pickup_email', 'pickup_phone', 'delivery_name', 'delivery_phone', 'delivery_email', 'delivery_address', 'delivery_suburb', 'delivery_state', 'delivery_postcode', 'customer_name', 'customer_phone', 'customer_email')
+            $data['rows1']                  = Order::select('delivery_mode', 'customer_tag', 'pickup_name', 'pickup_email', 'pickup_phone', 'customer_name', 'customer_phone', 'customer_email')
                                                 ->where('status', '=', 5)
-                                                ->where('delivery_mode', '!=', 'Take')
-                                                ->groupBy('customer_phone')
+                                                ->where('delivery_mode', '=', 'Pickup')
+                                                ->groupBy('pickup_phone')
+                                                ->orderBy('id', 'DESC')
+                                                ->get();
+            $data['rows2']                  = Order::select('delivery_mode', 'customer_tag', 'delivery_name', 'delivery_phone', 'delivery_email', 'delivery_address', 'delivery_suburb', 'delivery_state', 'delivery_postcode', 'customer_name', 'customer_phone', 'customer_email')
+                                                ->where('status', '=', 5)
+                                                ->where('delivery_mode', '=', 'Deliver')
+                                                ->groupBy('delivery_phone')
                                                 ->orderBy('id', 'DESC')
                                                 ->get();
             echo $this->admin_after_login_layout($title,$page_name,$data);

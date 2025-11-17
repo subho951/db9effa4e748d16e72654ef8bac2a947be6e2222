@@ -210,12 +210,12 @@ $current_url                    = url()->current();
                            <h5 class="mb-3">Pricing</h5>
                            <div class="col-md-2">
                               <label class="form-label" for="cost_price_ex_tax">Cost (Excl. Tax) ($)</label>
-                              <input type="text" class="form-control" placeholder="Enter Cost Ex. Tax" name="cost_price_ex_tax" id="cost_price_ex_tax" value="<?=$cost_price_ex_tax?>" required>
+                              <input type="text" class="form-control" placeholder="Enter Cost Ex. Tax" name="cost_price_ex_tax" id="cost_price_ex_tax" value="<?=$cost_price_ex_tax?>" maxlength="10" required>
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="cost_price_inc_tax">Cost (Incl. Tax) ($)</label>
                               <input type="hidden" name="cost_price_tax" id="cost_price_tax" value="<?=$cost_price_tax?>">
-                              <input type="text" class="form-control" placeholder="Enter Cost Inc. Tax" name="cost_price_inc_tax" id="cost_price_inc_tax" value="<?=$cost_price_inc_tax?>" required readonly>
+                              <input type="text" class="form-control" placeholder="Enter Cost Inc. Tax" name="cost_price_inc_tax" id="cost_price_inc_tax" value="<?=$cost_price_inc_tax?>" required maxlength="10" readonly>
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="markup_type">Markup (<span class="markup-icon"></span>)</label>
@@ -226,15 +226,15 @@ $current_url                    = url()->current();
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="markup_amount">Markup (<span class="markup-icon"></span>)</label>
-                              <input type="text" class="form-control" placeholder="Enter Markup in $" name="markup_amount" id="markup_amount" value="<?=$markup_amount?>" value="<?=$markup_amount?>" required>
+                              <input type="text" class="form-control" placeholder="Enter Markup in $" name="markup_amount" id="markup_amount" value="<?=$markup_amount?>" value="<?=$markup_amount?>" maxlength="10" required>
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="added_amount">Added ($)</label>
-                              <input type="text" class="form-control" placeholder="Enter Markup in %" name="added_amount" id="added_amount" value="<?=$added_amount?>" value="<?=$added_amount?>" required readonly>
+                              <input type="text" class="form-control" placeholder="Enter Markup in %" name="added_amount" id="added_amount" value="<?=$added_amount?>" value="<?=$added_amount?>" required maxlength="10" readonly>
                            </div>
                            <div class="col-md-2">
                               <label class="form-label" for="retail_price_inc_tax">Retail Price (Incl. Tax) ($)</label>
-                              <input type="text" class="form-control" placeholder="Enter Retail Price" name="retail_price_inc_tax" id="retail_price_inc_tax" value="<?=$retail_price_inc_tax?>" value="<?=$retail_price_inc_tax?>" required readonly>
+                              <input type="text" class="form-control" placeholder="Enter Retail Price" name="retail_price_inc_tax" id="retail_price_inc_tax" value="<?=$retail_price_inc_tax?>" value="<?=$retail_price_inc_tax?>" maxlength="10" required readonly>
                            </div>
 
                            <div class="mb-3 col-md-12">

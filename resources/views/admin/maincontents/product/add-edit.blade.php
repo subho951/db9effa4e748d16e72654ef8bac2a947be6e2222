@@ -240,9 +240,9 @@ $current_url                    = url()->current();
                            <div class="mb-3 col-md-12">
                               <div class="d-flex align-items-start align-items-sm-center gap-4">
                                  <?php if($cover_image != ''){?>
-                                   <img src="<?=env('UPLOADS_URL').'/product/'.$cover_image?>" alt="<?=$name?>" class="d-block rounded" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
+                                   <img src="<?=env('UPLOADS_URL').'/product/'.$cover_image?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
                                  <?php } else {?>
-                                   <img src="<?=env('NO_USER_IMAGE')?>" alt="<?=$name?>" class="d-block rounded" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
+                                   <img src="<?=env('NO_USER_IMAGE')?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
                                  <?php } ?>
                                  <div class="button-wrapper">
                                     <label for="cover_image" class="btn btn-primary me-2 mb-4" tabindex="0">
@@ -344,7 +344,7 @@ $current_url                    = url()->current();
 
 
                            <div class="multiple-buys-section">
-                              <h5 class="mb-3">Multiple Buys</h5>
+                              <h5 class="mb-3 mt-3">Multiple Buys</h5>
                               <?php
                               $multipleBuys = ProductMultipleBuy::where('status', '=', 1)->where('product_id', '=', $uId)->get();
                               ?>
@@ -360,52 +360,71 @@ $current_url                    = url()->current();
                                  ?>
                                     <div class="row align-items-center gap-2 gap-lg-0 mb-2">
                                        <div class="col-lg-2">
-                                          <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode101" value="<?=$multipleBuy->first_barcode?>">
+                                          <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode<?=$sl?>" value="<?=$multipleBuy->first_barcode?>" minlength="13" maxlength="13">
                                        </div>
+                                       <div class="col-lg-2">
+                                          <input type="number" class="form-control" placeholder="Barcode1 Min Qty" name="product1_min_qty[]" id="product1_min_qty<?=$sl?>" min="1" max="9" value="<?=$multipleBuy->product1_min_qty?>">
+                                       </div>
+
                                        <div class="col-auto">
                                           <span>and</span>
                                        </div>
+
                                        <div class="col-lg-2">
-                                          <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode1" oninput="getBarcodeSuggestions(this.value, 101);" value="<?=$multipleBuy->second_barcode?>">
-                                          <input type="hidden" name="product2_id[]" id="product2_id101" value="<?=$multipleBuy->product2_id?>">
+                                          <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode1" oninput="getBarcodeSuggestions(this.value, <?=$sl?>);" value="<?=$multipleBuy->second_barcode?>" minlength="13" maxlength="13">
+                                          <input type="hidden" name="product2_id[]" id="product2_id<?=$sl?>" value="<?=$multipleBuy->product2_id?>">
                                           <div id="barcode_suggestions1" class="dropdown"></div>
                                        </div>
                                        <div class="col-lg-2">
+                                          <input type="number" class="form-control" placeholder="Barcode2 Min Qty" name="product2_min_qty[]" id="product2_min_qty<?=$sl?>" min="1" max="9" value="<?=$multipleBuy->product2_min_qty?>">
+                                       </div>
+
+                                       <div class="col-lg-1">
                                           <span>= true, then</span>
                                        </div>
-                                       <div class="col-lg-2">
+
+                                       <div class="col-lg-1">
                                           <div class="form-check form-switch mt-0">
-                                             <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type101" onchange="change_discount_type(101);" <?=(($multipleBuy->barcode_discount_type == 'PERCENTAGE')?'checked':'')?>>
-                                             <label class="form-check-label" for="discount_type1" id="discount_type_text1">Flat</label>
+                                             <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type<?=$sl?>" onchange="change_discount_type(<?=$sl?>);" <?=(($multipleBuy->barcode_discount_type == 'PERCENTAGE')?'checked':'')?>>
+                                             <label class="form-check-label" for="discount_type<?=$sl?>" id="discount_type_text<?=$sl?>" style="font-size: 10px;"><?=(($multipleBuy->barcode_discount_type == 'PERCENTAGE')?'Percentage':'Flat')?></label>
                                           </div>
                                        </div>
-                                       <div class="col-lg-2">
-                                          <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount101" value="<?=$multipleBuy->discount_amount?>">
+                                       <div class="col-lg-1">
+                                          <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount<?=$sl?>" value="<?=$multipleBuy->discount_amount?>">
                                        </div>
                                     </div>
                                  <?php $sl++; } }?>
                                  <div class="row align-items-center gap-2 gap-lg-0 mb-2">
                                     <div class="col-lg-2">
-                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode1">
+                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode1" minlength="13" maxlength="13">
                                     </div>
+                                    <div class="col-lg-2">
+                                       <input type="number" class="form-control" placeholder="Barcode1 Min Qty" name="product1_min_qty[]" id="product1_min_qty1" min="1" max="9">
+                                    </div>
+
                                     <div class="col-auto">
                                        <span>and</span>
                                     </div>
+
                                     <div class="col-lg-2">
-                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode1" oninput="getBarcodeSuggestions(this.value, 1);">
+                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode1" oninput="getBarcodeSuggestions(this.value, 1);" minlength="13" maxlength="13">
                                        <input type="hidden" name="product2_id[]" id="product2_id1">
                                        <div id="barcode_suggestions1" class="dropdown"></div>
                                     </div>
                                     <div class="col-lg-2">
+                                       <input type="number" class="form-control" placeholder="Barcode2 Min Qty" name="product2_min_qty[]" id="product2_min_qty1" min="1" max="9">
+                                    </div>
+
+                                    <div class="col-lg-1">
                                        <span>= true, then</span>
                                     </div>
-                                    <div class="col-lg-2">
+                                    <div class="col-lg-1">
                                        <div class="form-check form-switch mt-0">
                                           <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type1" onchange="change_discount_type(1);">
-                                          <label class="form-check-label" for="discount_type1" id="discount_type_text1">Flat</label>
+                                          <label class="form-check-label" for="discount_type1" id="discount_type_text1" style="font-size: 10px;">Flat</label>
                                        </div>
                                     </div>
-                                    <div class="col-lg-2 d-flex align-items-center gap-2">
+                                    <div class="col-lg-1 d-flex align-items-center gap-2">
                                        <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount1">
                                        <a style="opacity: 0;"  class="d-none d-lg-block"><i class="fa fa-minus-circle text-danger"></i></a>
                                     </div>
@@ -682,26 +701,32 @@ $current_url                    = url()->current();
                console.log(main_barcode);
                var fieldHTML = '<div class="row align-items-center gap-2 gap-lg-0 mb-2">\
                                     <div class="col-lg-2">\
-                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode' + x + '" value="' + main_barcode + '">\
+                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode' + x + '" value="' + main_barcode + '" minlength="13" maxlength="13">\
+                                    </div>\
+                                    <div class="col-lg-2">\
+                                       <input type="number" class="form-control" placeholder="Barcode1 Min Qty" name="product1_min_qty[]" id="product1_min_qty' + x + '" min="1" max="9">\
                                     </div>\
                                     <div class="col-auto">\
                                        <span>and</span>\
                                     </div>\
                                     <div class="col-lg-2">\
-                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode' + x + '" oninput="getBarcodeSuggestions(this.value, ' + x + ');">\
+                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode' + x + '" oninput="getBarcodeSuggestions(this.value, ' + x + ');" minlength="13" maxlength="13">\
                                        <input type="hidden" name="product2_id[]" id="product2_id' + x + '">\
                                        <div id="barcode_suggestions' + x + '" class="dropdown"></div>\
                                     </div>\
                                     <div class="col-lg-2">\
+                                       <input type="number" class="form-control" placeholder="Barcode2 Min Qty" name="product2_min_qty[]" id="product2_min_qty' + x + '" min="1" max="9">\
+                                    </div>\
+                                    <div class="col-lg-1">\
                                        <span>= true, then</span>\
                                     </div>\
-                                    <div class="col-lg-2">\
+                                    <div class="col-lg-1">\
                                        <div class="form-check form-switch mt-0">\
                                           <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type' + x + '" onchange="change_discount_type(' + x + ');">\
-                                          <label class="form-check-label" for="discount_type' + x + '" id="discount_type_text' + x + '">Flat</label>\
+                                          <label class="form-check-label" for="discount_type' + x + '" id="discount_type_text' + x + '" style="font-size: 10px;">Flat</label>\
                                        </div>\
                                     </div>\
-                                    <div class="col-lg-2 d-flex align-items-center gap-2">\
+                                    <div class="col-lg-1 d-flex align-items-center gap-2">\
                                        <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount' + x + '">\
                                         <a href="javascript:void(0);" class="remove_button2"><i class="fa fa-minus-circle text-danger"></i></a>\
                                     </div>\
@@ -727,6 +752,7 @@ $current_url                    = url()->current();
    });
 
    function change_discount_type(sl){
+      console.log(sl);
       if ($('#discount_type' + sl).is(':checked')) {
          $('#discount_type_text' + sl).text('Percentage');
       } else {

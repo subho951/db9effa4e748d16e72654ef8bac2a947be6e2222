@@ -294,6 +294,13 @@ class ProductController extends Controller
                             $first_barcode              = $postData['first_barcode'];
                             $second_barcode             = $postData['second_barcode'];
                             $product2_id                = $postData['product2_id'];
+                            $product1_min_qty           = $postData['product1_min_qty'];
+                            $product2_min_qty           = $postData['product2_min_qty'];
+
+                            if($first_barcode == $second_barcode){
+                                return redirect()->back()->with('error_message', 'Barcode1 & barcode2 can\'t be same !!!');
+                            }
+
                             $barcode_discount_type      = ((array_key_exists('barcode_discount_type', $postData))?$postData['barcode_discount_type']:[]);
                             $discount_amount            = $postData['discount_amount'];
                             if(count($voucher_code) > 0){
@@ -301,6 +308,10 @@ class ProductController extends Controller
                                     if($second_barcode[$k] != ''){
                                         $getProduct1            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product_id)->first();
                                         $getProduct2            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product2_id[$k])->first();
+
+                                        if($product2_id[$k] == ''){
+                                            return redirect()->back()->with('error_message', 'Product2 ID can\'t be null. Please type product2 barcode and tap on the auto suggesion coming on below the barcode2 box !!!');
+                                        }
 
                                         $retail_price_inc_tax1  = (($getProduct1)?$getProduct1->retail_price_inc_tax:'');
                                         $retail_price_inc_tax2  = (($getProduct2)?$getProduct2->retail_price_inc_tax:'');
@@ -317,8 +328,10 @@ class ProductController extends Controller
                                         $fields2                = [
                                             'product_id'                        => $product_id,
                                             'first_barcode'                     => $first_barcode[$k],
+                                            'product1_min_qty'                  => $product1_min_qty[$k],
                                             'second_barcode'                    => $second_barcode[$k],
                                             'product2_id'                       => $product2_id[$k],
+                                            'product2_min_qty'                  => $product2_min_qty[$k],
                                             'barcode_discount_type'             => $discountType,
                                             'discount_amount'                   => $discount_amount[$k],
                                             'discounted_amount'                 => $discounted_amount,
@@ -470,7 +483,7 @@ class ProductController extends Controller
                             'warehouse_stock'           => $postData['warehouse_stock'],
                             'status'                    => ((array_key_exists("status",$postData))?1:0),
                         ];
-                        // Helper::pr($fields);
+
                         Product::where($this->data['primary_key'], '=', $id)->update($fields);
                         $product_id = $id;
                         /* discount vouchers */
@@ -503,6 +516,13 @@ class ProductController extends Controller
                             $first_barcode              = $postData['first_barcode'];
                             $second_barcode             = $postData['second_barcode'];
                             $product2_id                = $postData['product2_id'];
+                            $product1_min_qty           = $postData['product1_min_qty'];
+                            $product2_min_qty           = $postData['product2_min_qty'];
+
+                            if($first_barcode == $second_barcode){
+                                return redirect()->back()->with('error_message', 'Barcode1 & barcode2 can\'t be same !!!');
+                            }
+
                             $barcode_discount_type      = ((array_key_exists('barcode_discount_type', $postData))?$postData['barcode_discount_type']:[]);
                             $discount_amount            = $postData['discount_amount'];
                             if(count($voucher_code) > 0){
@@ -511,9 +531,13 @@ class ProductController extends Controller
                                     if($second_barcode[$k] != ''){
                                         $getProduct1            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product_id)->first();
                                         $getProduct2            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product2_id[$k])->first();
+                                        if($product2_id[$k] == ''){
+                                            return redirect()->back()->with('error_message', 'Product2 ID can\'t be null. Please type product2 barcode and tap on the auto suggesion coming on below the barcode2 box !!!');
+                                        }
 
                                         $retail_price_inc_tax1  = (($getProduct1)?$getProduct1->retail_price_inc_tax:'');
                                         $retail_price_inc_tax2  = (($getProduct2)?$getProduct2->retail_price_inc_tax:'');
+                                        
                                         $total_price            = ($retail_price_inc_tax1 + $retail_price_inc_tax2);
                                         $discAmt                = 0;
                                         if(array_key_exists('barcode_discount_type', $postData)){
@@ -527,8 +551,10 @@ class ProductController extends Controller
                                         $fields2                = [
                                             'product_id'                        => $product_id,
                                             'first_barcode'                     => $first_barcode[$k],
+                                            'product1_min_qty'                  => $product1_min_qty[$k],
                                             'second_barcode'                    => $second_barcode[$k],
                                             'product2_id'                       => $product2_id[$k],
+                                            'product2_min_qty'                  => $product2_min_qty[$k],
                                             'barcode_discount_type'             => $discountType,
                                             'discount_amount'                   => $discount_amount[$k],
                                             'discounted_amount'                 => $discounted_amount,
@@ -660,7 +686,8 @@ class ProductController extends Controller
         $q              = $postData['q'];
         $barcode        = $postData['barcode'];
         $suggestions    = [];
-        $getProducts     = Product::select('id', 'barcode')->where('status', '=', 1)->where('barcode', 'LIKE', '%'.$q.'%')->where('barcode', '!=', $barcode)->orderBy('barcode', 'ASC')->get();
+        // $getProducts     = Product::select('id', 'barcode')->where('status', '=', 1)->where('barcode', 'LIKE', '%'.$q.'%')->where('barcode', '!=', $barcode)->orderBy('barcode', 'ASC')->get();
+        $getProducts     = Product::select('id', 'barcode')->where('status', '=', 1)->where('barcode', 'LIKE', '%'.$q.'%')->orderBy('barcode', 'ASC')->get();
         if($getProducts){
             foreach($getProducts as $getProduct){
                 $suggestions[]    = $getProduct->barcode;

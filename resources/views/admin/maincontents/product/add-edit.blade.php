@@ -424,7 +424,7 @@ $current_url                    = url()->current();
                                           <label class="form-check-label" for="discount_type1" id="discount_type_text1" style="font-size: 10px;">Flat</label>
                                        </div>
                                     </div>
-                                    <div class="col-lg-1 d-flex align-items-center gap-2">
+                                    <div class="col-lg-1">
                                        <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount1">
                                        <a style="opacity: 0;"  class="d-none d-lg-block"><i class="fa fa-minus-circle text-danger"></i></a>
                                     </div>
@@ -726,7 +726,7 @@ $current_url                    = url()->current();
                                           <label class="form-check-label" for="discount_type' + x + '" id="discount_type_text' + x + '" style="font-size: 10px;">Flat</label>\
                                        </div>\
                                     </div>\
-                                    <div class="col-lg-1 d-flex align-items-center gap-2">\
+                                    <div class="col-lg-1">\
                                        <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount' + x + '">\
                                         <a href="javascript:void(0);" class="remove_button2"><i class="fa fa-minus-circle text-danger"></i></a>\
                                     </div>\

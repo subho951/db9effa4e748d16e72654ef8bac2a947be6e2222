@@ -48,7 +48,9 @@
         <div class="d-flex justify-content-between align-items-center">
             <p class="me-2">Notes </p>
             <input type="text" class="form-control" id="note" value="<?=$getOrder->note?>" placeholder="Notes">
-            <div class="d-flex justify-content-between totals p-4"><p>ITEMS : <?=$totItemQty?></p></div>
+            <div class="items-count">
+                <p>ITEMS : <?=$totItemQty?></p>
+            </div>
         </div>
     </div>
     <div class="order-footer p-2">
@@ -61,8 +63,8 @@
             <p>$<?=number_format($getOrder->discount_amount,2)?></p>
         </div>
     </div>
-    <div class="d-flex justify-content-between totals p-2">
-        <p></p>
+    <div class="d-flex justify-content-between totals p-1 p-sm-2 p-md-4">
+        <!-- <p></p> -->
         <p>TOTAL $<?=number_format($getOrder->net_amount,2)?></p>
     </div>
 </div>

@@ -14,6 +14,7 @@ use App\Models\ProductDiscountVoucher;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderDetail;
+use App\Models\ProductMultipleBuy;
 use App\Models\WarehouseStock;
 use App\Models\ShopStock;
 
@@ -162,11 +163,11 @@ class BillingController extends Controller
                                     $per_unit_discount          = (($minDiscountedPrice)?$minDiscountedPrice->retail_discount:0);
                                     $per_unit_discounted_price  = (($minDiscountedPrice)?$minDiscountedPrice->retail_discounted_price:0);
                                     $discount_amount            = ($per_unit_discount * $qty);
-                                    $price                      = $per_unit_discounted_price;
+                                    $price                      = $getProduct->retail_price_inc_tax;
                                     $subtotal                   = (($price * $qty));
                                 } else {
                                     $price                      = $getProduct->retail_price_inc_tax;
-                                    $subtotal                   = (($price * $qty) - $discount_amount);
+                                    $subtotal                   = (($price * $qty));
                                 }
                             /* discount calculation */
                             $field1             = [
@@ -195,11 +196,13 @@ class BillingController extends Controller
                                     $per_unit_discount          = (($minDiscountedPrice)?$minDiscountedPrice->retail_discount:0);
                                     $per_unit_discounted_price  = (($minDiscountedPrice)?$minDiscountedPrice->retail_discounted_price:0);
                                     $discount_amount            = ($per_unit_discount * $qty);
-                                    $price                      = $per_unit_discounted_price;
+                                    $price                      = $getProduct->retail_price_inc_tax;
+                                    // $subtotal                   = (($price * $qty) - $discount_amount);
                                     $subtotal                   = (($price * $qty));
+                                    // echo $per_unit_discount . '||' . $per_unit_discounted_price . '||' . $discount_amount . '||' . $price;
                                 } else {
                                     $price                      = $getProduct->retail_price_inc_tax;
-                                    $subtotal                   = (($price * $qty) - $discount_amount);
+                                    $subtotal                   = (($price * $qty));
                                 }
                             /* discount calculation */
                             $field1             = [
@@ -210,9 +213,123 @@ class BillingController extends Controller
                                 'discount_amount'   => $discount_amount,
                                 'subtotal'          => $subtotal,
                             ];
+                            // Helper::pr($field1);
                             OrderDetail::insert($field1);
                         }
                     /* orders details table */
+                    /* product multiple buy logic */
+                        $orderId = $order_id;
+
+                        // 1. Fetch order items
+                        $orderItems = DB::table('order_details')
+                            ->select('item_id', 'qty', 'price')
+                            ->where('order_id', $orderId)
+                            ->get();
+
+                        // Map product => qty, price
+                        $orderMap = $orderItems->mapWithKeys(function ($item) {
+                            return [
+                                $item->item_id => [
+                                    'qty'   => $item->qty,
+                                    'price' => $item->price
+                                ]
+                            ];
+                        });
+
+                        // 2. Combo rules
+                        $comboRules = DB::table('product_multiple_buys')
+                            ->where('status', 1)
+                            ->get();
+
+                        $discounts = [];
+                        $discountTexts = [];
+
+                        foreach ($comboRules as $rule) {
+
+                            $p1 = $rule->product_id;
+                            $p2 = $rule->product2_id;
+
+                            if ($orderMap->has($p1) && $orderMap->has($p2)) {
+
+                                $qty1 = $orderMap[$p1]['qty'];
+                                $qty2 = $orderMap[$p2]['qty'];
+
+                                $min1 = $rule->product1_min_qty;
+                                $min2 = $rule->product2_min_qty;
+
+                                // ❗ NEW LOGIC: At least one full pair must exist
+                                $pairCount = min(
+                                    floor($qty1 / $min1),
+                                    floor($qty2 / $min2)
+                                );
+
+                                // If at least 1 pair exists → apply discount
+                                if ($pairCount > 0) {
+
+                                    $price1 = $orderMap[$p1]['price'];
+                                    $price2 = $orderMap[$p2]['price'];
+
+                                    $discount1 = 0;
+                                    $discount2 = 0;
+
+                                    /* FLAT discount */
+                                    if ($rule->barcode_discount_type == "FLAT") {
+
+                                        $pairCount = min(
+                                            floor($qty1 / $min1),
+                                            floor($qty2 / $min2)
+                                        );
+
+                                        $discount1 = $rule->discount_amount * $pairCount * $min1;
+                                        $discount2 = $rule->discount_amount * $pairCount * $min2;
+
+                                        $discountText = "Flat Rs {$rule->discount_amount} Combo Discount (x{$pairCount})";
+                                    }
+
+                                    /* PERCENTAGE discount */
+                                    elseif ($rule->barcode_discount_type == "PERCENTAGE") {
+
+                                        $percent = $rule->discount_amount;
+
+                                        $pairCount = min(
+                                            floor($qty1 / $min1),
+                                            floor($qty2 / $min2)
+                                        );
+
+                                        $discount1 = ($price1 * $percent / 100) * $pairCount * $min1;
+                                        $discount2 = ($price2 * $percent / 100) * $pairCount * $min2;
+
+                                        $discountText = "{$percent}% Combo Discount (x{$pairCount})";
+                                    }
+
+                                    $discounts[$p1] = $discount1;
+                                    $discounts[$p2] = $discount2;
+
+                                    $discountTexts[$p1] = $discountText;
+                                    $discountTexts[$p2] = $discountText;
+                                }
+                            }
+                        }
+
+                        /* 4. Update order_details */
+                        foreach ($orderItems as $item) {
+
+                            $pid   = $item->item_id;
+                            $price = $item->price;
+                            $qty   = $item->qty;
+
+                            $discountTotal = $discounts[$pid] ?? 0;
+
+                            DB::table('order_details')
+                                ->where('order_id', $orderId)
+                                ->where('item_id', $pid)
+                                ->update([
+                                    'discount_amount' => ($discountTotal),
+                                    'discount_text'   => $discountTexts[$pid] ?? null,
+                                    'subtotal'        => ($price * $qty)
+                                ]);
+                        }
+                    /* product multiple buy logic */
                     /* orders table */
                         $getTotalAmount     = OrderDetail::where('order_id', '=', $order_id)->sum('subtotal');
                         $getDiscountAmount  = OrderDetail::where('order_id', '=', $order_id)->sum('discount_amount');
@@ -228,6 +345,7 @@ class BillingController extends Controller
                             'delivery_amount'           => $delivery_amount,
                             'net_amount'                => $net_amount,
                         ];
+                        // Helper::pr($field2);
                         Order::where('id', '=', $order_id)->update($field2);
                     /* orders table */
                     /* item table rearrange on the go */
@@ -494,11 +612,13 @@ class BillingController extends Controller
                                         $per_unit_discount          = (($minDiscountedPrice)?$minDiscountedPrice->retail_discount:0);
                                         $per_unit_discounted_price  = (($minDiscountedPrice)?$minDiscountedPrice->retail_discounted_price:0);
                                         $discount_amount            = ($per_unit_discount * $qty);
-                                        $price                      = $per_unit_discounted_price;
+                                        $price                      = $getProduct->retail_price_inc_tax;
+                                        // $subtotal                   = (($price * $qty) - $discount_amount);
                                         $subtotal                   = (($price * $qty));
+                                        // echo $per_unit_discount . '||' . $per_unit_discounted_price . '||' . $discount_amount . '||' . $price;
                                     } else {
                                         $price                      = $getProduct->retail_price_inc_tax;
-                                        $subtotal                   = (($price * $qty) - $discount_amount);
+                                        $subtotal                   = (($price * $qty));
                                     }
                                 /* discount calculation */
                                 $field1             = [
@@ -510,6 +630,119 @@ class BillingController extends Controller
                                 OrderDetail::where('order_id', '=', $order_id)->where('item_id', '=', $getProduct->id)->update($field1);
                             }
                         /* orders details table */
+                        /* product multiple buy logic */
+                            $orderId = $order_id;
+
+                            // 1. Fetch order items
+                            $orderItems = DB::table('order_details')
+                                ->select('item_id', 'qty', 'price')
+                                ->where('order_id', $orderId)
+                                ->get();
+
+                            // Map product => qty, price
+                            $orderMap = $orderItems->mapWithKeys(function ($item) {
+                                return [
+                                    $item->item_id => [
+                                        'qty'   => $item->qty,
+                                        'price' => $item->price
+                                    ]
+                                ];
+                            });
+
+                            // 2. Combo rules
+                            $comboRules = DB::table('product_multiple_buys')
+                                ->where('status', 1)
+                                ->get();
+
+                            $discounts = [];
+                            $discountTexts = [];
+
+                            foreach ($comboRules as $rule) {
+
+                                $p1 = $rule->product_id;
+                                $p2 = $rule->product2_id;
+
+                                if ($orderMap->has($p1) && $orderMap->has($p2)) {
+
+                                    $qty1 = $orderMap[$p1]['qty'];
+                                    $qty2 = $orderMap[$p2]['qty'];
+
+                                    $min1 = $rule->product1_min_qty;
+                                    $min2 = $rule->product2_min_qty;
+
+                                    // ❗ NEW LOGIC: At least one full pair must exist
+                                    $pairCount = min(
+                                        floor($qty1 / $min1),
+                                        floor($qty2 / $min2)
+                                    );
+
+                                    // If at least 1 pair exists → apply discount
+                                    if ($pairCount > 0) {
+
+                                        $price1 = $orderMap[$p1]['price'];
+                                        $price2 = $orderMap[$p2]['price'];
+
+                                        $discount1 = 0;
+                                        $discount2 = 0;
+
+                                        /* FLAT discount */
+                                        if ($rule->barcode_discount_type == "FLAT") {
+
+                                            $pairCount = min(
+                                                floor($qty1 / $min1),
+                                                floor($qty2 / $min2)
+                                            );
+
+                                            $discount1 = $rule->discount_amount * $pairCount * $min1;
+                                            $discount2 = $rule->discount_amount * $pairCount * $min2;
+
+                                            $discountText = "Flat Rs {$rule->discount_amount} Combo Discount (x{$pairCount})";
+                                        }
+
+                                        /* PERCENTAGE discount */
+                                        elseif ($rule->barcode_discount_type == "PERCENTAGE") {
+
+                                            $percent = $rule->discount_amount;
+
+                                            $pairCount = min(
+                                                floor($qty1 / $min1),
+                                                floor($qty2 / $min2)
+                                            );
+
+                                            $discount1 = ($price1 * $percent / 100) * $pairCount * $min1;
+                                            $discount2 = ($price2 * $percent / 100) * $pairCount * $min2;
+
+                                            $discountText = "{$percent}% Combo Discount (x{$pairCount})";
+                                        }
+
+                                        $discounts[$p1] = $discount1;
+                                        $discounts[$p2] = $discount2;
+
+                                        $discountTexts[$p1] = $discountText;
+                                        $discountTexts[$p2] = $discountText;
+                                    }
+                                }
+                            }
+
+                            /* 4. Update order_details */
+                            foreach ($orderItems as $item) {
+
+                                $pid   = $item->item_id;
+                                $price = $item->price;
+                                $qty   = $item->qty;
+
+                                $discountTotal = $discounts[$pid] ?? 0;
+
+                                DB::table('order_details')
+                                    ->where('order_id', $orderId)
+                                    ->where('item_id', $pid)
+                                    ->update([
+                                        'discount_amount' => ($discountTotal),
+                                        'discount_text'   => $discountTexts[$pid] ?? null,
+                                        'subtotal'        => ($price * $qty)
+                                    ]);
+                            }
+                        /* product multiple buy logic */
                         /* orders table */
                             $getTotalAmount     = OrderDetail::where('order_id', '=', $order_id)->sum('subtotal');
                             $getDiscountAmount  = OrderDetail::where('order_id', '=', $order_id)->sum('discount_amount');

@@ -79,8 +79,12 @@ $current_url          = url()->current();
                             <?php } else {?>
                                 <a href="<?=url('admin/billing/billing-recall')?>" class="my-btn btn-yellow me-3">Recall</a>
                             <?php }?>
-                            <!-- <a href="javascript: void(0);" onclick="myFunction()" class="my-btn btn-yellow">Hold</a> -->
-                            <a href="javascript: void(0);" class="my-btn btn-yellow" type="button" data-bs-toggle="modal" data-bs-target="#holdSaleModal">Hold</a>
+                            
+                            <?php if(count($getOrderItems) > 0){ ?>
+                                <a href="javascript: void(0);" class="my-btn btn-yellow" type="button" data-bs-toggle="modal" data-bs-target="#holdSaleModal">Hold</a>
+                            <?php } else {?>
+                                <a href="javascript: void(0);" class="my-btn btn-yellow disabled-link" type="button" onclick="return false;">Hold</a>
+                            <?php }?>
                         </div>
                     </div>
                 </div>

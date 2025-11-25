@@ -479,10 +479,14 @@ $current_url          = url()->current();
                             success: function (res) {
                                 $("#loader").hide();
                                 if(res.status){
-                                    toastAlert("success", res.message);
-                                    setTimeout(function() {
-                                        location.reload();
-                                    }, 2000);
+                                    if(res.data.is_redirect){
+                                        toastAlert("success", res.message, true, res.data.redirect_url);
+                                    } else {
+                                        toastAlert("success", res.message);
+                                        setTimeout(function() {
+                                            location.reload();
+                                        }, 2000);
+                                    }
                                 }else{
                                     toastAlert("error", res.message);
                                 }
@@ -536,10 +540,14 @@ $current_url          = url()->current();
                                             success: function (res) {
                                                 $("#loader").hide();
                                                 if(res.status){
-                                                    toastAlert("success", res.message);
-                                                    setTimeout(function() {
-                                                        location.reload();
-                                                    }, 2000);
+                                                    if(res.data.is_redirect){
+                                                        toastAlert("success", res.message, true, res.data.redirect_url);
+                                                    } else {
+                                                        toastAlert("success", res.message);
+                                                        setTimeout(function() {
+                                                            location.reload();
+                                                        }, 2000);
+                                                    }
                                                 }else{
                                                     toastAlert("error", res.message);
                                                 }

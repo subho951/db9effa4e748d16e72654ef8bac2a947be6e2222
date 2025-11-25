@@ -530,7 +530,7 @@ class BillingController extends Controller
                 $getOrder           = Order::where('id', '=', $order_id)->first();
                 if($getOrder){
                     // Order::where('id', '=', $order_id)->update(['status' => $order_status]);
-                    OrderDetail::where('id', '=', $item_id)->update(['status' => $order_status, 'subtotal' => 0]);
+                    OrderDetail::where('order_id', '=', $order_id)->update(['status' => $order_status]);
 
                     /* update amounts */
                         $subtotal = 0;
@@ -549,6 +549,7 @@ class BillingController extends Controller
                             'discounted_amount'     => $discounted_amount,
                             'delivery_amount'       => $getOrder->delivery_amount,
                             'net_amount'            => $net_amount,
+                            'status'                => $order_status,
                         ];
                         Order::where('id', '=', $order_id)->update($fields);
                     /* update amounts */
@@ -855,7 +856,7 @@ class BillingController extends Controller
             $data['getOrderItems']          = DB::table('order_details')
                                                 ->join('products', 'order_details.item_id', '=', 'products.id')
                                                 ->select('order_details.*', 'products.name as product_name', 'products.sku as product_sku')
-                                                ->where('order_details.status', '=', 1)
+                                                // ->where('order_details.status', '=', 1)
                                                 ->where('order_details.order_id', '=', $order_id)
                                                 ->orderBy('order_details.id', 'ASC')
                                                 ->get();
@@ -870,7 +871,7 @@ class BillingController extends Controller
             $data['getOrderItems']          = DB::table('order_details')
                                                 ->join('products', 'order_details.item_id', '=', 'products.id')
                                                 ->select('order_details.*', 'products.name as product_name', 'products.sku as product_sku')
-                                                ->where('order_details.status', '=', 1)
+                                                // ->where('order_details.status', '=', 1)
                                                 ->where('order_details.order_id', '=', $order_id)
                                                 ->orderBy('order_details.id', 'ASC')
                                                 ->get();
@@ -937,6 +938,14 @@ class BillingController extends Controller
                         ];
                     }
                     Order::where('id', '=', $order_id)->update($fields);
+
+                    $is_redirect    = 1;
+                    $redirect_url   = url('user/billing/billing-payment/' . Helper::encoded($order_id));
+                    $apiResponse                        = [
+                        'is_redirect'   => $is_redirect,
+                        'redirect_url'  => $redirect_url,
+                    ];
+
                     $apiMessage                         = 'Order ' . $delivery_mode . ' address updated successfully';
                     $apiStatus                          = TRUE;
                     http_response_code(200);

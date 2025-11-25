@@ -95,7 +95,7 @@ $current_url                    = url()->current();
          $cost_price_tax                   = '';
          $cost_price_inc_tax               = '';
          $markup_amount                    = 0.00;
-         $markup_type                      = 'FLAT';
+         $markup_type                      = 'PERCENTAGE';
          $added_amount                     = '';
          $retail_price_inc_tax             = '';
          $cover_image                      = '';
@@ -122,7 +122,7 @@ $current_url                    = url()->current();
                            </h5>
                            <div class="col-md-3">
                               <label class="form-label" for="sku">SKU <small class="text-danger">*</small></label>
-                              <input type="text" class="form-control" placeholder="Enter SKU" id="sku" name="sku" value="<?=$sku?>" minlength="10" maxlength="10" onkeypress="return isNumber(event)" required style="width: 40%;">
+                              <input type="text" class="form-control" placeholder="Enter SKU" id="sku" name="sku" value="<?=$sku?>" maxlength="10" onkeypress="return isNumber(event)" required style="width: 40%;">
                            </div>
                            <div class="col-md-3">
                               <label class="form-label" for="barcode">Barcode <small class="text-danger">*</small></label>

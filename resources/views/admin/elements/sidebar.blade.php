@@ -369,7 +369,7 @@ $user_type = session('type');
                         <div class="modal-body">\
                            <h1 class="modal-title fs-4 text-center w-100 text-black mb-2" id="adminpinmodalLabel">Enter Your Admin Pin</h1>\
                            <div class="otp-input-fields">\
-                              <input type="password" class="otp__digit otp__field__1" autocomplete="off" name="pin1" id="pin1" autocomplete="new-password">\
+                              <input type="password" class="otp__digit otp__field__1" autocomplete="off" name="pin1" id="pin1" autocomplete="new-password" autofocus>\
                               <input type="password" class="otp__digit otp__field__2" autocomplete="off" name="pin2" id="pin2" autocomplete="new-password">\
                               <input type="password" class="otp__digit otp__field__3" autocomplete="off" name="pin3" id="pin3" autocomplete="new-password">\
                               <input type="password" class="otp__digit otp__field__4" autocomplete="off" name="pin4" id="pin4" autocomplete="new-password">\
@@ -383,6 +383,11 @@ $user_type = session('type');
                   </div>';
       $('#adminpinmodal').html(modalHTML);
       $('#adminpinmodal').modal('show');
+
+      // Auto focus pin1 AFTER modal renders
+      setTimeout(() => {
+         $('#pin1').focus();
+      }, 300);
    }
 </script>
 <script>

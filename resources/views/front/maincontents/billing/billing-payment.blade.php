@@ -40,8 +40,8 @@ $current_url          = url()->current();
                                         <?php if($getOrder->payment_mode == 'CASH'){?>
                                             <li>
                                                 <p>
-                                                    <small>Cash tendered : $<?=number_format($getOrder->cash_tendered, 2)?></small><br>
-                                                    <small>Cash to be returned : $<?=number_format($getOrder->cash_return, 2)?></small>
+                                                    <span style="color:#000; fot-weight:bold;">Cash tendered : $<?=number_format($getOrder->cash_tendered, 2)?></span><br>
+                                                    <span style="color:#000; fot-weight:bold;">Cash to be returned : $<?=number_format($getOrder->cash_return, 2)?></span>
                                                 </p>
                                             </li>
                                         <?php }?>

@@ -356,7 +356,7 @@ $current_url                    = url()->current();
 
                               <div class="field_wrapper2 multiple-buy-section" style="border: 1px solid #04163d52; padding: 10px; border-radius: 10px;<?=((count($multipleBuys) > 0)?'':'display: none;')?>">
                                  <?php
-                                 if($multipleBuys){ $sl= 101; foreach($multipleBuys as $multipleBuy){
+                                 if($multipleBuys){ $sl= 1001; foreach($multipleBuys as $multipleBuy){
                                  ?>
                                     <div class="row align-items-center gap-2 gap-lg-0 mb-2">
                                        <div class="col-lg-2">
@@ -373,7 +373,7 @@ $current_url                    = url()->current();
                                        <div class="col-lg-2">
                                           <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode1" oninput="getBarcodeSuggestions(this.value, <?=$sl?>);" value="<?=$multipleBuy->second_barcode?>" minlength="13" maxlength="13">
                                           <input type="hidden" name="product2_id[]" id="product2_id<?=$sl?>" value="<?=$multipleBuy->product2_id?>">
-                                          <div id="barcode_suggestions1" class="dropdown"></div>
+                                          <div id="barcode_suggestions1001" class="dropdown"></div>
                                        </div>
                                        <div class="col-lg-2">
                                           <input type="number" class="form-control" placeholder="Barcode2 Min Qty" name="product2_min_qty[]" id="product2_min_qty<?=$sl?>" min="1" max="9" value="<?=$multipleBuy->product2_min_qty?>">
@@ -391,15 +391,16 @@ $current_url                    = url()->current();
                                        </div>
                                        <div class="col-lg-1">
                                           <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount<?=$sl?>" value="<?=$multipleBuy->discount_amount?>">
+                                          <a href="javascript:void(0);" class="remove_button2"><i class="fa fa-minus-circle text-danger"></i></a>
                                        </div>
                                     </div>
                                  <?php $sl++; } }?>
                                  <div class="row align-items-center gap-2 gap-lg-0 mb-2">
                                     <div class="col-lg-2">
-                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode1" minlength="13" maxlength="13">
+                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode301" minlength="13" maxlength="13">
                                     </div>
                                     <div class="col-lg-2">
-                                       <input type="number" class="form-control" placeholder="Barcode1 Min Qty" name="product1_min_qty[]" id="product1_min_qty1" min="1" max="9">
+                                       <input type="number" class="form-control" placeholder="Barcode1 Min Qty" name="product1_min_qty[]" id="product1_min_qty301" min="1" max="9">
                                     </div>
 
                                     <div class="col-auto">
@@ -407,12 +408,12 @@ $current_url                    = url()->current();
                                     </div>
 
                                     <div class="col-lg-2">
-                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode1" oninput="getBarcodeSuggestions(this.value, 1);" minlength="13" maxlength="13">
-                                       <input type="hidden" name="product2_id[]" id="product2_id1">
-                                       <div id="barcode_suggestions1" class="dropdown"></div>
+                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode301" oninput="getBarcodeSuggestions(this.value, 301);" minlength="13" maxlength="13">
+                                       <input type="hidden" name="product2_id[]" id="product2_id301">
+                                       <div id="barcode_suggestions301" class="dropdown"></div>
                                     </div>
                                     <div class="col-lg-2">
-                                       <input type="number" class="form-control" placeholder="Barcode2 Min Qty" name="product2_min_qty[]" id="product2_min_qty1" min="1" max="9">
+                                       <input type="number" class="form-control" placeholder="Barcode2 Min Qty" name="product2_min_qty[]" id="product2_min_qty301" min="1" max="9">
                                     </div>
 
                                     <div class="col-lg-1">
@@ -420,12 +421,12 @@ $current_url                    = url()->current();
                                     </div>
                                     <div class="col-lg-1">
                                        <div class="form-check form-switch mt-0">
-                                          <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type1" onchange="change_discount_type(1);">
-                                          <label class="form-check-label" for="discount_type1" id="discount_type_text1" style="font-size: 10px;">Flat</label>
+                                          <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type301" onchange="change_discount_type(301);">
+                                          <label class="form-check-label" for="discount_type301" id="discount_type_text301" style="font-size: 10px;">Flat</label>
                                        </div>
                                     </div>
                                     <div class="col-lg-1">
-                                       <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount1">
+                                       <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount301">
                                        <a style="opacity: 0;"  class="d-none d-lg-block"><i class="fa fa-minus-circle text-danger"></i></a>
                                     </div>
                                  </div>
@@ -687,10 +688,10 @@ $current_url                    = url()->current();
 
       $('.first_barcode').val($('#barcode').val());
 
-       var maxField = 10; //Input fields increment limitation
+       var maxField = 310; //Input fields increment limitation
        var addButton = $('.add_button2'); //Add button selector
        var wrapper = $('.field_wrapper2'); //Input field wrapper
-       var x = 1; //Initial field counter is 1
+       var x = 301; //Initial field counter is 1
        
        // Once add button is clicked
        $(addButton).click(function(){
@@ -698,7 +699,7 @@ $current_url                    = url()->current();
            if(x < maxField){ 
                x++; //Increase field counter
                var main_barcode = $('#barcode').val();
-               console.log(main_barcode);
+               // console.log(main_barcode);
                var fieldHTML = '<div class="row align-items-center gap-2 gap-lg-0 mb-2">\
                                     <div class="col-lg-2">\
                                        <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode' + x + '" value="' + main_barcode + '" minlength="13" maxlength="13">\
@@ -752,10 +753,11 @@ $current_url                    = url()->current();
    });
 
    function change_discount_type(sl){
-      console.log(sl);
       if ($('#discount_type' + sl).is(':checked')) {
+         console.log('a');
          $('#discount_type_text' + sl).text('Percentage');
       } else {
+         console.log('b');
          $('#discount_type_text' + sl).text('Flat');
       }
    }

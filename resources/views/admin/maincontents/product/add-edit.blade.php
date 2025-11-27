@@ -350,7 +350,7 @@ $current_url                    = url()->current();
                               ?>
                               <div class="col-auto">
                                  <div class="form-check form-switch mt-0 pt-0 pb-0">
-                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="multiple_buys" <?=((count($multipleBuys) > 0)?'checked':'')?>>
+                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="multiple_buys" name="multiple_buys" <?=((count($multipleBuys) > 0)?'checked':'')?>>
                                  </div>
                               </div>
 

@@ -223,17 +223,10 @@ class BillingController extends Controller
                             ->where('order_id', $orderId)
                             ->get();
 
-                        // Map product => qty, price
-                        $orderMap = $orderItems->mapWithKeys(function ($item) {
-                            return [
-                                $item->item_id => [
-                                    'qty'   => $item->qty,
-                                    'price' => $item->price
-                                ]
-                            ];
-                        });
+                        $orderMap = $orderItems->mapWithKeys(fn($item) => [
+                            $item->item_id => ['qty' => $item->qty, 'price' => $item->price]
+                        ]);
 
-                        // 2. Combo rules
                         $comboRules = DB::table('product_multiple_buys')
                             ->where('status', 1)
                             ->get();
@@ -246,87 +239,86 @@ class BillingController extends Controller
                             $p1 = $rule->product_id;
                             $p2 = $rule->product2_id;
 
-                            if ($orderMap->has($p1) && $orderMap->has($p2)) {
+                            // product1 MUST exist in order
+                            if (!$orderMap->has($p1)) continue;
 
-                                $qty1 = $orderMap[$p1]['qty'];
-                                $qty2 = $orderMap[$p2]['qty'];
+                            $qty1 = $orderMap[$p1]['qty'];
+                            $price1 = $orderMap[$p1]['price'];
+                            $min1 = $rule->product1_min_qty;
 
-                                $min1 = $rule->product1_min_qty;
-                                $min2 = $rule->product2_min_qty;
+                            $qty2 = $orderMap[$p2]['qty'] ?? 0; // product2 may not exist
+                            $price2 = $orderMap[$p2]['price'] ?? 0;
+                            $min2 = $rule->product2_min_qty;
 
-                                // ❗ NEW LOGIC: At least one full pair must exist
+                            /* ======================================================
+                            CASE B – Single rule (product2_id = 0 or min2 = 0)
+                            → Discount only on product1
+                            ====================================================== */
+                            if ($qty1 >= $min1 && ($p2 == 0 || $min2 == 0)) {
+
+                                if ($rule->barcode_discount_type === "FLAT") {
+                                    $discount1 = $rule->discount_amount;
+                                    $discountText = "Flat Rs {$rule->discount_amount} Discount";
+                                } else {
+                                    $percent = $rule->discount_amount;
+                                    $discount1 = ($price1 * $percent / 100) * $qty1;
+                                    $discountText = "{$percent}% Discount";
+                                }
+
+                                if (!isset($discounts[$p1]) || $discount1 > $discounts[$p1]) {
+                                    $discounts[$p1] = $discount1;
+                                    $discountTexts[$p1] = $discountText;
+                                }
+
+                                continue; // skip combo rule
+                            }
+
+                            /* ======================================================
+                            CASE A – Combo rule (both products required)
+                            ====================================================== */
+                            if ($qty1 >= $min1 && $qty2 >= $min2) {
+
                                 $pairCount = min(
                                     floor($qty1 / $min1),
                                     floor($qty2 / $min2)
                                 );
 
-                                // If at least 1 pair exists → apply discount
                                 if ($pairCount > 0) {
-
-                                    $price1 = $orderMap[$p1]['price'];
-                                    $price2 = $orderMap[$p2]['price'];
-
-                                    $discount1 = 0;
-                                    $discount2 = 0;
-
-                                    /* FLAT discount */
-                                    if ($rule->barcode_discount_type == "FLAT") {
-
-                                        $pairCount = min(
-                                            floor($qty1 / $min1),
-                                            floor($qty2 / $min2)
-                                        );
-
+                                    if ($rule->barcode_discount_type === "FLAT") {
                                         $discount1 = $rule->discount_amount * $pairCount * $min1;
                                         $discount2 = $rule->discount_amount * $pairCount * $min2;
-
                                         $discountText = "Flat Rs {$rule->discount_amount} Combo Discount (x{$pairCount})";
-                                    }
-
-                                    /* PERCENTAGE discount */
-                                    elseif ($rule->barcode_discount_type == "PERCENTAGE") {
-
+                                    } else {
                                         $percent = $rule->discount_amount;
-
-                                        $pairCount = min(
-                                            floor($qty1 / $min1),
-                                            floor($qty2 / $min2)
-                                        );
-
                                         $discount1 = ($price1 * $percent / 100) * $pairCount * $min1;
                                         $discount2 = ($price2 * $percent / 100) * $pairCount * $min2;
-
                                         $discountText = "{$percent}% Combo Discount (x{$pairCount})";
                                     }
 
-                                    $discounts[$p1] = $discount1;
-                                    $discounts[$p2] = $discount2;
-
-                                    $discountTexts[$p1] = $discountText;
-                                    $discountTexts[$p2] = $discountText;
+                                    if (!isset($discounts[$p1]) || $discount1 > $discounts[$p1]) {
+                                        $discounts[$p1] = $discount1;
+                                        $discountTexts[$p1] = $discountText;
+                                    }
+                                    if (!isset($discounts[$p2]) || $discount2 > $discounts[$p2]) {
+                                        $discounts[$p2] = $discount2;
+                                        $discountTexts[$p2] = $discountText;
+                                    }
                                 }
                             }
                         }
 
-                        /* 4. Update order_details */
+                        /* UPDATE order_details */
                         foreach ($orderItems as $item) {
-
-                            $pid   = $item->item_id;
-                            $price = $item->price;
-                            $qty   = $item->qty;
-
-                            $discountTotal = $discounts[$pid] ?? 0;
-
                             DB::table('order_details')
                                 ->where('order_id', $orderId)
-                                ->where('item_id', $pid)
+                                ->where('item_id', $item->item_id)
                                 ->update([
-                                    'discount_amount' => ($discountTotal),
-                                    'discount_text'   => $discountTexts[$pid] ?? null,
-                                    'subtotal'        => ($price * $qty)
+                                    'discount_amount' => $discounts[$item->item_id] ?? 0,
+                                    'discount_text'   => $discountTexts[$item->item_id] ?? null,
+                                    'subtotal'        => $item->qty * $item->price
                                 ]);
                         }
-                    /* product multiple buy logic */
+                    /* END */
                     /* orders table */
                         $getTotalAmount     = OrderDetail::where('order_id', '=', $order_id)->sum('subtotal');
                         $getDiscountAmount  = OrderDetail::where('order_id', '=', $order_id)->sum('discount_amount');
@@ -636,17 +628,10 @@ class BillingController extends Controller
                                 ->where('order_id', $orderId)
                                 ->get();
 
-                            // Map product => qty, price
-                            $orderMap = $orderItems->mapWithKeys(function ($item) {
-                                return [
-                                    $item->item_id => [
-                                        'qty'   => $item->qty,
-                                        'price' => $item->price
-                                    ]
-                                ];
-                            });
+                            $orderMap = $orderItems->mapWithKeys(fn($item) => [
+                                $item->item_id => ['qty' => $item->qty, 'price' => $item->price]
+                            ]);
 
-                            // 2. Combo rules
                             $comboRules = DB::table('product_multiple_buys')
                                 ->where('status', 1)
                                 ->get();
@@ -659,87 +644,86 @@ class BillingController extends Controller
                                 $p1 = $rule->product_id;
                                 $p2 = $rule->product2_id;
 
-                                if ($orderMap->has($p1) && $orderMap->has($p2)) {
+                                // product1 MUST exist in order
+                                if (!$orderMap->has($p1)) continue;
 
-                                    $qty1 = $orderMap[$p1]['qty'];
-                                    $qty2 = $orderMap[$p2]['qty'];
+                                $qty1 = $orderMap[$p1]['qty'];
+                                $price1 = $orderMap[$p1]['price'];
+                                $min1 = $rule->product1_min_qty;
 
-                                    $min1 = $rule->product1_min_qty;
-                                    $min2 = $rule->product2_min_qty;
+                                $qty2 = $orderMap[$p2]['qty'] ?? 0; // product2 may not exist
+                                $price2 = $orderMap[$p2]['price'] ?? 0;
+                                $min2 = $rule->product2_min_qty;
 
-                                    // ❗ NEW LOGIC: At least one full pair must exist
+                                /* ======================================================
+                                CASE B – Single rule (product2_id = 0 or min2 = 0)
+                                → Discount only on product1
+                                ====================================================== */
+                                if ($qty1 >= $min1 && ($p2 == 0 || $min2 == 0)) {
+
+                                    if ($rule->barcode_discount_type === "FLAT") {
+                                        $discount1 = $rule->discount_amount;
+                                        $discountText = "Flat Rs {$rule->discount_amount} Discount";
+                                    } else {
+                                        $percent = $rule->discount_amount;
+                                        $discount1 = ($price1 * $percent / 100) * $qty1;
+                                        $discountText = "{$percent}% Discount";
+                                    }
+
+                                    if (!isset($discounts[$p1]) || $discount1 > $discounts[$p1]) {
+                                        $discounts[$p1] = $discount1;
+                                        $discountTexts[$p1] = $discountText;
+                                    }
+
+                                    continue; // skip combo rule
+                                }
+
+                                /* ======================================================
+                                CASE A – Combo rule (both products required)
+                                ====================================================== */
+                                if ($qty1 >= $min1 && $qty2 >= $min2) {
+
                                     $pairCount = min(
                                         floor($qty1 / $min1),
                                         floor($qty2 / $min2)
                                     );
 
-                                    // If at least 1 pair exists → apply discount
                                     if ($pairCount > 0) {
-
-                                        $price1 = $orderMap[$p1]['price'];
-                                        $price2 = $orderMap[$p2]['price'];
-
-                                        $discount1 = 0;
-                                        $discount2 = 0;
-
-                                        /* FLAT discount */
-                                        if ($rule->barcode_discount_type == "FLAT") {
-
-                                            $pairCount = min(
-                                                floor($qty1 / $min1),
-                                                floor($qty2 / $min2)
-                                            );
-
+                                        if ($rule->barcode_discount_type === "FLAT") {
                                             $discount1 = $rule->discount_amount * $pairCount * $min1;
                                             $discount2 = $rule->discount_amount * $pairCount * $min2;
-
                                             $discountText = "Flat Rs {$rule->discount_amount} Combo Discount (x{$pairCount})";
-                                        }
-
-                                        /* PERCENTAGE discount */
-                                        elseif ($rule->barcode_discount_type == "PERCENTAGE") {
-
+                                        } else {
                                             $percent = $rule->discount_amount;
-
-                                            $pairCount = min(
-                                                floor($qty1 / $min1),
-                                                floor($qty2 / $min2)
-                                            );
-
                                             $discount1 = ($price1 * $percent / 100) * $pairCount * $min1;
                                             $discount2 = ($price2 * $percent / 100) * $pairCount * $min2;
-
                                             $discountText = "{$percent}% Combo Discount (x{$pairCount})";
                                         }
 
-                                        $discounts[$p1] = $discount1;
-                                        $discounts[$p2] = $discount2;
-
-                                        $discountTexts[$p1] = $discountText;
-                                        $discountTexts[$p2] = $discountText;
+                                        if (!isset($discounts[$p1]) || $discount1 > $discounts[$p1]) {
+                                            $discounts[$p1] = $discount1;
+                                            $discountTexts[$p1] = $discountText;
+                                        }
+                                        if (!isset($discounts[$p2]) || $discount2 > $discounts[$p2]) {
+                                            $discounts[$p2] = $discount2;
+                                            $discountTexts[$p2] = $discountText;
+                                        }
                                     }
                                 }
                             }
 
-                            /* 4. Update order_details */
+                            /* UPDATE order_details */
                             foreach ($orderItems as $item) {
-
-                                $pid   = $item->item_id;
-                                $price = $item->price;
-                                $qty   = $item->qty;
-
-                                $discountTotal = $discounts[$pid] ?? 0;
-
                                 DB::table('order_details')
                                     ->where('order_id', $orderId)
-                                    ->where('item_id', $pid)
+                                    ->where('item_id', $item->item_id)
                                     ->update([
-                                        'discount_amount' => ($discountTotal),
-                                        'discount_text'   => $discountTexts[$pid] ?? null,
-                                        'subtotal'        => ($price * $qty)
+                                        'discount_amount' => $discounts[$item->item_id] ?? 0,
+                                        'discount_text'   => $discountTexts[$item->item_id] ?? null,
+                                        'subtotal'        => $item->qty * $item->price
                                     ]);
                             }
-                        /* product multiple buy logic */
+                        /* END */
                         /* orders table */
                             $getTotalAmount     = OrderDetail::where('order_id', '=', $order_id)->sum('subtotal');
                             $getDiscountAmount  = OrderDetail::where('order_id', '=', $order_id)->sum('discount_amount');

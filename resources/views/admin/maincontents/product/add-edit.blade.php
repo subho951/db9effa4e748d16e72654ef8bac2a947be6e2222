@@ -395,7 +395,7 @@ $current_url                    = url()->current();
                                        </div>
                                     </div>
                                  <?php $sl++; } }?>
-                                 <div class="row align-items-center gap-2 gap-lg-0 mb-2">
+                                 <!-- <div class="row align-items-center gap-2 gap-lg-0 mb-2">
                                     <div class="col-lg-2">
                                        <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode301" minlength="13" maxlength="13">
                                     </div>
@@ -429,7 +429,7 @@ $current_url                    = url()->current();
                                        <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount301">
                                        <a style="opacity: 0;"  class="d-none d-lg-block"><i class="fa fa-minus-circle text-danger"></i></a>
                                     </div>
-                                 </div>
+                                 </div> -->
                               </div>
 
                               <div class="row align-items-center gap-2 gap-lg-0 multiple-buy-section" style="<?=((count($multipleBuys) > 0)?'':'display: none;')?>">

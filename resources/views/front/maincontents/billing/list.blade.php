@@ -36,10 +36,10 @@ $current_url          = url()->current();
                             <label for="delivery_mode1">&nbsp;Take</label>
                         </a> -->
 
-                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode1">
+                        <!-- <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode1">
                             <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode1" value="Take" <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'checked':''):'')?> style="display: none;">
                             <label for="delivery_mode1">&nbsp;Take</label>
-                        </a>
+                        </a> -->
                     </div>
                     <div class="col-7">
                         <div class="d-flex justify-content-end">
@@ -170,14 +170,14 @@ $current_url          = url()->current();
                         </div>
                     </div>
                 </div>
-                <div class="order-footer px-4 py-2">
-                    <div class="d-flex justify-content-between">
-                        <p>Delivery</p>
-                        <p>$<?=number_format($getOrder->delivery_amount,2)?></p>
-                    </div>
+                <div class="order-footer px-4">
                     <div class="d-flex justify-content-between py-2">
                         <p>Total Discounts</p>
                         <p>$<?=number_format($getOrder->discount_amount,2)?></p>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <p>Delivery</p>
+                        <p>$<?=number_format($getOrder->delivery_amount,2)?></p>
                     </div>
                 </div>
                 <div class="d-flex justify-content-between totals p-1 p-sm-2 p-md-4">
@@ -675,5 +675,16 @@ $current_url          = url()->current();
         let status = 4; // cancel status code
 
         orderChangeStatus(orderId, status, 'cancelSaleModal', itemId);
+    });
+
+    $(document).ready(function() {
+
+        // Auto focus to first input when modal becomes visible
+        $('#adminpinmodal').on('shown.bs.modal', function () {
+            setTimeout(function() {
+                $('#pin1').trigger('focus');
+            }, 200);
+        });
+
     });
 </script>

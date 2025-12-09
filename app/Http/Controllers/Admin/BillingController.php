@@ -935,7 +935,8 @@ class BillingController extends Controller
                     ];
                     // Helper::pr($apiResponse);
 
-                    $apiMessage                         = 'Order ' . $delivery_mode . ' address updated successfully';
+                    // $apiMessage                         = 'Order ' . $delivery_mode . ' address updated successfully';
+                    $apiMessage                         = 'Order delivery address updated successfully';
                     $apiStatus                          = TRUE;
                     http_response_code(200);
                     $apiExtraField                      = 'response_code';

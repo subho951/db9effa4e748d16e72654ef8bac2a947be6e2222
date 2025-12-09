@@ -37,14 +37,6 @@ $current_url          = url()->current();
                                         </a>
                                     </li>
                                     <?php if($getOrder->payment_mode != ''){?>
-                                        <?php if($getOrder->payment_mode == 'CASH'){?>
-                                            <li>
-                                                <p>
-                                                    <span style="color:#000; fot-weight:bold;">Cash tendered : $<?=number_format($getOrder->cash_tendered, 2)?></span><br>
-                                                    <span style="color:#000; fot-weight:bold;">Cash to be returned : $<?=number_format($getOrder->cash_return, 2)?></span>
-                                                </p>
-                                            </li>
-                                        <?php }?>
                                         <?php if($getOrder->payment_mode != 'VOUCHER'){?>
                                             <li>
                                                 <a href="javascript:void(0);" class="my-btn btn-green mb-4" type="button" data-bs-toggle="modal" data-bs-target="#placeOrderModal">FINALISE</a>
@@ -62,7 +54,7 @@ $current_url          = url()->current();
             <div class="order-summery-left-bottom">
                 <div class="row my-4">
                     <div class="col-md-12 d-flex justify-content-start">
-                        <a href="<?=url('admin/billing/billing-delivery-address/' . Helper::encoded($getOrder->id))?>" class="my-btn btn-sky">BACK</a>
+                        <a href="<?=url('admin/billing/billing-item/' . Helper::encoded($getOrder->id))?>" class="my-btn btn-sky" id="payment-back-btn">BACK</a>
                     </div>
                 </div>
             </div>
@@ -105,25 +97,33 @@ $current_url          = url()->current();
                 </table>
             </div>
             <div class="table-footer-wrapper">
-                <div class="footer-notes p-4 pb-0">
+                <div class="footer-notes p-2">
                     <div class="d-flex justify-content-between align-items-center">
                         <p class="me-2">Notes </p>
                         <input type="text" class="form-control" id="note" value="<?=$getOrder->note?>" placeholder="Notes">
+                        <div class="items-count">
+                            <p>ITEMS : <?=$totItemQty?></p>
+                        </div>
                     </div>
                 </div>
-                <div class="order-footer p-4">
-                    <div class="d-flex justify-content-between">
-                        <p>Delivery</p>
-                        <p>$<?=number_format($getOrder->delivery_amount,2)?></p>
-                    </div>
+                <div class="order-footer p-2">
                     <div class="d-flex justify-content-between py-3">
                         <p>Total Discounts</p>
                         <p>$<?=number_format($getOrder->discount_amount,2)?></p>
                     </div>
+                    <div class="d-flex justify-content-between">
+                        <p>Delivery</p>
+                        <p>$<?=number_format($getOrder->delivery_amount,2)?></p>
+                    </div>
                 </div>
-                <div class="d-flex justify-content-between totals p-4">
-                    <p>ITEMS <?=count($getOrderItems)?></p>
+                <div class="d-flex justify-content-between totals p-2">
                     <p>TOTAL $<?=number_format($getOrder->net_amount,2)?></p>
+                    <?php if($getOrder->payment_mode != ''){?>
+                        <?php if($getOrder->payment_mode == 'CASH'){?>
+                            <p>Cash tendered : $<?=number_format($getOrder->cash_tendered, 2)?></p>
+                            <p>Cash to be returned : $<?=number_format($getOrder->cash_return, 2)?></p>
+                        <?php }?>
+                    <?php }?>
                 </div>
             </div>
         <?php }?>
@@ -549,6 +549,7 @@ $current_url          = url()->current();
     function placeOrder(orderId){
         $('#placeOrderModal').modal('hide');
         var note = $('#note').val();
+        $('#payment-back-btn').hide();
         $.ajax({
             url: base_url + "/admin/billing/place-order",
             type: "POST",

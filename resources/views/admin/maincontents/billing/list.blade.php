@@ -48,10 +48,10 @@ $current_url          = url()->current();
                             <label for="delivery_mode1">&nbsp;Take</label>
                         </a> -->
 
-                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode1">
+                        <!-- <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode1">
                             <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode1" value="Take" <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'checked':''):'')?> style="display: none;">
                             <label for="delivery_mode1">&nbsp;Take</label>
-                        </a>
+                        </a> -->
                     </div>
                     <div class="col-7">
                         <div class="d-flex justify-content-end">
@@ -101,16 +101,16 @@ $current_url          = url()->current();
                         </a>
                     </div>
                     <div class="col-7 d-flex justify-content-end">
-                        <a href="javascript:vold(0)" type="button" data-bs-toggle="modal" data-bs-target="#adminpinmodal" class="my-btn btn-yellow d-block Modify-btn disabled-link" id="price-modify-btn">Modify</a>
-                        <a href="javascript:vold(0)" type="button" class="my-btn btn-sky d-block Modify-btn" id="price-update-btn" style="display: none !important;">Update</a>
-                        <a href="javascript:vold(0)" type="button" class="my-btn btn-sky d-block Modify-btn" id="price-return-btn" onclick="itemReturn(<?=(($getOrder)?$getOrder->id:0)?>);">Return</a>
+                        <a href="javascript:void(0)" type="button" data-bs-toggle="modal" data-bs-target="#adminpinmodal" class="my-btn btn-yellow d-block Modify-btn disabled-link" id="price-modify-btn">Modify</a>
+                        <a href="javascript:void(0)" type="button" class="my-btn btn-sky d-block Modify-btn" id="price-update-btn" style="display: none !important;">Update</a>
+                        <a href="javascript:void(0)" type="button" class="my-btn btn-sky d-block Modify-btn" id="price-return-btn" onclick="itemReturn(<?=(($getOrder)?$getOrder->id:0)?>);">Return</a>
                     </div>
                 </div>
             </div>
             <div class="order-summery-left-bottom">
                 <div class="row mt-0 mt-sm-2 mt-md-4">
                     <div class="col-md-12 d-flex justify-content-between">
-                        <!-- <a class="my-btn btn-orange w-auto" href="javascript: vold(0)" type="button" data-bs-toggle="modal" data-bs-target="#adminpinmodal">Admin</a> -->
+                        <!-- <a class="my-btn btn-orange w-auto" href="javascript: void(0)" type="button" data-bs-toggle="modal" data-bs-target="#adminpinmodal">Admin</a> -->
                         <?php if($getOrder){ if($getOrder->delivery_mode != ''){?>
                             <a href="<?=url('admin/billing/billing-payment/' . Helper::encoded((($getOrder)?$getOrder->id:0)))?>" class="my-btn btn-green btn-lg">PAYMENT</a>
                         <?php } }?>
@@ -181,14 +181,14 @@ $current_url          = url()->current();
                         </div>
                     </div>
                 </div>
-                <div class="order-footer px-4 py-2">
-                    <div class="d-flex justify-content-between">
-                        <p>Delivery</p>
-                        <p>$<?=number_format($getOrder->delivery_amount,2)?></p>
-                    </div>
+                <div class="order-footer px-4">
                     <div class="d-flex justify-content-between py-2">
                         <p>Total Discounts</p>
                         <p>$<?=number_format($getOrder->discount_amount,2)?></p>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <p>Delivery</p>
+                        <p>$<?=number_format($getOrder->delivery_amount,2)?></p>
                     </div>
                 </div>
                 <div class="d-flex justify-content-between totals p-1 p-sm-2 p-md-4">
@@ -212,7 +212,7 @@ $current_url          = url()->current();
                 <div class="modal-body">
                     <h1 class="modal-title fs-4 text-center w-100 text-black mb-2" id="adminpinmodalLabel">Enter Your Admin Pin</h1>
                     <div class="otp-input-fields">
-                        <input type="password" class="otp__digit otp__field__1" autocomplete="off" name="pin1" id="pin1">
+                        <input type="password" class="otp__digit otp__field__1" autocomplete="off" name="pin1" id="pin1" autofocus>
                         <input type="password" class="otp__digit otp__field__2" autocomplete="off" name="pin2" id="pin2">
                         <input type="password" class="otp__digit otp__field__3" autocomplete="off" name="pin3" id="pin3">
                         <input type="password" class="otp__digit otp__field__4" autocomplete="off" name="pin4" id="pin4">
@@ -692,5 +692,16 @@ $current_url          = url()->current();
         let status = 4; // cancel status code
 
         orderChangeStatus(orderId, status, 'cancelSaleModal', itemId);
+    });
+
+    $(document).ready(function() {
+
+        // Auto focus to first input when modal becomes visible
+        $('#adminpinmodal').on('shown.bs.modal', function () {
+            setTimeout(function() {
+                $('#pin1').trigger('focus');
+            }, 200);
+        });
+
     });
 </script>

@@ -275,29 +275,31 @@ ul{
 	font-weight: normal;
 	font-size: 15px;
 }
-.totals p:first-child{
+/* .totals p:first-child{
     font-size: 30px;
     font-weight: 400;
-    /* color: #EC5A5A */
     color: #f31e1e
+} */
+ .totals p{
+    font-size: 20px;
+    font-weight: 700;
+    color: #000;
 }
 .items-count{
     width: 100%;
     max-width: 160px;
 }
 .items-count p{
-    font-size: 25px;
-    font-weight: 400;
-    /* color: #EC5A5A */
-    color: #f31e1e;
+    font-size: 20px;
+    font-weight: 700;
+    color: #000;
     text-align: right;
 }
-.totals p:last-child{
-    /* font-size: 40px; */
+/* .totals p:last-child{
     font-size: 20px;
     font-weight: 700;
     color: #000
-}
+} */
 
 /* payment methord page css */
 .payment-methord li{

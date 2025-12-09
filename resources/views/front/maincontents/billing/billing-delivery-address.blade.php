@@ -36,7 +36,7 @@ $current_url          = url()->current();
                                               <input type="email" class="form-control" id="delivery_email" name="delivery_email" placeholder="Email (Optional)" aria-label="Email" value="<?=(($getOrder)?$getOrder->delivery_email:'')?>">
                                             </div>
                                             <div class="col-12 col-sm-6 col-md-6 mb-3">
-                                              <input type="text" class="form-control" placeholder="Tag" id="customer_tag" name="customer_tag" aria-label="Tag" value="<?=(($getOrder)?$getOrder->customer_tag:'')?>" minlength="3" maxlength="3">
+                                              <input type="text" class="form-control" placeholder="Tag" id="customer_tag" name="customer_tag" aria-label="Tag" value="<?=(($getOrder)?$getOrder->customer_tag:'')?>" minlength="2" maxlength="2">
                                             </div>
                                         </div>
                                         <div class="mt-4">
@@ -112,7 +112,7 @@ $current_url          = url()->current();
                                               <input type="email" class="form-control" id="pickup_email" name="pickup_email" placeholder="Email (Optional)" aria-label="Email" value="<?=(($getOrder)?$getOrder->pickup_email:'')?>">
                                             </div>
                                             <div class="col-12 col-sm-6 col-md-6 mb-3">
-                                              <input type="text" class="form-control" placeholder="Tag" id="customer_tag" name="customer_tag" aria-label="Tag" value="<?=(($getOrder)?$getOrder->customer_tag:'')?>" minlength="3" maxlength="3">
+                                              <input type="text" class="form-control" placeholder="Tag" id="customer_tag" name="customer_tag" aria-label="Tag" value="<?=(($getOrder)?$getOrder->customer_tag:'')?>" minlength="2" maxlength="2">
                                             </div>
                                         </div>
                                     </div>
@@ -133,16 +133,17 @@ $current_url          = url()->current();
             <div class="order-summery-left-bottom">
                 <div class="row my-4">
                     <div class="col-md-12 d-flex justify-content-between">
+                        <a href="<?=url('user/billing/billing-item/' . Helper::encoded($getOrder->id))?>" class="my-btn btn-sky">BACK</a>
                         <!-- <a class="my-btn btn-orange w-auto" href="javascript: vold(0)" type="button" data-bs-toggle="modal" data-bs-target="#adminpinmodal">Admin</a> -->
                         <?php if($getOrder){ if($getOrder->delivery_mode != ''){?>
                             <?php if($getOrder->delivery_mode == 'Take'){?>
-                                <a href="<?=url('user/billing/billing-payment/' . Helper::encoded((($getOrder)?$getOrder->id:0)))?>" class="my-btn btn-green btn-lg">PAYMENT</a>
+                                <!-- <a href="<?=url('user/billing/billing-payment/' . Helper::encoded((($getOrder)?$getOrder->id:0)))?>" class="my-btn btn-green btn-lg">PAYMENT</a> -->
                             <?php }?>
                             <?php if($getOrder->delivery_mode == 'Deliver' && $getOrder->delivery_name != ''){?>
-                                <a href="<?=url('user/billing/billing-payment/' . Helper::encoded((($getOrder)?$getOrder->id:0)))?>" class="my-btn btn-green btn-lg">PAYMENT</a>
+                                <!-- <a href="<?=url('user/billing/billing-payment/' . Helper::encoded((($getOrder)?$getOrder->id:0)))?>" class="my-btn btn-green btn-lg">PAYMENT</a> -->
                             <?php }?>
                             <?php if($getOrder->delivery_mode == 'Pickup' && $getOrder->pickup_name != ''){?>
-                                <a href="<?=url('user/billing/billing-payment/' . Helper::encoded((($getOrder)?$getOrder->id:0)))?>" class="my-btn btn-green btn-lg">PAYMENT</a>
+                                <!-- <a href="<?=url('user/billing/billing-payment/' . Helper::encoded((($getOrder)?$getOrder->id:0)))?>" class="my-btn btn-green btn-lg">PAYMENT</a> -->
                             <?php }?>
                         <?php } }?>
                     </div>
@@ -192,20 +193,23 @@ $current_url          = url()->current();
                     <div class="d-flex justify-content-between align-items-center">
                         <p class="me-2">Notes </p>
                         <input type="text" class="form-control" id="note" value="<?=$getOrder->note?>" placeholder="Notes">
+                        <div class="items-count">
+                            <p>ITEMS : <?=$totItemQty?></p>
+                        </div>
                     </div>
                 </div>
                 <div class="order-footer p-4">
-                    <div class="d-flex justify-content-between">
-                        <p>Delivery</p>
-                        <p>$<?=number_format($getOrder->delivery_amount,2)?></p>
-                    </div>
                     <div class="d-flex justify-content-between py-3">
                         <p>Total Discounts</p>
                         <p>$<?=number_format($getOrder->discount_amount,2)?></p>
                     </div>
+                    <div class="d-flex justify-content-between">
+                        <p>Delivery</p>
+                        <p>$<?=number_format($getOrder->delivery_amount,2)?></p>
+                    </div>
                 </div>
                 <div class="d-flex justify-content-between totals p-4">
-                    <p>ITEMS <?=count($getOrderItems)?></p>
+                    <!-- <p>ITEMS <?=count($getOrderItems)?></p> -->
                     <p>TOTAL $<?=number_format($getOrder->net_amount,2)?></p>
                 </div>
             </div>
@@ -517,14 +521,14 @@ $current_url          = url()->current();
             var delivery_suburb         = $('#delivery_suburb').val();
             var delivery_state          = $('#delivery_state').val();
             var delivery_postcode       = $('#delivery_postcode').val();
-            var customer_tag            = $('#customer_tag').val();
+            var delivery_email            = $('#delivery_email').val();
             if(delivery_name != ''){
                 if(delivery_phone != ''){
                     if(delivery_address != ''){
                         if(delivery_suburb != ''){
                             if(delivery_state != ''){
                                 if(delivery_postcode != ''){
-                                    if(customer_tag != ''){
+                                    if(delivery_email != ''){
                                         var formData = new FormData(this);
                                         $.ajax({
                                             type: "POST",
@@ -561,7 +565,7 @@ $current_url          = url()->current();
                                             }
                                         });
                                     } else {
-                                        toastAlert("error", 'Please enter tag');
+                                        toastAlert("error", 'Please enter delivery email');
                                     }
                                 } else {
                                     toastAlert("error", 'Please enter delivery postcode');

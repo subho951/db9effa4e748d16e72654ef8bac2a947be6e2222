@@ -36,7 +36,7 @@ $current_url          = url()->current();
                                             <label for="payment_mode3"><?=(($getOrder)?(($getOrder->payment_mode == 'VOUCHER')?'<i class="fa fa-check"></i>':''):'')?>&nbsp;VOUCHER</label>
                                         </a>
                                     </li>
-                                    <?php if($getOrder->payment_mode != ''){?>
+                                    <!-- <?php if($getOrder->payment_mode != ''){?>
                                         <?php if($getOrder->payment_mode != 'VOUCHER'){?>
                                             <li>
                                                 <a href="javascript:void(0);" class="my-btn btn-green mb-4" type="button" data-bs-toggle="modal" data-bs-target="#placeOrderModal">FINALISE</a>
@@ -44,7 +44,7 @@ $current_url          = url()->current();
                                         <?php } else {?>
                                             <h6 class="text-success">You have to pay $<?=number_format($getOrder->net_amount, 2)?> by using CASH or CARD to finalize this order</h6>
                                         <?php }?>
-                                    <?php }?>
+                                    <?php }?> -->
                                 </ul>
                             </div>
                         </div>
@@ -124,6 +124,7 @@ $current_url          = url()->current();
                             <p>Cash to be returned : $<?=number_format($getOrder->cash_return, 2)?></p>
                         <?php }?>
                     <?php }?>
+                    <p id="cash-tender"></p>
                 </div>
             </div>
         <?php }?>
@@ -459,10 +460,15 @@ $current_url          = url()->current();
                 success: function (res) {
                     $("#loader").hide();
                     if(res.status){
-                        toastAlert("success", res.message);
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
+                        $('#cashModal').modal('hide');
+                        // toastAlert("success", res.message);
+                        // location.reload();                        
+
+                        // var cashtenderHTML = '<p>Cash tendered : $'+res.data.cash_tendered+'</p><p>Cash to be returned : $'+res.data.cash_return+'</p>';
+                        // $('#cash-tender').html(cashtenderHTML);
+
+                        var redirect_url = base_url + '/admin/billing/list';
+                        toastAlert("success", res.message, true, redirect_url);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -528,10 +534,14 @@ $current_url          = url()->current();
                     $("#loader").hide();
                     if(res.status){
                         $('#cashModal').modal('hide');
-                        toastAlert("success", res.message);
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
+                        // toastAlert("success", res.message);
+                        // location.reload();                        
+
+                        var cashtenderHTML = '<p>Cash tendered : $'+res.data.cash_tendered+'</p><p>Cash to be returned : $'+res.data.cash_return+'</p>';
+                        $('#cash-tender').html(cashtenderHTML);
+
+                        var redirect_url = base_url + '/admin/billing/list';
+                        toastAlert("success", res.message, true, redirect_url);
                     }else{
                         toastAlert("error", res.message);
                     }

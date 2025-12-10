@@ -977,6 +977,119 @@ class BillingController extends Controller
                         if($getOrder){
                             $cash_return = ($cash_tendered - $getOrder->net_amount);
                             Order::where('id', '=', $order_id)->update(['payment_mode' => $payment_mode, 'status' => 2, 'note' => $note, 'cash_tendered' => $cash_tendered, 'cash_return' => $cash_return]);
+
+                            /* order place */
+                                $customer_name  = '';
+                                $customer_phone = '';
+                                $customer_email = '';
+                                if($getOrder){
+                                    if($getOrder->delivery_mode == 'Deliver'){
+                                        $customer_name  = $getOrder->delivery_name;
+                                        $customer_phone = $getOrder->delivery_phone;
+                                        $customer_email = $getOrder->delivery_email;
+                                    }
+                                    if($getOrder->delivery_mode == 'Pickup'){
+                                        $customer_name  = $getOrder->pickup_name;
+                                        $customer_phone = $getOrder->pickup_phone;
+                                        $customer_email = $getOrder->pickup_email;
+                                    }
+                                }
+                                $fields = [
+                                    'customer_name'     => $customer_name,
+                                    'customer_phone'    => $customer_phone,
+                                    'customer_email'    => $customer_email,
+                                    'order_date'        => date('Y-m-d'),
+                                    'order_time'        => date('H:i:s'),
+                                    'payment_status'    => 1,
+                                    'payment_date_time' => date('Y-m-d H:i:s'),
+                                    'payment_amount'    => $getOrder->net_amount,
+                                    'note'              => $note,
+                                    'status'            => 5,
+                                ];
+                                // Helper::pr($fields);
+                                Order::where('id', '=', $order_id)->update($fields);
+
+                                /* invoice pdf generate */
+                                    $data['getOrderDetail']         = Order::where('id', '=', $order_id)->first();
+                                    $order_no                       = (($data['getOrderDetail'])?$data['getOrderDetail']->order_no:'');
+                                    $generalSetting                 = GeneralSetting::find('1');
+                                    $subject                        = 'Invoice-' . $order_no;
+                                    $message                        = view('admin.maincontents.billing.pdf-invoice', $data);                        
+                                    // echo $message;die;
+                                    $options        = new Options();
+                                    $options->set('defaultFont', 'Courier');
+                                    $dompdf         = new Dompdf($options);
+                                    $html           = $message;
+                                    $dompdf->loadHtml($html);
+                                    $dompdf->setPaper('A4', 'portrait');
+                                    $dompdf->render();
+                                    $output         = $dompdf->output();
+                                    // $dompdf->stream("document.pdf", array("Attachment" => true));die;
+                                    $filename       = $order_no.'.pdf';
+                                    $pdfFilePath    = 'public/uploads/invoice/' . $filename;
+                                    file_put_contents($pdfFilePath, $output);
+                                    Order::where('id', '=', $order_id)->update(['pdf_invoice' => $filename]);
+                                /* invoice pdf generate */
+                                /* shop stock deduct */
+                                    $getOrderDetails           = OrderDetail::where('order_id', '=', $order_id)->get();
+                                    if($getOrderDetails){
+                                        foreach($getOrderDetails as $getOrderDetail){
+                                            $order_item_id      = $getOrderDetail->id;
+                                            $product_id         = $getOrderDetail->item_id;
+                                            $qty                = $getOrderDetail->qty;
+                                            $price              = $getOrderDetail->price;
+
+                                            if($price > 0){
+                                                $getProduct         = Product::where('id', $product_id)->first();
+                                                $opening_qty2       = (($getProduct)?$getProduct->shop_stock:0);
+                                                $txn_qty2           = $qty;
+                                                $closing_qty2       = ($opening_qty2 - $txn_qty2);
+
+                                                $fields12                   = [
+                                                    'txn_type'              => 'OUT',
+                                                    'stock_date'            => date('Y-m-d'),
+                                                    'product_id'            => $product_id,
+                                                    'opening_qty'           => $opening_qty2,
+                                                    'txn_qty'               => $txn_qty2,
+                                                    'closing_qty'           => $closing_qty2,
+                                                    'note'                  => 'For order #' . $order_no,
+                                                    'order_id'              => $order_id,
+                                                    'order_item_id'         => $order_item_id,
+                                                ];
+                                                ShopStock::insert($fields12);
+                                                Product::where('id', $product_id)->update(['shop_stock' => $closing_qty2]);
+                                            } else {
+                                                $getProduct         = Product::where('id', $product_id)->first();
+                                                $opening_qty2       = (($getProduct)?$getProduct->shop_stock:0);
+                                                $txn_qty2           = $qty;
+                                                $closing_qty2       = ($opening_qty2 + $txn_qty2);
+
+                                                $fields12                   = [
+                                                    'txn_type'              => 'IN',
+                                                    'stock_date'            => date('Y-m-d'),
+                                                    'product_id'            => $product_id,
+                                                    'opening_qty'           => $opening_qty2,
+                                                    'txn_qty'               => $txn_qty2,
+                                                    'closing_qty'           => $closing_qty2,
+                                                    'note'                  => 'For order #' . $order_no,
+                                                    'order_id'              => $order_id,
+                                                    'order_item_id'         => $order_item_id,
+                                                ];
+                                                ShopStock::insert($fields12);
+                                                Product::where('id', $product_id)->update(['shop_stock' => $closing_qty2]);
+                                            }
+                                        }
+                                    }
+                                /* shop stock deduct */
+                            /* order place */
+
+                            $apiResponse                        = [
+                                'payment_mode' => $payment_mode,
+                                'note' => $note,
+                                'cash_tendered' => number_format($cash_tendered,2),
+                                'cash_return' => number_format($cash_return,2)
+                            ];
+
                             $apiStatus                          = TRUE;
                             http_response_code(200);
                             $apiMessage                         = 'Order payment mode selected as ' . $payment_mode . ' successfully';
@@ -993,6 +1106,119 @@ class BillingController extends Controller
                 } elseif($payment_mode == 'CARD'){
                     if($getOrder){
                         Order::where('id', '=', $order_id)->update(['payment_mode' => $payment_mode, 'status' => 2, 'note' => $note]);
+
+                        /* order place */
+                            $customer_name  = '';
+                            $customer_phone = '';
+                            $customer_email = '';
+                            if($getOrder){
+                                if($getOrder->delivery_mode == 'Deliver'){
+                                    $customer_name  = $getOrder->delivery_name;
+                                    $customer_phone = $getOrder->delivery_phone;
+                                    $customer_email = $getOrder->delivery_email;
+                                }
+                                if($getOrder->delivery_mode == 'Pickup'){
+                                    $customer_name  = $getOrder->pickup_name;
+                                    $customer_phone = $getOrder->pickup_phone;
+                                    $customer_email = $getOrder->pickup_email;
+                                }
+                            }
+                            $fields = [
+                                'customer_name'     => $customer_name,
+                                'customer_phone'    => $customer_phone,
+                                'customer_email'    => $customer_email,
+                                'order_date'        => date('Y-m-d'),
+                                'order_time'        => date('H:i:s'),
+                                'payment_status'    => 1,
+                                'payment_date_time' => date('Y-m-d H:i:s'),
+                                'payment_amount'    => $getOrder->net_amount,
+                                'note'              => $note,
+                                'status'            => 5,
+                            ];
+                            // Helper::pr($fields);
+                            Order::where('id', '=', $order_id)->update($fields);
+
+                            /* invoice pdf generate */
+                                $data['getOrderDetail']         = Order::where('id', '=', $order_id)->first();
+                                $order_no                       = (($data['getOrderDetail'])?$data['getOrderDetail']->order_no:'');
+                                $generalSetting                 = GeneralSetting::find('1');
+                                $subject                        = 'Invoice-' . $order_no;
+                                $message                        = view('admin.maincontents.billing.pdf-invoice', $data);                        
+                                // echo $message;die;
+                                $options        = new Options();
+                                $options->set('defaultFont', 'Courier');
+                                $dompdf         = new Dompdf($options);
+                                $html           = $message;
+                                $dompdf->loadHtml($html);
+                                $dompdf->setPaper('A4', 'portrait');
+                                $dompdf->render();
+                                $output         = $dompdf->output();
+                                // $dompdf->stream("document.pdf", array("Attachment" => true));die;
+                                $filename       = $order_no.'.pdf';
+                                $pdfFilePath    = 'public/uploads/invoice/' . $filename;
+                                file_put_contents($pdfFilePath, $output);
+                                Order::where('id', '=', $order_id)->update(['pdf_invoice' => $filename]);
+                            /* invoice pdf generate */
+                            /* shop stock deduct */
+                                $getOrderDetails           = OrderDetail::where('order_id', '=', $order_id)->get();
+                                if($getOrderDetails){
+                                    foreach($getOrderDetails as $getOrderDetail){
+                                        $order_item_id      = $getOrderDetail->id;
+                                        $product_id         = $getOrderDetail->item_id;
+                                        $qty                = $getOrderDetail->qty;
+                                        $price              = $getOrderDetail->price;
+
+                                        if($price > 0){
+                                            $getProduct         = Product::where('id', $product_id)->first();
+                                            $opening_qty2       = (($getProduct)?$getProduct->shop_stock:0);
+                                            $txn_qty2           = $qty;
+                                            $closing_qty2       = ($opening_qty2 - $txn_qty2);
+
+                                            $fields12                   = [
+                                                'txn_type'              => 'OUT',
+                                                'stock_date'            => date('Y-m-d'),
+                                                'product_id'            => $product_id,
+                                                'opening_qty'           => $opening_qty2,
+                                                'txn_qty'               => $txn_qty2,
+                                                'closing_qty'           => $closing_qty2,
+                                                'note'                  => 'For order #' . $order_no,
+                                                'order_id'              => $order_id,
+                                                'order_item_id'         => $order_item_id,
+                                            ];
+                                            ShopStock::insert($fields12);
+                                            Product::where('id', $product_id)->update(['shop_stock' => $closing_qty2]);
+                                        } else {
+                                            $getProduct         = Product::where('id', $product_id)->first();
+                                            $opening_qty2       = (($getProduct)?$getProduct->shop_stock:0);
+                                            $txn_qty2           = $qty;
+                                            $closing_qty2       = ($opening_qty2 + $txn_qty2);
+
+                                            $fields12                   = [
+                                                'txn_type'              => 'IN',
+                                                'stock_date'            => date('Y-m-d'),
+                                                'product_id'            => $product_id,
+                                                'opening_qty'           => $opening_qty2,
+                                                'txn_qty'               => $txn_qty2,
+                                                'closing_qty'           => $closing_qty2,
+                                                'note'                  => 'For order #' . $order_no,
+                                                'order_id'              => $order_id,
+                                                'order_item_id'         => $order_item_id,
+                                            ];
+                                            ShopStock::insert($fields12);
+                                            Product::where('id', $product_id)->update(['shop_stock' => $closing_qty2]);
+                                        }
+                                    }
+                                }
+                            /* shop stock deduct */
+                        /* order place */
+
+                        $apiResponse                        = [
+                            'payment_mode' => $payment_mode,
+                            'note' => $note,
+                            'cash_tendered' => 0,
+                            'cash_return' => 0
+                        ];
+                        
                         $apiStatus                          = TRUE;
                         http_response_code(200);
                         $apiMessage                         = 'Order payment mode selected as ' . $payment_mode . ' successfully';

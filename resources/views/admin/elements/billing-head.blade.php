@@ -69,7 +69,7 @@
             "progressBar": true,
             "positionClass": "toast-bottom-left",
             "preventDuplicates": false,
-            "showDuration": "3000",
+            "showDuration": "5000",
             "hideDuration": "1000000",
             "timeOut": "5000",
             "extendedTimeOut": "1000",
@@ -80,7 +80,7 @@
         }
         toastr[type](message);
         if(redirectStatus){        
-            setTimeout(function(){ window.location = redirectUrl; }, 3000);
+            setTimeout(function(){ window.location = redirectUrl; }, 5000);
         }
     }
 </script>

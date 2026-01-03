@@ -18,12 +18,12 @@ $controllerRoute = $module['controller_route'];
               <thead>
                 <tr>
                   <th scope="col">#</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Contact Person Name</th>
-                  <th scope="col">Email 1</th>
-                  <th scope="col">Email 2</th>
-                  <th scope="col">Phone</th>
+                  <th scope="col">Supplier Code</th>
+                  <th scope="col">Company</th>
+                  <th scope="col">Status</th>
                   <th scope="col">Address</th>
+                  <th scope="col">Phone</th>
+                  <th scope="col">Email</th>
                   <th scope="col">Action</th>
                 </tr>
               </thead>
@@ -31,14 +31,19 @@ $controllerRoute = $module['controller_route'];
                 <?php if(count($rows)>0){ $sl=1; foreach($rows as $row){?>
                   <tr>
                     <td scope="row"><?=$sl++?></td>
+                    <td><a href="<?=url('admin/' . $controllerRoute . '/edit/'.Helper::encoded($row->id))?>" class="text-primary" title="Edit <?=$module['title']?>"><?=$row->supplier_code?></a></td>
                     <td><?=$row->name?></td>
-                    <td><?=$row->contact_person_name?></td>
-                    <td><?=$row->email?></td>
-                    <td><?=$row->email2?></td>
-                    <td><?=$row->phone?></td>
-                    <td><?=$row->address?></td>
                     <td>
-                      <a href="<?=url('admin/' . $controllerRoute . '/edit/'.Helper::encoded($row->id))?>" class="btn btn-outline-primary btn-sm" title="Edit <?=$module['title']?>"><i class="fa fa-edit"></i></a>
+                      <?php if($row->status){?>
+                        <span class="badge bg-success"><i class="fa fa-check"></i> ACTIVE</span>
+                      <?php } else {?>
+                        <span class="badge bg-danger"><i class="fa fa-block"></i> DEACTIVE</span>
+                      <?php }?>
+                    </td>
+                    <td><?=wordwrap(($row->b_street_address1 . '' . $row->b_street_address2 . '' . $row->b_city . '' . $row->b_state . '' . $row->b_postcode . '' . $row->b_country),30,"<br>\n")?></td>
+                    <td><?=$row->phone?></td>
+                    <td><?=$row->email?></td>
+                    <td>
                       <a href="<?=url('admin/' . $controllerRoute . '/delete/'.Helper::encoded($row->id))?>" class="btn btn-outline-danger btn-sm" title="Delete <?=$module['title']?>" onclick="return confirm('Do You Want To Delete This <?=$module['title']?>');"><i class="fa fa-trash"></i></a>
                       <?php if($row->status){?>
                         <a href="<?=url('admin/' . $controllerRoute . '/change-status/'.Helper::encoded($row->id))?>" class="btn btn-outline-success btn-sm" title="Activate <?=$module['title']?>"><i class="fa fa-check"></i></a>

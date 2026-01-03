@@ -738,7 +738,7 @@ class ProductController extends Controller
                     'filename'              => 'required'
                 ];
                 if($this->validate($request, $rules)){
-                    /* banner image */
+                    /* upload product csv file */
                         $imageFile      = $request->file('filename');
                         if($imageFile != ''){
                             $imageName      = $imageFile->getClientOriginalName();
@@ -746,13 +746,13 @@ class ProductController extends Controller
                             if($uploadedFile['status']){
                                 $filename       = $uploadedFile['newFilename'];
                                 $sessionData    = Auth::guard('admin')->user();
-                                $fields         = [
+                                $fields0         = [
                                     'title'                 => $postData['title'],
                                     'filename'              => $filename,
                                     'created_by'            => $sessionData->id,
                                     'updated_by'            => $sessionData->id,
                                 ];
-                                $upload_id = UploadProduct::insertGetId($fields);
+                                $upload_id = UploadProduct::insertGetId($fields0);
                                 /* extract data from file & insert into three category tables */
                                     // Path to the CSV file
                                     $file_path = './public/uploads/product/'.$filename;
@@ -780,32 +780,186 @@ class ProductController extends Controller
                                                 $markup_type                = $data[13];
                                                 $added_amount               = $data[14];
                                                 $retail_price_inc_tax       = $data[15];
-                                                
-                                                $getBrandId                 = Brand::select('id')->where('name', 'LIKE', '%'.$brand.'%')->first();
-                                                $getSupplierId              = Supplier::select('id')->where('name', 'LIKE', '%'.$supplier.'%')->first();
-                                                $getSizeId                  = Size::select('id')->where('name', 'LIKE', '%'.$size.'%')->first();
+                                                $shop_stock                 = $data[16];
+                                                $warehouse_stock            = $data[17];
 
-                                                $fields = [
-                                                    'sku'                       => $sku,
-                                                    'name'                      => $name,
-                                                    'receipt_short_name'        => $receipt_short_name,
-                                                    'shelf_tag_short_name'      => $shelf_tag_short_name,
-                                                    'barcode'                   => $barcode,
-                                                    'brand_id'                  => (($getBrandId)?$getBrandId->id:0),
-                                                    'supplier_id'               => (($getSupplierId)?$getSupplierId->id:0),
-                                                    'size_id'                   => (($getSizeId)?$getSizeId->id:0),
-                                                    'style'                     => $style,
-                                                    'cost_price_ex_tax'         => $cost_price_ex_tax,
-                                                    'cost_price_tax'            => $cost_price_tax,
-                                                    'cost_price_inc_tax'        => $cost_price_inc_tax,
-                                                    'markup_amount'             => $markup_amount,
-                                                    'markup_type'               => $markup_type,
-                                                    'added_amount'              => $added_amount,
-                                                    'retail_price_inc_tax'      => $retail_price_inc_tax,
-                                                    'upload_id'                 => $upload_id,
-                                                ];
-                                                // Helper::pr($fields);
-                                                Product::insert($fields);
+                                                $checkProduct               = Product::where('sku', '=', $sku)->first();
+                                                if(empty($checkProduct)){
+                                                    $getBrandId                 = Brand::select('id')->where('name', 'LIKE', '%'.$brand.'%')->first();
+                                                    $getSupplierId              = Supplier::select('id')->where('name', 'LIKE', '%'.$supplier.'%')->first();
+                                                    $getSizeId                  = Size::select('id')->where('name', 'LIKE', '%'.$size.'%')->first();
+
+                                                    $fields = [
+                                                        'sku'                       => $sku,
+                                                        'name'                      => $name,
+                                                        'receipt_short_name'        => $receipt_short_name,
+                                                        'shelf_tag_short_name'      => $shelf_tag_short_name,
+                                                        'barcode'                   => $barcode,
+                                                        'brand_id'                  => (($getBrandId)?$getBrandId->id:0),
+                                                        'supplier_id'               => (($getSupplierId)?$getSupplierId->id:0),
+                                                        'size_id'                   => (($getSizeId)?$getSizeId->id:0),
+                                                        'style'                     => $style,
+                                                        'cost_price_ex_tax'         => $cost_price_ex_tax,
+                                                        'cost_price_tax'            => $cost_price_tax,
+                                                        'cost_price_inc_tax'        => $cost_price_inc_tax,
+                                                        'markup_amount'             => $markup_amount,
+                                                        'markup_type'               => $markup_type,
+                                                        'added_amount'              => $added_amount,
+                                                        'retail_price_inc_tax'      => $retail_price_inc_tax,
+                                                        'upload_id'                 => $upload_id,
+                                                        'shop_stock'                => $shop_stock,
+                                                        'warehouse_stock'           => $warehouse_stock,
+                                                    ];
+                                                    // Helper::pr($fields,0);
+                                                    $product_id = Product::insertGetId($fields);
+
+                                                    // warehouse stock
+                                                        $opening_qty                = 0;
+                                                        $txn_qty                    = $warehouse_stock;
+                                                        $closing_qty                = ($opening_qty + $txn_qty);
+                                                        $fields11                   = [
+                                                            'txn_type'          => 'IN',
+                                                            'stock_date'        => date("Y-m-d"),
+                                                            'product_id'        => $product_id,
+                                                            'opening_qty'       => $opening_qty,
+                                                            'txn_qty'           => $txn_qty,
+                                                            'closing_qty'       => $closing_qty,
+                                                            'note'              => 'Opening stock',
+                                                        ];
+                                                        WarehouseStock::insert($fields11);
+                                                    // warehouse stock
+
+                                                    // shop stock
+                                                        $opening_qty                = 0;
+                                                        $txn_qty                    = $shop_stock;
+                                                        $closing_qty                = ($opening_qty + $txn_qty);
+                                                        $fields12                   = [
+                                                            'txn_type'          => 'IN',
+                                                            'stock_date'        => date("Y-m-d"),
+                                                            'product_id'        => $product_id,
+                                                            'opening_qty'       => $opening_qty,
+                                                            'txn_qty'           => $txn_qty,
+                                                            'closing_qty'       => $closing_qty,
+                                                            'note'              => 'Opening stock',
+                                                        ];
+                                                        ShopStock::insert($fields12);
+                                                    // shop stock
+                                                } else  {
+                                                    $fields['sku']          = $sku;
+                                                    $fields['status']       = 1;
+                                                    $fields['upload_id']    = $upload_id;
+
+                                                    if($name != ''){
+                                                        $fields['name']   = $name;
+                                                    }
+
+                                                    if($receipt_short_name != ''){
+                                                        $fields['receipt_short_name']   = $receipt_short_name;
+                                                    }
+
+                                                    if($shelf_tag_short_name != ''){
+                                                        $fields['shelf_tag_short_name']   = $shelf_tag_short_name;
+                                                    }
+
+                                                    if($barcode != ''){
+                                                        $fields['barcode']   = $barcode;
+                                                    }
+
+                                                    if($brand != ''){
+                                                        $getBrandId                 = Brand::select('id')->where('name', 'LIKE', '%'.$brand.'%')->first();
+                                                        $fields['brand_id']         = (($getBrandId)?$getBrandId->id:0);
+                                                    }
+
+                                                    if($supplier != ''){
+                                                        $getSupplierId              = Supplier::select('id')->where('name', 'LIKE', '%'.$supplier.'%')->first();
+                                                        $fields['supplier_id']      = (($getSupplierId)?$getSupplierId->id:0);
+                                                    }
+
+                                                    if($size != ''){
+                                                        $getSizeId                  = Size::select('id')->where('name', 'LIKE', '%'.$size.'%')->first();
+                                                        $fields['size_id']          = (($getSizeId)?$getSizeId->id:0);
+                                                    }
+
+                                                    if($style != ''){
+                                                        $fields['style']   = $style;
+                                                    }
+
+                                                    if($cost_price_ex_tax != ''){
+                                                        $fields['cost_price_ex_tax']   = $cost_price_ex_tax;
+                                                    }
+
+                                                    if($cost_price_tax != ''){
+                                                        $fields['cost_price_tax']   = $cost_price_tax;
+                                                    }
+
+                                                    if($cost_price_inc_tax != ''){
+                                                        $fields['cost_price_inc_tax']   = $cost_price_inc_tax;
+                                                    }
+
+                                                    if($markup_amount != ''){
+                                                        $fields['markup_amount']   = $markup_amount;
+                                                    }
+
+                                                    if($markup_type != ''){
+                                                        $fields['markup_type']   = $markup_type;
+                                                    }
+
+                                                    if($markup_type != ''){
+                                                        $fields['markup_type']   = $markup_type;
+                                                    }
+
+                                                    if($added_amount != ''){
+                                                        $fields['added_amount']   = $added_amount;
+                                                    }
+
+                                                    if($retail_price_inc_tax != ''){
+                                                        $fields['retail_price_inc_tax']   = $retail_price_inc_tax;
+                                                    }
+
+                                                    $product_id = $checkProduct->id;
+                                                    if($shop_stock != ''){
+                                                        // shop stock
+                                                            $opening_qty                = $checkProduct->shop_stock;
+                                                            $txn_qty                    = $shop_stock;
+                                                            $closing_qty                = ($opening_qty + $txn_qty);
+                                                            $fields12                   = [
+                                                                'txn_type'          => 'IN',
+                                                                'stock_date'        => date("Y-m-d"),
+                                                                'product_id'        => $product_id,
+                                                                'opening_qty'       => $opening_qty,
+                                                                'txn_qty'           => $txn_qty,
+                                                                'closing_qty'       => $closing_qty,
+                                                                'note'              => 'Opening stock',
+                                                            ];
+                                                            ShopStock::insert($fields12);
+                                                        // shop stock
+
+                                                        $fields['shop_stock']   = $closing_qty;
+                                                    }
+                                                    
+                                                    if($warehouse_stock != ''){
+                                                        // warehouse stock
+                                                            $opening_qty                = $checkProduct->warehouse_stock;
+                                                            $txn_qty                    = $warehouse_stock;
+                                                            $closing_qty                = ($opening_qty + $txn_qty);
+                                                            $fields11                   = [
+                                                                'txn_type'          => 'IN',
+                                                                'stock_date'        => date("Y-m-d"),
+                                                                'product_id'        => $product_id,
+                                                                'opening_qty'       => $opening_qty,
+                                                                'txn_qty'           => $txn_qty,
+                                                                'closing_qty'       => $closing_qty,
+                                                                'note'              => 'Opening stock',
+                                                            ];
+                                                            WarehouseStock::insert($fields11);
+                                                        // warehouse stock
+
+                                                        $fields['warehouse_stock']   = $closing_qty;
+                                                    }
+
+                                                    // Helper::pr($fields,0);
+                                                    Product::where('id', '=', $checkProduct->id)->update($fields);
+                                                }
                                             }
                                             $counter++;
                                         }
@@ -822,7 +976,7 @@ class ProductController extends Controller
                         } else {
                             return redirect()->back()->with(['error_message' => 'CSV file is required to upload !!!']);
                         }
-                    /* banner image */
+                    /* upload product csv file */
                 } else {
                     return redirect()->back()->with('error_message', 'All Fields Required !!!');
                 }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Models\GeneralSetting;
 use App\Models\Supplier;
+use App\Models\Country;
 
 use Auth;
 use Session;
@@ -39,14 +40,8 @@ class SupplierController extends Controller
                 $postData = $request->all();
                 $rules = [
                     'name'                          => 'required',
-                    'contact_person_name'           => 'required',
                     'email'                         => 'required',
                     'phone'                         => 'required',
-                    'address'                       => 'required',
-                    'country'                       => 'required',
-                    'state'                         => 'required',
-                    'city'                          => 'required',
-                    'zipcode'                       => 'required',
                     'status'                        => 'required',
                 ];
                 if($this->validate($request, $rules)){
@@ -58,21 +53,30 @@ class SupplierController extends Controller
                             }
                         }
                         $fields = [
-                            'name'                      => $postData['name'],
-                            'contact_person_name'       => $postData['contact_person_name'],
-                            'email'                     => $postData['email'],
-                            'email2'                     => $postData['email2'],
-                            'phone'                     => $postData['phone'],
-                            'address'                   => $postData['address'],
-                            'country'                   => $postData['country'],
-                            'state'                     => $postData['state'],
-                            'city'                      => $postData['city'],
-                            'locality'                  => $postData['locality'],
-                            'street_no'                 => $postData['street_no'],
-                            'zipcode'                   => $postData['zipcode'],
-                            'latitude'                  => $postData['latitude'],
-                            'longitude'                 => $postData['longitude'],
-                            'status'                    => $postData['status'],
+                            'supplier_code'                         => $postData['supplier_code'],
+                            'name'                                  => $postData['name'],
+                            'currency'                              => $postData['currency'],
+                            'primary_lead_time'                     => $postData['primary_lead_time'],
+                            'secondary_lead_time'                   => $postData['secondary_lead_time'],
+                            'notes'                                 => $postData['notes'],
+                            'phone'                                 => $postData['phone'],
+                            'email'                                 => $postData['email'],
+                            'email2'                                => $postData['email2'],
+                            'fax'                                   => $postData['fax'],
+                            'website'                               => $postData['website'],
+                            'b_street_address1'                     => $postData['b_street_address1'],
+                            'b_street_address2'                     => $postData['b_street_address2'],
+                            'b_city'                                => $postData['b_city'],
+                            'b_state'                               => $postData['b_state'],
+                            'b_postcode'                            => $postData['b_postcode'],
+                            'b_country'                             => $postData['b_country'],
+                            's_street_address1'                     => $postData['s_street_address1'],
+                            's_street_address2'                     => $postData['s_street_address2'],
+                            's_city'                                => $postData['s_city'],
+                            's_state'                               => $postData['s_state'],
+                            's_postcode'                            => $postData['s_postcode'],
+                            's_country'                             => $postData['s_country'],
+                            'status'                                => $postData['status'],
                         ];
                         Supplier::insert($fields);
                         return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Inserted Successfully !!!');
@@ -87,6 +91,7 @@ class SupplierController extends Controller
             $title                          = $this->data['title'].' Add';
             $page_name                      = 'supplier.add-edit';
             $data['row']                    = [];
+            $data['couns']                  = Country::select('country', 'currency_name', 'currency_code')->where('status', '=', 1)->orderBy('country', 'ASC')->get();
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
     /* add */
@@ -97,18 +102,13 @@ class SupplierController extends Controller
             $title                          = $this->data['title'].' Update';
             $page_name                      = 'supplier.add-edit';
             $data['row']                    = Supplier::where($this->data['primary_key'], '=', $id)->first();
+            $data['couns']                  = Country::select('country', 'currency_name', 'currency_code')->where('status', '=', 1)->orderBy('country', 'ASC')->get();
             if($request->isMethod('post')){
                 $postData = $request->all();
                 $rules = [
                     'name'                          => 'required',
-                    'contact_person_name'           => 'required',
                     'email'                         => 'required',
                     'phone'                         => 'required',
-                    'address'                       => 'required',
-                    'country'                       => 'required',
-                    'state'                         => 'required',
-                    'city'                          => 'required',
-                    'zipcode'                       => 'required',
                     'status'                        => 'required',
                 ];
                 if($this->validate($request, $rules)){
@@ -120,21 +120,30 @@ class SupplierController extends Controller
                             }
                         }
                         $fields = [
-                            'name'                      => $postData['name'],
-                            'contact_person_name'       => $postData['contact_person_name'],
-                            'email'                     => $postData['email'],
-                            'email2'                     => $postData['email2'],
-                            'phone'                     => $postData['phone'],
-                            'address'                   => $postData['address'],
-                            'country'                   => $postData['country'],
-                            'state'                     => $postData['state'],
-                            'city'                      => $postData['city'],
-                            'locality'                  => $postData['locality'],
-                            'street_no'                 => $postData['street_no'],
-                            'zipcode'                   => $postData['zipcode'],
-                            'latitude'                  => $postData['latitude'],
-                            'longitude'                 => $postData['longitude'],
-                            'status'                    => $postData['status'],
+                            'supplier_code'                         => $postData['supplier_code'],
+                            'name'                                  => $postData['name'],
+                            'currency'                              => $postData['currency'],
+                            'primary_lead_time'                     => $postData['primary_lead_time'],
+                            'secondary_lead_time'                   => $postData['secondary_lead_time'],
+                            'notes'                                 => $postData['notes'],
+                            'phone'                                 => $postData['phone'],
+                            'email'                                 => $postData['email'],
+                            'email2'                                => $postData['email2'],
+                            'fax'                                   => $postData['fax'],
+                            'website'                               => $postData['website'],
+                            'b_street_address1'                     => $postData['b_street_address1'],
+                            'b_street_address2'                     => $postData['b_street_address2'],
+                            'b_city'                                => $postData['b_city'],
+                            'b_state'                               => $postData['b_state'],
+                            'b_postcode'                            => $postData['b_postcode'],
+                            'b_country'                             => $postData['b_country'],
+                            's_street_address1'                     => $postData['s_street_address1'],
+                            's_street_address2'                     => $postData['s_street_address2'],
+                            's_city'                                => $postData['s_city'],
+                            's_state'                               => $postData['s_state'],
+                            's_postcode'                            => $postData['s_postcode'],
+                            's_country'                             => $postData['s_country'],
+                            'status'                                => $postData['status'],
                         ];
                         Supplier::where($this->data['primary_key'], '=', $id)->update($fields);
                         return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Updated Successfully !!!');

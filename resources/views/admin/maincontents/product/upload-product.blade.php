@@ -40,7 +40,7 @@ $controllerRoute = $module['controller_route'];
                   <th scope="col">Title</th>
                   <th scope="col">Filename</th>
                   <th scope="col">Product Count</th>
-                  <th scope="col">Action</th>
+                  <!-- <th scope="col">Action</th> -->
                 </tr>
               </thead>
               <tbody>
@@ -54,9 +54,9 @@ $controllerRoute = $module['controller_route'];
                       echo $productCount = Product::where('status', '!=', 3)->where('upload_id', '=', $row->id)->count();
                       ?> products
                     </td>
-                    <td>
+                    <!-- <td>
                       <a href="<?=url('admin/' . $controllerRoute . '/delete-upload-product/'.Helper::encoded($row->id))?>" class="btn btn-outline-danger btn-sm" title="Delete <?=$module['title']?>" onclick="return confirm('Do You Want To Delete This');"><i class="fa fa-trash"></i></a>
-                    </td>
+                    </td> -->
                   </tr>
                 <?php } }?>
               </tbody>

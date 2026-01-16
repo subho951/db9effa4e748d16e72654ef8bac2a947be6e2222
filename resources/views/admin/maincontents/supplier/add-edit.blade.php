@@ -1,5 +1,5 @@
 <?php
-
+$current_url                    = url()->current();
 use App\Helpers\Helper;
 
 $controllerRoute                = $module['controller_route'];
@@ -84,6 +84,8 @@ $controllerRoute                = $module['controller_route'];
       $primary_lead_time            = $row->primary_lead_time;
       $secondary_lead_time          = $row->secondary_lead_time;
       $notes                        = $row->notes;
+      $footers                      = $row->footers;
+      $logo                         = $row->logo;
 
       $phone                        = $row->phone;
       $email                        = $row->email;
@@ -105,6 +107,7 @@ $controllerRoute                = $module['controller_route'];
       $s_postcode                   = $row->s_postcode;
       $s_country                    = $row->s_country;
       $status                       = $row->status;
+      $uId                          = $row->id;
     } else {
       $supplier_code                = '';
       $name                         = '';
@@ -112,6 +115,8 @@ $controllerRoute                = $module['controller_route'];
       $primary_lead_time            = 0;
       $secondary_lead_time          = 0;
       $notes                        = '';
+      $footers                      = '';
+      $logo                         = '';
 
       $phone                        = '';
       $email                        = '';
@@ -133,6 +138,7 @@ $controllerRoute                = $module['controller_route'];
       $s_postcode                   = '';
       $s_country                    = 'Australia';
       $status                       = 0;
+      $uId                          = '';
     }
     ?>
     <div class="col-md-12">
@@ -174,9 +180,39 @@ $controllerRoute                = $module['controller_route'];
               </div>
               <div class="mb-3 col-md-4">
                 <label for="notes" class="form-label">Notes</label>
-                <input class="form-control" type="text" id="notes" name="notes" value="<?= $notes ?>" />
+                <textarea class="form-control" id="notes" name="notes" rows="3"><?= $notes ?></textarea>
               </div>
               <div class="mb-3 col-md-4">
+                <label for="footers" class="form-label">Footers</label>
+                <textarea class="form-control" id="footers" name="footers" rows="3"><?= $footers ?></textarea>
+              </div>
+
+              <div class="mb-3 col-md-6">
+                <div class="d-flex align-items-start align-items-sm-center gap-4">
+                    <?php if($logo != ''){?>
+                      <img src="<?=env('UPLOADS_URL').'/supplier/'.$logo?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
+                    <?php } else {?>
+                      <img src="<?=env('NO_IMAGE')?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
+                    <?php } ?>
+                    <div class="button-wrapper">
+                      <label for="logo" class="btn btn-primary me-2 mb-4" tabindex="0">
+                        <span class="d-none d-sm-block">Upload Logo</span>
+                        <i class="bx bx-upload d-block d-sm-none"></i>
+                        <input type="file" id="logo" name="logo" class="account-file-input" hidden accept="image/png, image/jpeg" />
+                      </label>
+                      <?php if($logo != ''){?>
+                        <a href="<?=url('admin/common-delete-image/'.Helper::encoded($current_url).'/suppliers/logo/id/'.$uId)?>" title="Remove image" onclick="return confirm('Do You Want To Delete This Image ?');">
+                          <button type="button" class="btn btn-outline-secondary account-image-reset mb-4">
+                            <i class="bx bx-reset d-block d-sm-none"></i>
+                            <span class="d-none d-sm-block">Reset</span>
+                          </button>
+                        </a>
+                      <?php } ?>
+                      <p class="text-muted mb-0">Allowed JPG, JPEG, ICO, PNG, GIF, SVG, AVIF</p>
+                    </div>
+                </div>
+              </div>
+              <div class="mb-3 col-md-6">
                 <label for="username" class="form-label d-block">Status <small class="text-danger">*</small></label>
                 <div class="form-check form-check-inline mt-3">
                   <input name="status" class="form-check-input" type="radio" value="1" id="status1" <?= (($status == 1) ? 'checked' : '') ?> required />

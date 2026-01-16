@@ -221,13 +221,13 @@ $user_type = session('type');
       </ul>
    </li>
    <!-- Products -->
-   <li class="menu-item <?=(($pageSegment == 'products')?'open':'')?>">
+   <li class="menu-item <?=(($pageSegment == 'products' || $pageSegment == 'purchase-orders')?'open':'')?>">
       <a href="javascript:void(0);" class="menu-link menu-toggle">
          <i class="menu-icon tf-icons fa-solid fa-cart-shopping"></i>
          <div data-i18n="Products">Products</div>
       </a>
       <ul class="menu-sub">
-         <li class="menu-item <?=(($pageFunction == 'list')?'active':'')?>">
+         <li class="menu-item <?=(($pageSegment == 'products')?'active':'')?>">
             <!-- <a href="<?=url('admin/products/list')?>" class="menu-link">
                <div data-i18n="List">List</div>
             </a> -->
@@ -248,6 +248,11 @@ $user_type = session('type');
          <li class="menu-item <?=(($pageFunction == 'shelf-tag-list')?'active':'')?>">
             <a href="<?=url('admin/products/shelf-tag-list')?>" class="menu-link">
                <div data-i18n="Shelf Tags List">Shelf Tags List</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'purchase-orders')?'active':'')?>">
+            <a href="<?=url('admin/purchase-orders/list')?>" class="menu-link">
+               <div data-i18n="Purchase Orders">Purchase Orders</div>
             </a>
          </li>
       </ul>

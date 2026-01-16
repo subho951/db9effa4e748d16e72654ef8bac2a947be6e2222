@@ -219,7 +219,13 @@ Route::get('/db-test', function () {
                 Route::post('products/validate-admin-pin-export', 'ProductController@validateAdminPinExport');
                 Route::post('products/update-discountvoucher-switch-status', 'ProductController@updateDiscountVoucherStatus');
                 Route::post('products/update-multibuy-switch-status', 'ProductController@updateMultiBuyStatus');
-            /* customer */
+            /* products */
+            /* purchase orders */
+                Route::get('purchase-orders/list', 'PurchaseOrderController@list');
+                Route::match(['get', 'post'], 'purchase-orders/add', 'PurchaseOrderController@add');
+                Route::match(['get', 'post'], 'purchase-orders/edit/{id}', 'PurchaseOrderController@edit');
+                Route::get('/get-item-info', 'PurchaseOrderController@getItemInfo');
+            /* purchase orders */
             /* customer */
                 Route::get('customer/list', 'CustomerController@list');
                 // Route::match(['get', 'post'], 'customer/add', 'CustomerController@add');

@@ -1,0 +1,565 @@
+<?php
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderItem;
+use App\Helpers\Helper;
+
+$controllerRoute                = $module['controller_route'];
+?>
+<style>
+  .invoice-footer span {
+      font-weight: 600;
+      font-size: 15px;
+  }
+
+  .invoice-footer h6 {
+      margin-bottom: 0;
+  }
+</style>
+<div class="container-xxl flex-grow-1 container-p-y">
+  <h4 class="py-3 mb-4">
+    <span class="text-muted fw-light"><a href="<?= url('admin/dashboard') ?>">Dashboard</a> /</span>
+    <span class="text-muted fw-light"><a href="<?= url('admin/' . $controllerRoute . '/list/') ?>"><?= $module['title'] ?> List</a> /</span>
+    <?= $page_header ?>
+  </h4>
+  <div class="row">
+    <?php
+    if ($row) {
+      $order_date           = $row->order_date;
+      $delivery_id          = $row->delivery_id;
+      $supplier_id          = $row->supplier_id;
+      $status               = $row->status;
+      $total_lines          = $row->total_lines;
+      $total_quantity       = $row->total_quantity;
+      $subtotal             = $row->subtotal;
+      $tax_total            = $row->tax_total;
+      $total_inc_tax        = $row->total_inc_tax;
+    } else {
+      $order_date           = '';
+      $delivery_id          = '';
+      $supplier_id          = '';
+      $status               = 1;
+      $total_lines          = 0;
+      $total_quantity       = 0;
+      $subtotal             = 0;
+      $tax_total            = 0;
+      $total_inc_tax        = 0;
+    }
+    ?>
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-body">
+          <small class="text-danger">Star (*) marked fields are mandatory</small>
+          <form id="filterForm" method="POST" action="" enctype="multipart/form-data">
+            @csrf
+            <div class="row">
+              <div class="mb-3 col-md-6">
+                <label for="order_date" class="form-label">Order Date <small class="text-danger">*</small></label>
+                <input class="form-control" type="date" id="order_date" name="order_date" value="<?= $order_date ?>" required autofocus />
+              </div>
+              <div class="mb-3 col-md-6">
+                <label for="username" class="form-label d-block">Status <small class="text-danger">*</small></label>
+                <div class="form-check form-check-inline mt-3">
+                  <input name="status" class="form-check-input" type="radio" value="1" id="status1" <?= (($status == 1) ? 'checked' : '') ?> required />
+                  <label class="form-check-label" for="status1">
+                    Active
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mt-3">
+                  <input name="status" class="form-check-input" type="radio" value="0" id="status2" <?= (($status == 0) ? 'checked' : '') ?> required />
+                  <label class="form-check-label" for="status2">
+                    Deactive
+                  </label>
+                </div>
+              </div>
+
+              <div class="mb-3 col-md-6">
+                <label for="delivery_id" class="form-label">Delivery Location <small class="text-danger">*</small></label>
+                <select name="delivery_id" class="form-select" id="delivery_id" required>
+                  <option value="" selected>Select Delivery Location</option>
+                  <?php if ($deliveryLocations) {
+                    foreach ($deliveryLocations as $deliveryLocation) { ?>
+                      <option value="<?= $deliveryLocation->id ?>" <?= (($deliveryLocation->id == $delivery_id) ? 'selected' : '') ?>><?= $deliveryLocation->name ?> | <?= $deliveryLocation->address ?> | <?= $deliveryLocation->phone ?></option>
+                  <?php }
+                  } ?>
+                </select>
+              </div>
+              <div class="mb-3 col-md-6">
+                <label for="supplier_id" class="form-label">Supplier <small class="text-danger">*</small></label>
+                <select name="supplier_id" class="form-select" id="supplier_id" required onchange="this.form.submit()">
+                  <option value="" selected>Select Supplier</option>
+                  <?php if ($suppliers) {
+                    foreach ($suppliers as $supp) { ?>
+                      <option value="<?= $supp->id ?>" <?= (($supp->id == $supplier_id) ? 'selected' : '') ?>><?= $supp->name ?> | <?= $supp->supplier_code ?> | <?= $supp->phone ?></option>
+                  <?php }
+                  } ?>
+                </select>
+              </div>
+            </div>
+
+            <?php if ($row) { ?>
+              <div class="row">
+                <div class="mb-3 col-md-2">
+                  <h6 style="font-weight: bold;">Items</h6>
+                </div>
+                <div class="mb-3 col-md-1">
+                  <h6 style="font-weight: bold;">Supplier SKU</h6>
+                </div>
+                <div class="mb-3 col-md-1">
+                  <h6 style="font-weight: bold;">Merchant SKU</h6>
+                </div>
+                <div class="mb-3 col-md-3">
+                  <h6 style="font-weight: bold;">Product name</h6>
+                </div>
+                <div class="mb-3 col-md-1">
+                  <h6 style="font-weight: bold;">Order QTY</h6>
+                </div>
+                <div class="mb-3 col-md-1">
+                  <h6 style="font-weight: bold;">Unit price</h6>
+                </div>
+                <div class="mb-3 col-md-1">
+                  <h6 style="font-weight: bold;">Tax rate</h6>
+                </div>
+                <div class="mb-3 col-md-1">
+                  <h6 style="font-weight: bold;">Line total</h6>
+                </div>
+                <div class="mb-3 col-md-1">
+                  <h6 style="font-weight: bold;">Action</h6>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="mb-3 col-md-12 text-center">
+                  <a href="javascript:void(0);" class="btn btn-success add_button" title="Add row">
+                    <i class="fa fa-plus-circle"></i>&nbsp;Add Item
+                  </a>
+                </div>
+              </div>
+
+              <div class="field_wrapper">
+                <?php
+                $po_items = PurchaseOrderItem::where('purchase_order_id', '=', $id)->get();
+                if($po_items){ $sl=101; foreach($po_items as $po_item){
+                ?>
+                  <div class="row" style="border:1px solid #04163d; padding:10px; border-radius:10px;margin-bottom:5px;">
+                    <div class="mb-3 col-md-2">
+                      <select name="item_id[]" class="form-select" id="item_id_<?= $sl?>" required onchange="getItemInfo(this.value, <?= $sl?>);">
+                        <option value="" selected>Select Items</option>
+                        <?php if ($items) {
+                          foreach ($items as $item) { ?>
+                          <option value="<?= $item->id ?>" <?= (($item->id == $po_item->item_id)?'selected':'') ?>><?= $item->name ?></option>
+                        <?php }
+                        } ?>
+                      </select>
+                      <span class="row-loader d-none" id="loader_<?= $sl?>">
+                        <i class="fa fa-spinner fa-spin"></i>
+                      </span>
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <span id="supplier_sku_text_<?= $sl?>"><?= $po_item->supplier_sku ?></span>
+                      <input type="hidden" name="supplier_sku[]" id="supplier_sku_val_<?= $sl?>" value="<?= $po_item->supplier_sku ?>">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <span id="merchant_sku_text_<?= $sl?>"><?= $po_item->merchant_sku ?></span>
+                      <input type="hidden" name="merchant_sku[]" id="merchant_sku_val_<?= $sl?>" value="<?= $po_item->merchant_sku ?>">
+                    </div>
+                    <div class="mb-3 col-md-3">
+                      <span id="item_name_text_<?= $sl?>"></span>
+                      <input type="hidden" name="item_name[]" id="item_name_val_<?= $sl?>" value="<?= $po_item->item_name ?>">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <input type="text" class="form-control" name="qty[]" maxlength="4" id="qty_val_<?= $sl?>" required value="<?= $po_item->qty ?>">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <input type="text" class="form-control" name="cost_price[]" id="cost_price_val_<?= $sl?>" value="<?= $po_item->cost_price ?>">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <span id="tax_percent_text_<?= $sl?>"><?= $po_item->tax_percent ?></span>
+                      <input type="hidden" name="tax_percent[]" id="tax_percent_val_<?= $sl?>" value="<?= $po_item->tax_percent ?>">
+                      <input type="hidden" name="tax_amount[]" id="tax_amount_val_<?= $sl?>" value="<?= $po_item->tax_amount ?>">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <span id="total_inc_tax_text_<?= $sl?>"><?= $po_item->total_inc_tax ?></span>
+                      <input type="hidden" class="form-control" name="total_inc_tax[]" id="total_inc_tax_val_<?= $sl?>" value="<?= $po_item->total_inc_tax ?>">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <a href="javascript:void(0);" class="btn btn-danger remove_button" title="Remove row">
+                        <i class="fa fa-minus-circle"></i>
+                      </a>
+                    </div>
+                  </div>
+                <?php $sl++; } }?>
+              </div>
+
+              <div class="row">
+                <div class="mb-3 col-md-6 text-center">
+
+                </div>
+                <div class="invoice-footer mb-3 col-md-4 text-center">
+                  <h6 style="font-weight: bold;">Total lines</h6>
+                </div>
+                <div class="invoice-footer mb-3 col-md-2 text-center">
+                  <span id="total_lines_text"><?= $total_lines ?></span>
+                  <input type="hidden" name="total_lines" id="total_lines_val" value="<?= $total_lines ?>">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="mb-3 col-md-6 text-center">
+
+                </div>
+                <div class="invoice-footer mb-3 col-md-4 text-center">
+                  <h6 style="font-weight: bold;">Total quantity</h6>
+                </div>
+                <div class="invoice-footer mb-3 col-md-2 text-center">
+                  <span id="total_quantity_text"><?= $total_quantity ?></span>
+                  <input type="hidden" name="total_quantity" id="total_quantity_val" value="<?= $total_quantity ?>">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="mb-3 col-md-6 text-center">
+
+                </div>
+                <div class="invoice-footer mb-3 col-md-4 text-center">
+                  <h6 style="font-weight: bold;">Subtotal</h6>
+                </div>
+                <div class="invoice-footer mb-3 col-md-2 text-center">
+                  <span id="subtotal_text"><?= $subtotal ?></span>
+                  <input type="hidden" name="subtotal" id="subtotal_val" value="<?= $subtotal ?>">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="mb-3 col-md-6 text-center">
+
+                </div>
+                <div class="invoice-footer mb-3 col-md-4 text-center">
+                  <h6 style="font-weight: bold;">Tax total</h6>
+                </div>
+                <div class="invoice-footer mb-3 col-md-2 text-center">
+                  <span id="tax_total_text"><?= $tax_total ?></span>
+                  <input type="hidden" name="tax_total" id="tax_total_val" value="<?= $tax_total ?>">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="mb-3 col-md-6 text-center">
+
+                </div>
+                <div class="invoice-footer mb-3 col-md-4 text-center">
+                  <h6 style="font-weight: bold;">Total (inc. tax)</h6>
+                </div>
+                <div class="invoice-footer mb-3 col-md-2 text-center">
+                  <span id="total_inc_tax_text"><?= $total_inc_tax ?></span>
+                  <input type="hidden" name="total_inc_tax_val" id="total_inc_tax_val" value="<?= $total_inc_tax ?>">
+                </div>
+              </div>
+
+              <div class="mt-2">
+                <button type="submit" class="btn btn-primary me-2"><?= (($row) ? 'Save' : 'Add') ?></button>
+              </div>
+            <?php } ?>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+  let firstLoad = true;
+  document.getElementById('supplier_id').addEventListener('change', function() {
+    if (firstLoad) {
+      firstLoad = false;
+      return;
+    }
+    document.getElementById('filterForm').submit();
+  });
+</script>
+<script>
+  $(document).ready(function() {
+    var maxField = 10; //Input fields increment limitation
+    var addButton = $('.add_button'); //Add button selector
+    var wrapper = $('.field_wrapper'); //Input field wrapper
+
+    var x = 1; //Initial field counter is 1
+
+    // Once add button is clicked
+    $(addButton).click(function() {
+      //Check maximum number of input fields
+      if (x < maxField) {
+        var fieldHTML = `<div class="row" style="border:1px solid #04163d; padding:10px; border-radius:10px;margin-bottom:5px;">
+                          <div class="mb-3 col-md-2">
+                            <select name="item_id[]" class="form-select" id="item_id_${x}" required onchange="getItemInfo(this.value, ${x});">
+                              <option value="" selected>Select Items</option>
+                              <?php if ($items) {
+                                foreach ($items as $item) { ?>
+                                <option value="<?= $item->id ?>"><?= $item->name ?></option>
+                              <?php }
+                              } ?>
+                            </select>
+                            <span class="row-loader d-none" id="loader_${x}">
+                              <i class="fa fa-spinner fa-spin"></i>
+                            </span>
+                          </div>
+                          <div class="mb-3 col-md-1">
+                            <span id="supplier_sku_text_${x}"></span>
+                            <input type="hidden" name="supplier_sku[]" id="supplier_sku_val_${x}">
+                          </div>
+                          <div class="mb-3 col-md-1">
+                            <span id="merchant_sku_text_${x}"></span>
+                            <input type="hidden" name="merchant_sku[]" id="merchant_sku_val_${x}">
+                          </div>
+                          <div class="mb-3 col-md-3">
+                            <span id="item_name_text_${x}"></span>
+                            <input type="hidden" name="item_name[]" id="item_name_val_${x}">
+                          </div>
+                          <div class="mb-3 col-md-1">
+                            <input type="text" class="form-control" name="qty[]" maxlength="4" id="qty_val_${x}" required>
+                          </div>
+                          <div class="mb-3 col-md-1">
+                            <input type="text" class="form-control" name="cost_price[]" id="cost_price_val_${x}">
+                          </div>
+                          <div class="mb-3 col-md-1">
+                            <span id="tax_percent_text_${x}"></span>
+                            <input type="hidden" name="tax_percent[]" id="tax_percent_val_${x}">
+                            <input type="hidden" name="tax_amount[]" id="tax_amount_val_${x}">
+                          </div>
+                          <div class="mb-3 col-md-1">
+                            <span id="total_inc_tax_text_${x}"></span>
+                            <input type="hidden" class="form-control" name="total_inc_tax[]" id="total_inc_tax_val_${x}">
+                          </div>
+                          <div class="mb-3 col-md-1">
+                            <a href="javascript:void(0);" class="btn btn-danger remove_button" title="Remove row">
+                              <i class="fa fa-minus-circle"></i>
+                            </a>
+                          </div>
+                        </div>`; //New input field html
+
+        x++; //Increase field counter
+        $(wrapper).append(fieldHTML); //Add field html
+      } else {
+        alert('A maximum of ' + maxField + ' fields are allowed to be added. ');
+      }
+    });
+
+    // Once remove button is clicked
+    $(wrapper).on('click', '.remove_button', function(e) {
+      e.preventDefault();
+      $(this).closest('.row').remove();
+      recalculateInvoiceFooter();
+    });
+  });
+
+  function getItemInfo(item_id, row) {
+    // let selectedItems = [];
+
+    // if (selectedItems.includes(item_id)) {
+    //     alert('This item is already selected!');
+    //     $('#item_id_' + row).val('');
+    //     return;
+    // }
+
+    // selectedItems.push(item_id);
+
+    if (!item_id) return;
+
+    $('#loader_' + row).removeClass('d-none');
+    let base_url = '<?= url('/admin') ?>';
+    $.ajax({
+        url: base_url + "/get-item-info",
+        type: "GET",
+        data: { item_id: item_id },
+        dataType: "json",
+
+        success: function (res) {
+            $('#supplier_sku_text_' + row).text(res.supplier_sku);
+            $('#supplier_sku_val_' + row).val(res.supplier_sku);
+
+            $('#merchant_sku_text_' + row).text(res.merchant_sku);
+            $('#merchant_sku_val_' + row).val(res.merchant_sku);
+
+            $('#item_name_text_' + row).text(res.name);
+            $('#item_name_val_' + row).val(res.name);
+
+            $('#qty_val_' + row).val(1);
+            $('#cost_price_val_' + row).val(res.cost_price);
+
+            $('#tax_percent_text_' + row).text(res.tax_percent + '%');
+            $('#tax_percent_val_' + row).val(res.tax_percent);
+            $('#tax_amount_val_' + row).val(res.tax_amount);
+
+            $('#total_inc_tax_text_' + row).text(res.total_inc_tax);
+            $('#total_inc_tax_val_' + row).val(res.total_inc_tax);
+
+            // Disable selected item
+            // $('#item_id_' + row).prop('disabled', true);
+
+            // 🔥 force row calc + footer update
+            $('#qty_val_' + row).trigger('change');
+            recalculateInvoiceFooter();
+        },
+
+        complete: function () {
+            $('#loader_' + row).addClass('d-none');
+        }
+    });
+  }
+
+  $(document).on(
+    'keyup change',
+    'input[name="qty[]"], input[name="cost_price[]"]',
+    function () {
+
+        let row = $(this).closest('.row');
+
+        let qty        = parseFloat(row.find('input[name="qty[]"]').val()) || 0;
+        let price      = parseFloat(row.find('input[name="cost_price[]"]').val()) || 0;
+        let taxPercent = parseFloat(row.find('input[name="tax_percent[]"]').val()) || 0;
+
+        let subTotal  = qty * price;
+        let taxAmount = (subTotal * taxPercent) / 100;
+        let total     = subTotal + taxAmount;
+
+        // Row updates
+        row.find('input[name="tax_amount[]"]').val(taxAmount.toFixed(2));
+        row.find('input[name="total_inc_tax[]"]').val(total.toFixed(2));
+        row.find('span[id^="total_inc_tax_text_"]').text(total.toFixed(2));
+
+        // ✅ Footer update
+        recalculateInvoiceFooter();
+    }
+);
+
+function recalculateInvoiceFooter() {
+
+    let totalLines = 0;
+    let totalQty   = 0;
+    let subTotal   = 0;
+    let taxTotal   = 0;
+    let grandTotal = 0;
+
+    $('.field_wrapper .row').each(function () {
+
+        let qty        = parseFloat($(this).find('input[name="qty[]"]').val()) || 0;
+        let price      = parseFloat($(this).find('input[name="cost_price[]"]').val()) || 0;
+        let taxPercent = parseFloat($(this).find('input[name="tax_percent[]"]').val()) || 0;
+
+        if (qty > 0) totalLines++;
+
+        let rowSubTotal = qty * price;
+        let rowTax      = (rowSubTotal * taxPercent) / 100;
+        let rowTotal    = rowSubTotal + rowTax;
+
+        totalQty   += qty;
+        subTotal   += rowSubTotal;
+        taxTotal   += rowTax;
+        grandTotal += rowTotal;
+    });
+
+    // ✅ TEXT (formatted)
+    $('#total_lines_text').text(totalLines);
+    $('#total_quantity_text').text(totalQty);
+    $('#subtotal_text').text(formatCurrency(subTotal));
+    $('#tax_total_text').text(formatCurrency(taxTotal));
+    $('#total_inc_tax_text').text(formatCurrency(grandTotal));
+
+    // ✅ INPUTS (raw numbers for backend)
+    $('#total_lines_val').val(totalLines);
+    $('#total_quantity_val').val(totalQty);
+    $('#subtotal_val').val(subTotal.toFixed(2));
+    $('#tax_total_val').val(taxTotal.toFixed(2));
+    $('#total_inc_tax_val').val(grandTotal.toFixed(2));
+}
+
+function formatCurrency(amount) {
+    return '₹ ' + amount.toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+</script>
+<script>
+  const fieldOrder = [
+      'select[name="item_id[]"]',
+      'input[name="qty[]"]',
+      'input[name="cost_price[]"]'
+  ];
+  $(document).on('keydown', 'select, input', function (e) {
+
+      if (e.key !== 'Enter') return;
+
+      e.preventDefault();
+
+      let row = $(this).closest('.row');
+      let inputs = row.find(fieldOrder.join(','));
+      let index = inputs.index(this);
+
+      if (index < inputs.length - 1) {
+          inputs.eq(index + 1).focus();
+      } else {
+          focusNextRow(row);
+      }
+  });
+  function focusNextRow(currentRow) {
+
+      let nextRow = currentRow.next('.row');
+
+      if (nextRow.length) {
+          nextRow.find('select[name="item_id[]"]').focus();
+      } else {
+          $('.add_button').trigger('click');
+
+          setTimeout(() => {
+              $('.field_wrapper .row:last')
+                  .find('select[name="item_id[]"]')
+                  .focus();
+          }, 100);
+      }
+  }
+  $(document).on('keydown', function (e) {
+
+      if (e.key === '+') {
+          e.preventDefault();
+          $('.add_button').trigger('click');
+
+          setTimeout(() => {
+              $('.field_wrapper .row:last')
+                  .find('select[name="item_id[]"]')
+                  .focus();
+          }, 100);
+      }
+  });
+  $(document).on('keydown', 'input, select', function (e) {
+
+      if (e.key === 'Delete') {
+
+          let row = $(this).closest('.row');
+          row.remove();
+
+          recalculateInvoiceFooter();
+
+          let prevRow = row.prev('.row');
+          if (prevRow.length) {
+              prevRow.find('input[name="qty[]"]').focus();
+          }
+      }
+  });
+  $(document).on('keydown', 'input[name="qty[]"]', function (e) {
+
+      let row = $(this).closest('.row');
+
+      if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          row.next('.row')?.find('input[name="qty[]"]').focus();
+      }
+
+      if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          row.prev('.row')?.find('input[name="qty[]"]').focus();
+      }
+  });
+  $(document).on('focus', 'input[name="qty[]"]', function () {
+      this.select();
+  });
+</script>

@@ -242,7 +242,7 @@ $current_url                    = url()->current();
                                  <?php if($cover_image != ''){?>
                                    <img src="<?=env('UPLOADS_URL').'/product/'.$cover_image?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
                                  <?php } else {?>
-                                   <img src="<?=env('NO_USER_IMAGE')?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
+                                   <img src="<?=env('NO_IMAGE')?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
                                  <?php } ?>
                                  <div class="button-wrapper">
                                     <label for="cover_image" class="btn btn-primary me-2 mb-4" tabindex="0">

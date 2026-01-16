@@ -52,6 +52,22 @@ class SupplierController extends Controller
                                 return redirect()->back()->with('error_message', 'First Email and 2nd Email cannot be same !!!');
                             }
                         }
+
+                        /* logo */
+                            $imageFile      = $request->file('logo');
+                            if($imageFile != ''){
+                                $imageName      = $imageFile->getClientOriginalName();
+                                $uploadedFile   = $this->upload_single_file('logo', $imageName, 'supplier', 'image');
+                                if($uploadedFile['status']){
+                                    $logo = $uploadedFile['newFilename'];
+                                } else {
+                                    return redirect()->back()->with(['error_message' => $uploadedFile['message']]);
+                                }
+                            } else {
+                                $logo = '';
+                            }
+                        /* logo */
+
                         $fields = [
                             'supplier_code'                         => $postData['supplier_code'],
                             'name'                                  => $postData['name'],
@@ -59,6 +75,8 @@ class SupplierController extends Controller
                             'primary_lead_time'                     => $postData['primary_lead_time'],
                             'secondary_lead_time'                   => $postData['secondary_lead_time'],
                             'notes'                                 => $postData['notes'],
+                            'footers'                               => $postData['footers'],
+                            'logo'                                  => $logo,
                             'phone'                                 => $postData['phone'],
                             'email'                                 => $postData['email'],
                             'email2'                                => $postData['email2'],
@@ -119,6 +137,22 @@ class SupplierController extends Controller
                                 return redirect()->back()->with('error_message', 'First Email and 2nd Email cannot be same !!!');
                             }
                         }
+
+                        /* logo */
+                            $imageFile      = $request->file('logo');
+                            if($imageFile != ''){
+                                $imageName      = $imageFile->getClientOriginalName();
+                                $uploadedFile   = $this->upload_single_file('logo', $imageName, 'supplier', 'image');
+                                if($uploadedFile['status']){
+                                    $logo = $uploadedFile['newFilename'];
+                                } else {
+                                    return redirect()->back()->with(['error_message' => $uploadedFile['message']]);
+                                }
+                            } else {
+                                $logo = $data['row']->logo;
+                            }
+                        /* logo */
+
                         $fields = [
                             'supplier_code'                         => $postData['supplier_code'],
                             'name'                                  => $postData['name'],
@@ -126,6 +160,8 @@ class SupplierController extends Controller
                             'primary_lead_time'                     => $postData['primary_lead_time'],
                             'secondary_lead_time'                   => $postData['secondary_lead_time'],
                             'notes'                                 => $postData['notes'],
+                            'footers'                               => $postData['footers'],
+                            'logo'                                  => $logo,
                             'phone'                                 => $postData['phone'],
                             'email'                                 => $postData['email'],
                             'email2'                                => $postData['email2'],

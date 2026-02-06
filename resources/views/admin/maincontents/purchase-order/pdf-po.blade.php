@@ -33,6 +33,28 @@ use App\Models\PurchaseOrderItem;
             margin: 0 auto;
         }
 
+        .company-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;   /* force same height */
+        }
+
+        .company-left,
+        .company-right {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;  /* align content to top */
+        }
+
+        .company-row h2 {
+            margin: 0;
+        }
+
+        .company-right {
+            text-align: right;
+            font-size: 12px;
+        }
+
         /* HEADER */
         .header {
             display: table;
@@ -102,20 +124,47 @@ use App\Models\PurchaseOrderItem;
             text-align: right;
         }
 
-        /* TOTALS */
+        .totals-wrapper {
+            width: 100%;
+            margin-top: 15px;
+            page-break-before: auto;
+        }
+
+        .notes-box,
+        .totals {
+            float: left;
+            box-sizing: border-box;
+        }
+
+        .notes-box {
+            width: 55%;
+            padding-right: 10px;
+        }
+
+        .notes-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .notes-box td {
+            border: 1px solid #0000005b;
+            padding: 8px;
+            min-height: 110px;
+            /* 5 row height */
+        }
+
         .totals {
             width: 45%;
-            margin-left: auto;
-            margin-top: 15px;
+        }
+
+        .totals table {
+            width: 100%;
+            border-collapse: collapse;
             page-break-inside: avoid;
         }
 
-        .totals table td {
-            padding: 6px 4px;
-        }
-
-        .totals table tr td:last-child {
-            text-align: right;
+        .clearfix {
+            clear: both;
         }
 
         /* PRINT BUTTON */
@@ -144,13 +193,31 @@ use App\Models\PurchaseOrderItem;
         <div class="header">
             <div>
                 <h2>Purchase Order <strong><?= $poData->po_no ?></strong></h2>
-                <div>Date ordered: <?= date_format(date_create($poData->order_date), "d/m/Y") ?></div>
             </div>
             <div class="company">
-                <h2>Barmania!</h2>
-                <div><strong>Wholesale Spirits & Liquours</strong></div>
-                <div>ABN: 39056682510</div>
-                <div>LIQW824009885</div>
+                <table style="width:100%; border-collapse:collapse;">
+                    <tr>
+                        <!-- Left: Title (+ optional logo) -->
+                        <td style="width:50%; vertical-align:top;">
+                            <!-- <h2 style="margin:0;">Barmania!</h2> -->
+
+                            <!-- Optional Logo below title -->
+                            
+                            <img src="data:image/jpeg;base64,<?= base64_encode(file_get_contents(base_path('public/material/backend/assets/img/barmaniaSKU-logo.jpg'))) ?>"
+                                alt="Barmania Logo"
+                                style="max-width:120px; height:auto; margin-top:6px;">
+                           
+                        </td>
+
+                        <!-- Right: Details -->
+                        <td style="width:50%; text-align:right; vertical-align:top; font-size:12px;">
+                            <div><strong>Wholesale Spirits & Liquours</strong></div>
+                            <div>ABN: 39056682510</div>
+                            <div>LIQW824009885</div>
+                            <div>Date ordered: <?= date_format(date_create($poData->order_date), "d/m/Y") ?></div>
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
 
@@ -177,7 +244,7 @@ use App\Models\PurchaseOrderItem;
             </div>
         </div>
 
-        <div style="text-align:right; font-size:12px;">Prices are tax exclusive</div>
+        <!-- <div style="text-align:right; font-size:12px;">Prices are tax exclusive</div> -->
 
         <!-- Items Table -->
         <table>
@@ -188,8 +255,8 @@ use App\Models\PurchaseOrderItem;
                     <th>Product name</th>
                     <th class="text-right">Order QTY</th>
                     <th class="text-right">Unit price</th>
-                    <th class="text-right">Tax rate</th>
-                    <th class="text-right">Line total</th>
+                    <!-- <th class="text-right">Tax rate</th> -->
+                    <th class="text-right">Line total<br>ex GST</th>
                 </tr>
             </thead>
             <tbody>
@@ -204,9 +271,9 @@ use App\Models\PurchaseOrderItem;
                             <td><?= $po_item->merchant_sku ?></td>
                             <td><?= strtoupper($po_item->item_name) ?></td>
                             <td class="text-right"><?= $po_item->qty ?></td>
-                            <td class="text-right">A$<?= number_format($po_item->cost_price, 2) ?></td>
-                            <td class="text-right"><?= $po_item->tax_percent ?>%</td>
-                            <td class="text-right">A$<?= number_format($po_item->total_inc_tax, 2) ?></td>
+                            <td class="text-right">$<?= number_format($po_item->cost_price, 2) ?></td>
+                            <!-- <td class="text-right"><?= $po_item->tax_percent ?>%</td> -->
+                            <td class="text-right">$<?= number_format($po_item->total_inc_tax, 2) ?></td>
                         </tr>
                 <?php $sl++;
                     }
@@ -214,31 +281,50 @@ use App\Models\PurchaseOrderItem;
             </tbody>
         </table>
 
-        <!-- Totals -->
-        <div class="totals">
-            <table>
-                <tr>
-                    <td>Total lines</td>
-                    <td><?= $poData->total_lines ?></td>
-                </tr>
-                <tr>
-                    <td>Total quantity</td>
-                    <td><?= $poData->total_quantity ?></td>
-                </tr>
-                <tr>
-                    <td>Subtotal</td>
-                    <td>A$<?= number_format($poData->subtotal, 2) ?></td>
-                </tr>
-                <tr>
-                    <td>Tax total</td>
-                    <td>A$<?= number_format($poData->tax_total, 2) ?></td>
-                </tr>
-                <tr>
-                    <td><strong>Total (inc. tax)</strong></td>
-                    <td><strong>A$<?= number_format($poData->total_inc_tax, 2) ?></strong></td>
-                </tr>
-            </table>
+        <!-- Totals + Notes -->
+        <div class="totals-wrapper">
+
+            <!-- Notes -->
+            <div class="notes-box">
+                <strong>Notes:</strong>
+                <table>
+                    <tr>
+                        <td>
+                            <?= !empty($poData->note) ? nl2br($poData->note) : '' ?>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Totals -->
+            <div class="totals">
+                <table>
+                    <tr>
+                        <td>Total Lines</td>
+                        <td><?= $poData->total_lines ?></td>
+                    </tr>
+                    <tr>
+                        <td>Total Bottles</td>
+                        <td><?= $poData->total_quantity ?></td>
+                    </tr>
+                    <tr>
+                        <td>Ex GST</td>
+                        <td>$<?= number_format($poData->subtotal, 2) ?></td>
+                    </tr>
+                    <tr>
+                        <td>GST</td>
+                        <td>$<?= number_format($poData->tax_total, 2) ?></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total inc GST</strong></td>
+                        <td><strong>$<?= number_format($poData->total_inc_tax, 2) ?></strong></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="clearfix"></div>
         </div>
+
     </div>
 
 </body>

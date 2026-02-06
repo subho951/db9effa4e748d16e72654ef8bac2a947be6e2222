@@ -27,22 +27,42 @@ $controllerRoute                = $module['controller_route'];
       $order_date           = $row->order_date;
       $delivery_id          = $row->delivery_id;
       $supplier_id          = $row->supplier_id;
+
+      $s_street_address1    = $row->s_street_address1;
+      $s_street_address2    = $row->s_street_address2;
+      $s_city               = $row->s_city;
+      $s_state              = $row->s_state;
+      $s_postcode           = $row->s_postcode;
+      $s_country            = $row->s_country;
+
       $status               = $row->status;
       $total_lines          = $row->total_lines;
       $total_quantity       = $row->total_quantity;
       $subtotal             = $row->subtotal;
       $tax_total            = $row->tax_total;
       $total_inc_tax        = $row->total_inc_tax;
+      $note                 = $row->note;
     } else {
       $order_date           = '';
       $delivery_id          = '';
       $supplier_id          = '';
+
+      $s_street_address1    = '';
+      $s_street_address2    = '';
+      $s_city               = '';
+      $s_state              = '';
+      $s_postcode           = '';
+      $s_country            = 'Australia';
+      $status               = 0;
+      $uId                  = '';
+
       $status               = 1;
       $total_lines          = 0;
       $total_quantity       = 0;
       $subtotal             = 0;
       $tax_total            = 0;
       $total_inc_tax        = 0;
+      $note                 = 0;
     }
     ?>
     <div class="col-md-12">
@@ -72,6 +92,40 @@ $controllerRoute                = $module['controller_route'];
                 </div>
               </div>
 
+              <h5 class="mt-3">Shipping Details</h5>
+              <div class="mb-3 col-md-6">
+                <label for="s_street_address1" class="form-label">Street Address 1 <small class="text-danger">*</small></label>
+                <input class="form-control" type="text" id="s_street_address1" name="s_street_address1" value="<?= $s_street_address1 ?>" />
+              </div>
+              <div class="mb-3 col-md-6">
+                <label for="s_street_address2" class="form-label">Street Address 2</label>
+                <input class="form-control" type="text" id="s_street_address2" name="s_street_address2" value="<?= $s_street_address2 ?>" />
+              </div>
+              <div class="mb-3 col-md-6">
+                <label for="s_city" class="form-label">City <small class="text-danger">*</small></label>
+                <input class="form-control" type="text" id="s_city" name="s_city" value="<?= $s_city ?>" required />
+              </div>
+
+              <div class="mb-3 col-md-6">
+                <label for="s_state" class="form-label">State <small class="text-danger">*</small></label>
+                <input class="form-control" type="text" id="s_state" name="s_state" value="<?= $s_state ?>" required />
+              </div>
+              <div class="mb-3 col-md-6">
+                <label for="s_postcode" class="form-label">Postcode <small class="text-danger">*</small></label>
+                <input class="form-control" type="text" id="s_postcode" name="s_postcode" value="<?= $s_postcode ?>" required />
+              </div>
+              <div class="mb-3 col-md-6">
+                <label for="s_country" class="form-label">Country <small class="text-danger">*</small></label>
+                <select name="s_country" class="form-select" id="s_country" required>
+                  <option value="" selected>Select Country</option>
+                  <?php if ($couns) {
+                    foreach ($couns as $coun) { ?>
+                      <option value="<?= $coun->country ?>" <?= (($coun->country == $s_country) ? 'selected' : '') ?>><?= $coun->country ?></option>
+                  <?php }
+                  } ?>
+                </select>
+              </div>              
+
               <div class="mb-3 col-md-6">
                 <label for="delivery_id" class="form-label">Delivery Location <small class="text-danger">*</small></label>
                 <select name="delivery_id" class="form-select" id="delivery_id" required>
@@ -83,6 +137,7 @@ $controllerRoute                = $module['controller_route'];
                   } ?>
                 </select>
               </div>
+
               <div class="mb-3 col-md-6">
                 <label for="supplier_id" class="form-label">Supplier <small class="text-danger">*</small></label>
                 <select name="supplier_id" class="form-select" id="supplier_id" required onchange="this.form.submit()">
@@ -114,13 +169,13 @@ $controllerRoute                = $module['controller_route'];
                   <h6 style="font-weight: bold;">Order QTY</h6>
                 </div>
                 <div class="mb-3 col-md-1">
-                  <h6 style="font-weight: bold;">Unit price</h6>
+                  <h6 style="font-weight: bold;">Unit price ($)</h6>
                 </div>
                 <div class="mb-3 col-md-1">
-                  <h6 style="font-weight: bold;">Tax rate</h6>
+                  <h6 style="font-weight: bold;">Tax rate ($)</h6>
                 </div>
                 <div class="mb-3 col-md-1">
-                  <h6 style="font-weight: bold;">Line total</h6>
+                  <h6 style="font-weight: bold;">Line total ($)</h6>
                 </div>
                 <div class="mb-3 col-md-1">
                   <h6 style="font-weight: bold;">Action</h6>
@@ -140,7 +195,7 @@ $controllerRoute                = $module['controller_route'];
                 $po_items = PurchaseOrderItem::where('purchase_order_id', '=', $id)->get();
                 if($po_items){ $sl=101; foreach($po_items as $po_item){
                 ?>
-                  <div class="row" style="border:1px solid #04163d; padding:10px; border-radius:10px;margin-bottom:5px;">
+                  <div class="row" style="border:1px solid #04163d1f; padding:10px; border-radius:10px;margin-bottom:5px;">
                     <div class="mb-3 col-md-2">
                       <select name="item_id[]" class="form-select" id="item_id_<?= $sl?>" required onchange="getItemInfo(this.value, <?= $sl?>);">
                         <option value="" selected>Select Items</option>
@@ -195,7 +250,7 @@ $controllerRoute                = $module['controller_route'];
 
                 </div>
                 <div class="invoice-footer mb-3 col-md-4 text-center">
-                  <h6 style="font-weight: bold;">Total lines</h6>
+                  <h6 style="font-weight: bold;">Total Lines</h6>
                 </div>
                 <div class="invoice-footer mb-3 col-md-2 text-center">
                   <span id="total_lines_text"><?= $total_lines ?></span>
@@ -208,7 +263,7 @@ $controllerRoute                = $module['controller_route'];
 
                 </div>
                 <div class="invoice-footer mb-3 col-md-4 text-center">
-                  <h6 style="font-weight: bold;">Total quantity</h6>
+                  <h6 style="font-weight: bold;">Total Bottles</h6>
                 </div>
                 <div class="invoice-footer mb-3 col-md-2 text-center">
                   <span id="total_quantity_text"><?= $total_quantity ?></span>
@@ -221,10 +276,10 @@ $controllerRoute                = $module['controller_route'];
 
                 </div>
                 <div class="invoice-footer mb-3 col-md-4 text-center">
-                  <h6 style="font-weight: bold;">Subtotal</h6>
+                  <h6 style="font-weight: bold;">Ex GST</h6>
                 </div>
                 <div class="invoice-footer mb-3 col-md-2 text-center">
-                  <span id="subtotal_text"><?= $subtotal ?></span>
+                  <span id="subtotal_text">$<?= $subtotal ?></span>
                   <input type="hidden" name="subtotal" id="subtotal_val" value="<?= $subtotal ?>">
                 </div>
               </div>
@@ -234,10 +289,10 @@ $controllerRoute                = $module['controller_route'];
 
                 </div>
                 <div class="invoice-footer mb-3 col-md-4 text-center">
-                  <h6 style="font-weight: bold;">Tax total</h6>
+                  <h6 style="font-weight: bold;">GST</h6>
                 </div>
                 <div class="invoice-footer mb-3 col-md-2 text-center">
-                  <span id="tax_total_text"><?= $tax_total ?></span>
+                  <span id="tax_total_text">$<?= $tax_total ?></span>
                   <input type="hidden" name="tax_total" id="tax_total_val" value="<?= $tax_total ?>">
                 </div>
               </div>
@@ -247,16 +302,23 @@ $controllerRoute                = $module['controller_route'];
 
                 </div>
                 <div class="invoice-footer mb-3 col-md-4 text-center">
-                  <h6 style="font-weight: bold;">Total (inc. tax)</h6>
+                  <h6 style="font-weight: bold;">Total inc GST</h6>
                 </div>
                 <div class="invoice-footer mb-3 col-md-2 text-center">
-                  <span id="total_inc_tax_text"><?= $total_inc_tax ?></span>
+                  <span id="total_inc_tax_text">$<?= $total_inc_tax ?></span>
                   <input type="hidden" name="total_inc_tax_val" id="total_inc_tax_val" value="<?= $total_inc_tax ?>">
                 </div>
               </div>
 
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="note" class="form-label">Note</label>
+                  <textarea class="form-control" id="note" name="note" rows="3"><?= $note ?></textarea>
+                </div>
+              </div>
+
               <div class="mt-2">
-                <button type="submit" class="btn btn-primary me-2"><?= (($row) ? 'Save' : 'Add') ?></button>
+                <button type="submit" class="btn btn-primary me-2"><i class="fa fa-paper-plane"></i>&nbsp;&nbsp;<?= (($row) ? 'Save' : 'Add') ?></button>
               </div>
             <?php } ?>
           </form>
@@ -288,7 +350,7 @@ $controllerRoute                = $module['controller_route'];
     $(addButton).click(function() {
       //Check maximum number of input fields
       if (x < maxField) {
-        var fieldHTML = `<div class="row" style="border:1px solid #04163d; padding:10px; border-radius:10px;margin-bottom:5px;">
+        var fieldHTML = `<div class="row" style="border:1px solid #04163d1f; padding:10px; border-radius:10px;margin-bottom:5px;">
                           <div class="mb-3 col-md-2">
                             <select name="item_id[]" class="form-select" id="item_id_${x}" required onchange="getItemInfo(this.value, ${x});">
                               <option value="" selected>Select Items</option>
@@ -473,7 +535,7 @@ function recalculateInvoiceFooter() {
 }
 
 function formatCurrency(amount) {
-    return '₹ ' + amount.toLocaleString('en-IN', {
+    return '$' + amount.toLocaleString('en-IN', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });

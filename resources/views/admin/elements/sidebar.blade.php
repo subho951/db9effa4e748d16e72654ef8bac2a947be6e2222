@@ -173,11 +173,11 @@ $user_type = session('type');
          <div data-i18n="Masters">Masters</div>
       </a>
       <ul class="menu-sub">
-         <li class="menu-item <?=(($pageSegment == 'locations')?'active':'')?>">
+         <!-- <li class="menu-item <?=(($pageSegment == 'locations')?'active':'')?>">
             <a href="<?=url('admin/locations/list')?>" class="menu-link">
                <div data-i18n="Locations">Locations</div>
             </a>
-         </li>
+         </li> -->
          <li class="menu-item <?=(($pageSegment == 'brands')?'active':'')?>">
             <a href="<?=url('admin/brands/list')?>" class="menu-link">
                <div data-i18n="Brands">Brands</div>

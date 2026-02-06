@@ -571,7 +571,10 @@ $current_url          = url()->current();
                 $("#loader").hide();
                 if(res.status){
                     var redirect_url = base_url + '/admin/billing/list';
-                    toastAlert("success", res.message, true, redirect_url);
+                    toastAlert("success", res.message);
+                    setTimeout(function () {
+                        window.location.href = redirect_url;
+                    }, 15000); // 15000 ms = 15 seconds
                 }else{
                     toastAlert("error", res.message);
                 }

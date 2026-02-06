@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Models\GeneralSetting;
 use App\Models\Brand;
+use App\Models\Country;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
@@ -49,6 +50,12 @@ class PurchaseOrderController extends Controller
                     'order_date'                        => 'required',
                     'delivery_id'                       => 'required',
                     'supplier_id'                       => 'required',
+                    's_street_address1'                 => 'required',
+                    's_street_address2'                 => 'required',
+                    's_city'                            => 'required',
+                    's_state'                           => 'required',
+                    's_postcode'                        => 'required',
+                    's_country'                         => 'required',
                 ];
                 if($this->validate($request, $rules)){
                     /* purchase order no generate */
@@ -75,6 +82,12 @@ class PurchaseOrderController extends Controller
                         'supplier_name'                 => (($getSupplier)?$getSupplier->name:''),
                         'supplier_phone'                => (($getSupplier)?$getSupplier->phone:''),
                         'supplier_address'              => (($getSupplier)?$getSupplier->b_street_address1 . ' ' . $getSupplier->b_street_address2 . ' ' . $getSupplier->b_city . ' ' . $getSupplier->b_state . ' ' . $getSupplier->b_postcode . ' ' . $getSupplier->b_country:''),
+                        's_street_address1'             => $postData['s_street_address1'],
+                        's_street_address2'             => $postData['s_street_address2'],
+                        's_city'                        => $postData['s_city'],
+                        's_state'                       => $postData['s_state'],
+                        's_postcode'                    => $postData['s_postcode'],
+                        's_country'                     => $postData['s_country'],
                         'delivery_id'                   => $postData['delivery_id'],
                         'delivery_name'                 => (($getDeliveryLocation)?$getDeliveryLocation->name:''),
                         'delivery_phone'                => (($getDeliveryLocation)?$getDeliveryLocation->phone:''),
@@ -97,6 +110,7 @@ class PurchaseOrderController extends Controller
             $data['suppliers']              = Supplier::select('id', 'name', 'supplier_code', 'phone')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $data['deliveryLocations']      = DeliveryLocation::select('id', 'name', 'address', 'phone')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $data['items']                  = Product::select('id', 'name')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
+            $data['couns']                  = Country::select('country', 'currency_name', 'currency_code')->where('status', '=', 1)->orderBy('country', 'ASC')->get();
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
     /* add */
@@ -112,6 +126,7 @@ class PurchaseOrderController extends Controller
             $data['deliveryLocations']      = DeliveryLocation::select('id', 'name', 'address', 'phone')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $supplier_id                    = $data['row']->supplier_id;
             $data['items']                  = Product::select('id', 'name')->where('status', '=', 1)->where('supplier_id', '=', $supplier_id)->orderBy('name', 'ASC')->get();
+            $data['couns']                  = Country::select('country', 'currency_name', 'currency_code')->where('status', '=', 1)->orderBy('country', 'ASC')->get();
 
             if($request->isMethod('post')){
                 $postData = $request->all();
@@ -135,6 +150,12 @@ class PurchaseOrderController extends Controller
                         'supplier_name'                 => (($getSupplier)?$getSupplier->name:''),
                         'supplier_phone'                => (($getSupplier)?$getSupplier->phone:''),
                         'supplier_address'              => (($getSupplier)?$getSupplier->b_street_address1 . ' ' . $getSupplier->b_street_address2 . ' ' . $getSupplier->b_city . ' ' . $getSupplier->b_state . ' ' . $getSupplier->b_postcode . ' ' . $getSupplier->b_country:''),
+                        's_street_address1'             => $postData['s_street_address1'],
+                        's_street_address2'             => $postData['s_street_address2'],
+                        's_city'                        => $postData['s_city'],
+                        's_state'                       => $postData['s_state'],
+                        's_postcode'                    => $postData['s_postcode'],
+                        's_country'                     => $postData['s_country'],
                         'delivery_id'                   => $postData['delivery_id'],
                         'delivery_name'                 => (($getDeliveryLocation)?$getDeliveryLocation->name:''),
                         'delivery_phone'                => (($getDeliveryLocation)?$getDeliveryLocation->phone:''),
@@ -147,8 +168,9 @@ class PurchaseOrderController extends Controller
                         'subtotal'                      => $postData['subtotal'],
                         'tax_total'                     => $postData['tax_total'],
                         'total_inc_tax'                 => $postData['total_inc_tax_val'],
+                        'note'                          => $postData['note'],
                     ];
-                    // Helper::pr($fields,0);
+                    // Helper::pr($fields);
                     PurchaseOrder::where('id', '=', $id)->update($fields);
                     $purchase_order_id = $id;
 

@@ -51,9 +51,9 @@ $current_url          = url()->current();
                     <td><?=$row->order_date?></td>
                     <td><?=$row->total_lines?></td>
                     <td><?=$row->total_quantity?></td>
-                    <td>A$<?=$row->subtotal?></td>
-                    <td>A$<?=$row->tax_total?></td>
-                    <td>A$<?=$row->total_inc_tax?></td>
+                    <td>$<?=$row->subtotal?></td>
+                    <td>$<?=$row->tax_total?></td>
+                    <td>$<?=$row->total_inc_tax?></td>
                     <td>
                       <a target="_blank" href="<?=env('UPLOADS_URL').'/purchase-order/'.$row->invoice_file?>" class="btn btn-outline-primary btn-sm" title="<?=$row->po_no?>">PO File</a>
                     </td>

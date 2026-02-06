@@ -1865,6 +1865,18 @@ class BillingController extends Controller
             Order::where('id', '=', $order_id)->update(['pdf_invoice' => $filename]);
             return view('admin.maincontents.billing.pdf-invoice', $data);
         }
+        public function billingPrintReceipt($order_id){
+            $order_id                       = Helper::decoded($order_id);
+            $data['module']                 = $this->data;
+            $data['getOrder']               = Order::where('id', '=', $order_id)->first();
+            $order_no                       = (($data['getOrder'])?$data['getOrder']->order_no:'');
+            $generalSetting                 = GeneralSetting::find('1');
+            // $subject                        = 'Invoice-' . $order_no;
+            // $message                        = view('admin.maincontents.billing.print-receipt', $data);                        
+            // echo $message;die;
+            
+            return view('admin.maincontents.billing.print-receipt', $data);
+        }
     /* past orders */
     /* recall orders */
         public function billingRecall(){

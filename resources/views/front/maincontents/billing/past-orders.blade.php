@@ -93,6 +93,9 @@ $current_url          = url()->current();
                                         <!-- <a href="<?=url('user/billing/billing-pdf-invoice/' . Helper::encoded($row->id))?>" target="_blank">
                                             <button class="btn btn-custom btn-sm" style="padding: 10px 10px;background: #00bcd4;border: 1px solid #00bcd4;"><i class="fa fa-download"></i></button>
                                         </a> -->
+                                        <a href="<?=url('user/billing/billing-print-receipt/' . Helper::encoded($row->id))?>" target="_blank">
+                                            <button class="btn btn-custom btn-sm" style="padding: 5px 5px;background: #FFEB3B;border: 1px solid #FFEB3B;color: #000;">Receipt Print</button>
+                                        </a>
                                     <?php }?>
                                     <a href="<?=url('user/billing/billing-invoice/' . Helper::encoded($row->id))?>" target="_blank" title="Print Invoice">
                                         <button class="btn btn-custom btn-sm" style="padding: 10px 10px;background: #3f51b5;border: 1px solid #3f51b5;"><i class="fa fa-print"></i></button>

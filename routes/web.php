@@ -69,6 +69,7 @@ Route::get('/db-test', function () {
                 Route::get('billing/billing-invoice-email/{id}', 'App\Http\Controllers\BillingController@billingInvoiceEmail');
                 Route::post('billing/print-delivery-order', 'App\Http\Controllers\BillingController@printDeliveryOrder');
                 Route::get('billing/billing-pdf-invoice/{id}', 'App\Http\Controllers\BillingController@billingPDFInvoice');
+                Route::get('billing/billing-print-receipt/{id}', 'App\Http\Controllers\BillingController@billingPrintReceipt');
             /* billing */
         });
     // after login
@@ -268,6 +269,7 @@ Route::get('/db-test', function () {
                 Route::get('billing/billing-invoice/{id}', 'BillingController@billingInvoice');
                 Route::get('billing/billing-invoice-email/{id}', 'BillingController@billingInvoiceEmail');
                 Route::get('billing/billing-pdf-invoice/{id}', 'BillingController@billingPDFInvoice');
+                Route::get('billing/billing-print-receipt/{id}', 'BillingController@billingPrintReceipt');
             /* billing */
             /* stock */
                 Route::get('stock/warehouse-stock', 'StockController@warehouseStock');

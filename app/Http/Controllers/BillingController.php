@@ -1893,6 +1893,18 @@ class BillingController extends Controller
                 return redirect('/user/billing/past-orders/')->with('error_message', 'For generate delivery order please select atleast one order from list');
             }
         }
+        public function billingPrintReceipt($order_id){
+            $order_id                       = Helper::decoded($order_id);
+            $data['module']                 = $this->data;
+            $data['getOrder']               = Order::where('id', '=', $order_id)->first();
+            $order_no                       = (($data['getOrder'])?$data['getOrder']->order_no:'');
+            $generalSetting                 = GeneralSetting::find('1');
+            // $subject                        = 'Invoice-' . $order_no;
+            // $message                        = view('admin.maincontents.billing.print-receipt', $data);                        
+            // echo $message;die;
+            
+            return view('front.maincontents.billing.print-receipt', $data);
+        }
     /* past orders */
     /* recall orders */
         public function billingRecall(){

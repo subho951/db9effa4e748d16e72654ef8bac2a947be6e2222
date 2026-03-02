@@ -13,7 +13,7 @@ $current_url          = url()->current();
             <div class="order-summery-left-bottom">
                 <div class="row my-4">
                     <div class="col-md-8 d-flex justify-content-between">
-                        <!-- <a href="<?=url('user/billing/list')?>" class="btn btn-custom">Create New Order</a> -->
+                        <a href="<?=url('user/billing/list')?>" class="btn btn-custom">BACK</a>
                     </div>
                     <div class="col-md-3 d-flex justify-content-between">
                         <button type="submit" class="btn btn-custom" id="actionButton" style="display: none;">Generate Delivery Order</button>

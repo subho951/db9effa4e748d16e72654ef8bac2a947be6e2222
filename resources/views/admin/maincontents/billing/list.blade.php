@@ -37,7 +37,7 @@ $current_url          = url()->current();
                 </div>
                 <div class="my-1 my-md-4">
                     <div class="row">
-                        <div class="col-6 d-flex"><input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan / Enter Barcode Or SKU" maxlength="13"></div>
+                        <div class="col-6 d-flex"><input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan / Enter Barcode Or SKU" maxlength="4"></div>
                         <div class="col-6 d-flex justify-content-end"><a href="javascript:void(0);" class="my-btn btn-sky enter-btn" id="addToCartBtn">Enter</a></div>
                     </div>
                 </div>
@@ -48,10 +48,10 @@ $current_url          = url()->current();
                             <label for="delivery_mode1">&nbsp;Take</label>
                         </a> -->
 
-                        <!-- <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode1">
+                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode1">
                             <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode1" value="Take" <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'checked':''):'')?> style="display: none;">
                             <label for="delivery_mode1">&nbsp;Take</label>
-                        </a> -->
+                        </a>
                     </div>
                     <div class="col-7">
                         <div class="d-flex justify-content-end">
@@ -172,7 +172,7 @@ $current_url          = url()->current();
                 </table>
             </div>
             <div class="table-footer-wrapper">
-                <div class="footer-notes px-4 py-2">
+                <div class="footer-notes px-4 py-1">
                     <div class="d-flex justify-content-between align-items-center">
                         <p class="me-2">Notes </p>
                         <input type="text" class="form-control" id="note" value="<?=$getOrder->note?>" placeholder="Notes">
@@ -182,8 +182,8 @@ $current_url          = url()->current();
                     </div>
                 </div>
                 <div class="order-footer px-4">
-                    <div class="d-flex justify-content-between py-2">
-                        <p>Total Discounts</p>
+                    <div class="d-flex justify-content-between py-1">
+                        <p>Discounts</p>
                         <p>$<?=number_format($getOrder->discount_amount,2)?></p>
                     </div>
                     <div class="d-flex justify-content-between">
@@ -293,7 +293,7 @@ $current_url          = url()->current();
     function addToCart(){
         var barcode = $('#barcode').val();
         var order_id = '<?=(($getOrder)?$getOrder->id:0)?>';
-        if(barcode.length >= 10){
+        if(barcode.length >= 4){
             $.ajax({
                 type: "POST",
                 url: base_url + "/admin/billing/add-to-cart",
@@ -327,7 +327,7 @@ $current_url          = url()->current();
                 }
             });
         } else {
-            toastAlert('error', 'Barcode or SKU number length will be minimum 10 characters long. Please enter right barcode or SKU number');
+            toastAlert('error', 'Barcode or SKU number length will be minimum 4 characters long. Please enter right barcode or SKU number');
             $('#barcode').val('');
             $("#barcode").focus();
         }
@@ -497,8 +497,14 @@ $current_url          = url()->current();
     }
     $(document).ready(function() {
         $("#barcode").focus();
-        $(".deliveryOption").change(function() {
-            var selectedValue   = $("input[name='delivery_mode']:checked").val(); // Get checked value
+        $(".deliveryOption").on("click", function(e) {
+            e.preventDefault();
+            var radioId         = $(this).data("radio");
+            var selectedOption  = $("#" + radioId);
+            selectedOption.prop("checked", true);
+            $(".deliveryOption").removeClass("take-btn").addClass("outline-red");
+            $(this).removeClass("outline-red").addClass("take-btn");
+            var selectedValue   = selectedOption.val(); // Get clicked value
             var order_id        = '<?=(($getOrder)?$getOrder->id:0)?>';
             var note            = $('#note').val();
             $.ajax({

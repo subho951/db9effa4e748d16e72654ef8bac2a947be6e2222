@@ -3,6 +3,21 @@ use App\Helpers\Helper;
 $controllerRoute      = $module['controller_route'];
 $current_url          = url()->current();
 ?>
+<style type="text/css">
+    .billing-payment-summary .order-summary-right .table th:last-child,
+    .billing-payment-summary .order-summary-right .table td:last-child {
+        padding-right: .5rem;
+        text-align: right;
+    }
+    .billing-payment-summary .totals.d-flex {
+        justify-content: flex-end !important;
+    }
+    .billing-payment-summary .payment-total-line {
+        display: flex;
+        justify-content: flex-end;
+        text-align: right;
+    }
+</style>
 <div class="row">
     <!-- Sidebar Section -->
     <div class="col-md-5">
@@ -61,7 +76,7 @@ $current_url          = url()->current();
         </div>
     </div>
     <!-- Order Items Section -->
-    <div class="col-md-7" id="order-item">
+    <div class="col-md-7 billing-payment-summary" id="order-item">
         <?php if(count($getOrderItems) > 0){ ?>
             <div class="order-summary-right table-responsive">
                 <table class="table">
@@ -69,7 +84,7 @@ $current_url          = url()->current();
                         <tr>
                             <th width="40%">ORDER #: <?=(($getOrder)?$getOrder->order_no:'')?></th>
                             <th class="text-center">Qty</th>
-                            <th>Price</th>
+                            <th class="text-end">Price</th>
                             <!-- <th class="text-end">Subtotal</th> -->
                         </tr>
                     </thead>
@@ -87,7 +102,7 @@ $current_url          = url()->current();
                                     <button class="btn-plus-minus" onclick="itemQtyIncrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">+</button>
                                     <?php $totItemQty += $getOrderItem->qty; ?>
                                 </td>
-                                <td>$<?=number_format($getOrderItem->price,2)?></td>
+                                <td class="text-end">$<?=number_format($getOrderItem->price,2)?></td>
                                 <!-- <td class="text-end">
                                     $<?=number_format($getOrderItem->subtotal,2)?>
                                     <a href="javascript:void(0);" onclick="itemDelete(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);"><i class='bx bxs-trash'></i></a>
@@ -109,7 +124,7 @@ $current_url          = url()->current();
                 </div>
                 <div class="order-footer p-2">
                     <div class="d-flex justify-content-between py-3">
-                        <p>Total Discounts</p>
+                        <p>Discounts</p>
                         <p>$<?=number_format($getOrder->discount_amount,2)?></p>
                     </div>
                     <div class="d-flex justify-content-between">
@@ -117,16 +132,22 @@ $current_url          = url()->current();
                         <p>$<?=number_format($getOrder->delivery_amount,2)?></p>
                     </div>
                 </div>
-                <div class="d-flex justify-content-between totals p-2">
+                <div class="totals p-2">
                     <!-- <p>ITEMS <?=count($getOrderItems)?></p> -->
-                    <p>TOTAL $<?=number_format($getOrder->net_amount,2)?></p>
+                    <div class="payment-total-line">
+                        <p>TOTAL $<?=number_format($getOrder->net_amount,2)?></p>
+                    </div>
                     <?php if($getOrder->payment_mode != ''){?>
                         <?php if($getOrder->payment_mode == 'CASH'){?>
-                            <p>Cash tendered : $<?=number_format($getOrder->cash_tendered, 2)?></p>
-                            <p>Cash to be returned : $<?=number_format($getOrder->cash_return, 2)?></p>
+                            <div class="payment-total-line">
+                                <p>Cash tendered : $<?=number_format($getOrder->cash_tendered, 2)?></p>
+                            </div>
+                            <div class="payment-total-line">
+                                <p>Cash to be returned : $<?=number_format($getOrder->cash_return, 2)?></p>
+                            </div>
                         <?php }?>
                     <?php }?>
-                    <p id="cash-tender"></p>
+                    <div id="cash-tender"></div>
                 </div>
             </div>
         <?php }?>
@@ -540,7 +561,7 @@ $current_url          = url()->current();
                         // toastAlert("success", res.message);
                         // location.reload();                        
 
-                        var cashtenderHTML = '<p>Cash tendered : $'+res.data.cash_tendered+'</p><p>Cash to be returned : $'+res.data.cash_return+'</p>';
+                        var cashtenderHTML = '<div class="payment-total-line"><p>Cash tendered : $'+res.data.cash_tendered+'</p></div><div class="payment-total-line"><p>Cash to be returned : $'+res.data.cash_return+'</p></div>';
                         $('#cash-tender').html(cashtenderHTML);
 
                         var redirect_url = base_url + '/user/billing/list';
@@ -574,7 +595,10 @@ $current_url          = url()->current();
                 $("#loader").hide();
                 if(res.status){
                     var redirect_url = base_url + '/user/billing/list';
-                    toastAlert("success", res.message, true, redirect_url);
+                    // toastAlert("success", res.message, true, redirect_url);
+                    setTimeout(function () {
+                        window.location.href = redirect_url;
+                    }, 10000); // 10 seconds
                 }else{
                     toastAlert("error", res.message);
                 }

@@ -199,8 +199,8 @@ $current_url          = url()->current();
                     </div>
                 </div>
                 <div class="order-footer p-4">
-                    <div class="d-flex justify-content-between py-3">
-                        <p>Total Discounts</p>
+                    <div class="d-flex justify-content-between py-1">
+                        <p>Discounts</p>
                         <p>$<?=number_format($getOrder->discount_amount,2)?></p>
                     </div>
                     <div class="d-flex justify-content-between">

@@ -27,6 +27,11 @@
 	  background-color: #000;
 	  color: #007bff !important;
 	}
+    .toast-bottom-center {
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
 </style>
 <style>
     /* Loader Styling */
@@ -67,7 +72,7 @@
             "debug": true,
             "newestOnTop": false,
             "progressBar": true,
-            "positionClass": "toast-bottom-left",
+            "positionClass": "toast-bottom-center",
             "preventDuplicates": false,
             "showDuration": "3000",
             "hideDuration": "1000000",

@@ -5,6 +5,111 @@ use App\Helpers\Helper;
 $controllerRoute = $module['controller_route'];
 ?>
 <style type="text/css">
+  .product-page {
+    color: #1f2937;
+  }
+  .product-hero {
+    background: linear-gradient(135deg, #111827 0%, #24415c 56%, #0f766e 100%);
+    border-radius: 8px;
+    padding: 22px 24px;
+    color: #fff;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, .16);
+    margin-bottom: 22px;
+  }
+  .product-hero h4 {
+    color: #fff;
+    margin: 0;
+    font-weight: 800;
+  }
+  .product-hero .breadcrumb-text,
+  .product-hero .breadcrumb-text a {
+    color: rgba(226, 232, 240, .74);
+    font-size: 13px;
+  }
+  .product-action-btn {
+    border-radius: 8px;
+    font-weight: 700;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .product-filter-card,
+  .product-table-card {
+    border: 0;
+    border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, .07);
+  }
+  .product-filter-card .card-body {
+    padding: 18px;
+  }
+  .product-filter-card .form-control {
+    border-radius: 8px;
+    min-height: 42px;
+    border-color: #d9e2ec;
+  }
+  .product-table-card .card-header {
+    background: #fff;
+    border-bottom: 1px solid #eef2f7;
+    padding: 18px 20px;
+  }
+  .product-table-card .card-title {
+    margin: 0;
+    font-weight: 800;
+    color: #111827;
+  }
+  .product-table-wrap {
+    position: relative;
+  }
+  .product-table-wrap .table {
+    margin-bottom: 0;
+  }
+  .product-table-wrap thead th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    border-bottom: 1px solid #e5edf5;
+    white-space: nowrap;
+  }
+  .product-table-wrap tbody td {
+    color: #334155;
+    vertical-align: middle;
+  }
+  .product-table-wrap tbody tr:hover {
+    background: #f8fafc;
+  }
+  .product-sku-link {
+    color: #2563eb;
+    font-weight: 800;
+  }
+  .product-status-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .promo-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0 0 8px;
+  }
+  .promo-list small {
+    display: inline-block;
+    color: #475569;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .promo-list li {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.55;
+    padding: 2px 0;
+  }
   /* admin pin modal */
   .otp-input-fields {
       margin: auto;
@@ -70,14 +175,15 @@ $controllerRoute = $module['controller_route'];
       width: 140px
   }
   .buttons-export {
-      padding: 2px 20px;
-      background-color: #04163d;
+      padding: 7px 18px;
+      background: linear-gradient(135deg, #2563eb, #0f766e);
       color: #FFF;
-      border-radius: 50px;
-      border: 2px solid #04163d;
+      border-radius: 8px;
+      border: 0;
       transition: all .3s ease-in-out;
-      box-shadow: 0 9px 20px -10px #a5a5a5;
-      position: absolute; left: 90px; top: 8px;
+      box-shadow: 0 10px 22px rgba(15, 118, 110, .18);
+      position: absolute; left: 92px; top: 8px;
+      font-weight: 700;
   }
   @media(max-width: 767px) {
     div.dt-container div.dt-layout-row {
@@ -96,29 +202,33 @@ $controllerRoute = $module['controller_route'];
     }
   }
 </style>
-<div class="container-xxl flex-grow-1 container-p-y">
-  <h4 class="py-3 mb-4">
-    <span class="text-muted fw-light"><a href="<?=url('admin/dashboard')?>">Dashboard</a> /</span> <?=$page_header?>
-  </h4>
+<div class="container-xxl flex-grow-1 container-p-y product-page">
+  <div class="product-hero d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+      <div class="breadcrumb-text mb-2"><a href="<?=url('admin/dashboard')?>">Dashboard</a> / <?=$page_header?></div>
+      <h4><?=$page_header?></h4>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="<?=url('admin/' . $controllerRoute . '/add/')?>" class="btn btn-light product-action-btn"><i class="fa fa-plus"></i>Add <?=$module['title']?></a>
+      <a href="<?=url('admin/' . $controllerRoute . '/upload-product/')?>" class="btn btn-outline-light product-action-btn"><i class="fa fa-upload"></i>Upload <?=$module['title']?></a>
+    </div>
+  </div>
   <div class="row">
     <div class="col-md-12">
-      <div class="card">
+      <div class="card product-filter-card mb-4">
         <div class="card-body">
-          <h5 class="card-title">
-            <a href="<?=url('admin/' . $controllerRoute . '/add/')?>" class="btn btn-outline-success btn-sm float-right">Add <?=$module['title']?></a>
-            <a href="<?=url('admin/' . $controllerRoute . '/upload-product/')?>" class="btn btn-outline-success btn-sm float-right">Upload <?=$module['title']?></a>
-            <form method="GET" action="" style="border: 1px solid #04163d24;padding: 10px;border-radius: 10px;margin-top: 10px;">
+            <form method="GET" action="">
               <input type="hidden" name="mode" value="filter">
-              <div class="row align-items-center">
+              <div class="row align-items-center g-3">
                 <div class="col-lg-3 col-md-3">
-                  <select class="form-control my-2 my-md-0" name="status">
+                  <select class="form-control" name="status">
                     <option value="" <?=(($status == '')?'selected':'')?>>Select Status</option>
                     <option value="1" <?=(($status == '1')?'selected':'')?>>Active</option>
                     <option value="0" <?=(($status == '0')?'selected':'')?>>Inactive</option>
                   </select>
                 </div>
                 <div class="col-lg-3 col-md-3">
-                  <select class="form-control my-2 my-md-0" name="brand_id">
+                  <select class="form-control" name="brand_id">
                     <option value="" selected>Select Brand</option>
                     <?php if($brands){ foreach($brands as $brand){?>
                       <option value="<?=$brand->id?>" <?=(($brand_id == $brand->id)?'selected':'')?>><?=$brand->name?></option>
@@ -126,23 +236,32 @@ $controllerRoute = $module['controller_route'];
                   </select>
                 </div>
                 <div class="col-lg-3 col-md-3">
-                  <select class="form-control my-2 my-md-0" name="supplier_id">
+                  <select class="form-control" name="supplier_id">
                     <option value="" selected>Select Supplier</option>
                     <?php if($suppliers){ foreach($suppliers as $supplier){?>
                       <option value="<?=$supplier->id?>" <?=(($supplier_id == $supplier->id)?'selected':'')?>><?=$supplier->name?></option>
                     <?php } }?>
                   </select>
                 </div>
-                <div class="col-lg-3 col-md-3">
-                  <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-filter"></i>&nbsp;Submit</button>
+                <div class="col-lg-3 col-md-3 d-flex flex-wrap gap-2">
+                  <button type="submit" class="btn btn-primary product-action-btn"><i class="fa fa-filter"></i>Apply</button>
                   <?php if($is_search){?>
-                    <a href="<?=url('admin/' . $controllerRoute . '/list/')?>" class="btn btn-secondary btn-sm"><i class="fa fa-refresh"></i>&nbsp;Reset</a>
+                    <a href="<?=url('admin/' . $controllerRoute . '/list/')?>" class="btn btn-outline-secondary product-action-btn"><i class="fa fa-refresh"></i>Reset</a>
                   <?php }?>
                 </div>
               </div>
             </form>
-          </h5>
-          <div class="dt-responsive table-responsive" style="position: relative">
+        </div>
+      </div>
+      <div class="card product-table-card">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div>
+            <h5 class="card-title">Product Catalogue</h5>
+            <small class="text-muted"><?=number_format(count($rows))?> products listed</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="dt-responsive table-responsive product-table-wrap">
             <button class="dt-button buttons-export" tabindex="0" aria-controls="simpletable" type="button"><span>Export</span></button>
             <!-- <button class="dt-button buttons-export" tabindex="0" aria-controls="simpletable" type="button" onclick="openAdminPINModal2();"><span>Export</span></button> -->
             <table id="simpletable" class="table table-striped table-bordered nowrap">
@@ -165,20 +284,20 @@ $controllerRoute = $module['controller_route'];
                   <tr>
                     <td>
                       <?php if($row->status){?>
-                        <a href="<?=url('admin/' . $controllerRoute . '/change-status/'.Helper::encoded($row->id))?>" class="btn btn-outline-success btn-sm" title="Activate <?=$module['title']?>"><i class="fa fa-check"></i></a>
+                        <a href="<?=url('admin/' . $controllerRoute . '/change-status/'.Helper::encoded($row->id))?>" class="btn btn-outline-success btn-sm product-status-btn" title="Activate <?=$module['title']?>"><i class="fa fa-check"></i></a>
                       <?php } else {?>
-                        <a href="<?=url('admin/' . $controllerRoute . '/change-status/'.Helper::encoded($row->id))?>" class="btn btn-outline-warning btn-sm" title="Deactivate <?=$module['title']?>"><i class="fa fa-times"></i></a>
+                        <a href="<?=url('admin/' . $controllerRoute . '/change-status/'.Helper::encoded($row->id))?>" class="btn btn-outline-warning btn-sm product-status-btn" title="Deactivate <?=$module['title']?>"><i class="fa fa-times"></i></a>
                       <?php }?>
                     </td>
                     <td>
-                      <a href="<?=url('admin/products/edit/'.Helper::encoded($row->id))?>"><?=$row->sku?></a>
+                      <a class="product-sku-link" href="<?=url('admin/products/edit/'.Helper::encoded($row->id))?>"><?=$row->sku?></a>
                       <!-- <a href="javascript:void(0);" onclick="openAdminPINModal(<?=$row->id?>);"><?=$row->sku?></a> -->
                     </td>
                     <td><?=$row->name?></td>
                     <td>
                       <!-- Discount Vouchers -->
                         <?php $discountVouchers = ProductDiscountVoucher::select('id', 'voucher_code', 'retail_discounted_price', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
-                        <ul style="list-style: none;">
+                        <ul class="promo-list">
                           <?php if(count($discountVouchers) > 0){?>
                             <small style="font-weight: bold; text-decoration:underline;">Discount Vouchers</small>
                             <?php foreach($discountVouchers as $discountVoucher){?>
@@ -196,7 +315,7 @@ $controllerRoute = $module['controller_route'];
                       <!-- Discount Vouchers -->
                       <!-- Multiple Buys -->
                         <?php $multipleBuys = ProductMultipleBuy::select('id', 'first_barcode', 'second_barcode', 'barcode_discount_type', 'discount_amount', 'discounted_amount', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
-                        <ul style="list-style: none;">
+                        <ul class="promo-list">
                           <?php if(count($multipleBuys) > 0){?>
                             <small style="font-weight: bold; text-decoration:underline;">Multiple Buys</small>
                             <?php foreach($multipleBuys as $multipleBuy){?>

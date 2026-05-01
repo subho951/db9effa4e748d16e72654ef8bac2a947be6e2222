@@ -3,9 +3,11 @@
         <div class="col-md-12">
             <div>
                 <ul class="d-flex justify-content-between justify-content-sm-end right-bar-list align-items-center">
-                    <li>
-                        <a href="<?=url('admin/dashboard')?>" class="my-btn btn-sky"><i class="fa fa-arrow-left"></i><span class="d-none d-sm-block"> Back To Dashboard</span></a>
-                    </li>
+                    <?php if(session('type') == 'MA'){?>
+                        <li>
+                            <a href="<?=url('admin/dashboard')?>" class="my-btn btn-sky"><i class="fa fa-arrow-left"></i><span class="d-none d-sm-block"> Back To Dashboard</span></a>
+                        </li>
+                    <?php }?>
                     <li>
                         <i class="bx bx-time"></i><span id="clock" style="font-weight:bold;"><?=date('h:i:s')?></span>
                     </li>

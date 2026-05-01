@@ -7,6 +7,153 @@ $current_url                    = url()->current();
 ?>
 <!-- Styling (Optional) -->
 <style>
+    .product-form-page {
+        color: #1f2937;
+    }
+    .product-form-hero {
+        background: linear-gradient(135deg, #111827 0%, #24415c 56%, #0f766e 100%);
+        border-radius: 8px;
+        padding: 22px 24px;
+        color: #fff;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, .16);
+        margin-bottom: 22px;
+    }
+    .product-form-hero h4 {
+        color: #fff;
+        margin: 0;
+        font-weight: 800;
+    }
+    .product-form-hero .breadcrumb-text,
+    .product-form-hero .breadcrumb-text a {
+        color: rgba(226, 232, 240, .74);
+        font-size: 13px;
+    }
+    .product-form-hero .btn {
+        border-radius: 8px;
+        font-weight: 700;
+    }
+    .product-form-card {
+        border: 0;
+        border-radius: 8px;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, .07);
+        background: #fff;
+        padding: 22px;
+    }
+    .product-form-page .form-container > .row {
+        row-gap: 18px;
+    }
+    .product-form-page .form-label {
+        color: #374151;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+    .product-form-page .form-control,
+    .product-form-page .form-select {
+        width: 100% !important;
+        min-height: 42px;
+        border-radius: 8px;
+        border-color: #d9e2ec;
+        color: #111827;
+        box-shadow: none;
+    }
+    .product-form-page .form-control:focus,
+    .product-form-page .form-select:focus {
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, .10);
+    }
+    .product-section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #111827;
+        font-weight: 800;
+        margin: 8px 0 0;
+        padding-top: 18px;
+        border-top: 1px solid #eef2f7;
+    }
+    .product-section-title::before {
+        content: "";
+        width: 9px;
+        height: 28px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #2563eb, #0f766e);
+    }
+    .product-helper-strip {
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 12px 14px;
+        color: #64748b;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+    .product-action-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px;
+        margin-bottom: 18px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #f8fafc;
+    }
+    .product-action-bar .btn,
+    .product-bottom-action .btn,
+    .btn-sky {
+        border-radius: 8px !important;
+        font-weight: 800;
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .product-image-panel {
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 16px;
+    }
+    .product-image-panel img {
+        border-radius: 8px !important;
+        object-fit: cover;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+    }
+    .discounts-section,
+    .multiple-buys-section {
+        margin-top: 8px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        border-radius: 8px;
+        padding: 18px;
+    }
+    .discount-vouchers-section,
+    .multiple-buy-section.field_wrapper2,
+    .field_wrapper.discount-vouchers-section {
+        border: 1px solid #e2e8f0 !important;
+        background: #f8fafc;
+        border-radius: 8px !important;
+        padding: 14px !important;
+    }
+    .product-form-page .form-check-input {
+        cursor: pointer;
+    }
+    .product-form-page .form-switch .form-check-input {
+        width: 2.75em;
+        height: 1.45em;
+    }
+    .product-bottom-action {
+        position: sticky;
+        bottom: 0;
+        z-index: 4;
+        background: rgba(255, 255, 255, .92);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid #eef2f7;
+        padding: 14px 0 0;
+        margin-top: 18px !important;
+    }
     .dropdown {
         position: absolute;
         border: 1px solid #ccc;
@@ -47,12 +194,18 @@ $current_url                    = url()->current();
       border: 1px solid #696cff;
     }
 </style>
-<div class="container-xxl flex-grow-1 container-p-y">
-<h4>
-   <span class="text-muted fw-light"><a href="<?=url('admin/dashboard')?>">Dashboard</a> /</span>
-   <span class="text-muted fw-light"><a href="<?=url('admin/' . $controllerRoute . '/list/')?>"><?=$module['title']?> List</a> /</span>
-   <?=$page_header?>
-</h4>
+<div class="container-xxl flex-grow-1 container-p-y product-form-page">
+<div class="product-form-hero d-flex flex-wrap align-items-center justify-content-between gap-3">
+   <div>
+      <div class="breadcrumb-text mb-2">
+         <a href="<?=url('admin/dashboard')?>">Dashboard</a> /
+         <a href="<?=url('admin/' . $controllerRoute . '/list/')?>"><?=$module['title']?> List</a> /
+         <?=$page_header?>
+      </div>
+      <h4><?=$page_header?></h4>
+   </div>
+   <a href="<?=url('admin/' . $controllerRoute . '/list/')?>" class="btn btn-outline-light"><i class="fa fa-arrow-left"></i> Back to Products</a>
+</div>
 <div class="row">
    <?php
       if($row){
@@ -109,17 +262,26 @@ $current_url                    = url()->current();
       <div class="containers-fluid">
          <div class="row">
             <div class="col-12">
-               <small class="text-danger">Star (*) marked fields are mandatory</small>
-               <small class="text-dark">* ch=character size/limit of the input field.</small>
+               <div class="product-helper-strip">
+                  <strong>Required fields are marked with *</strong>. Product, pricing, opening stock, and promotion settings are managed from this screen.
+               </div>
                <form method="POST" action="" enctype="multipart/form-data">
                   @csrf
                   <div class="containers">
-                     <div class="form-container">
+                     <div class="form-container product-form-card">
                         <div class="row">
-                           <h5>
-                              <button type="submit" class="btn btn-primary me-2">Save</button>
-                              <a href="<?=url('admin/' . $controllerRoute . '/list/')?>" class="btn btn-secondary me-2">Cancel</a>
-                           </h5>
+                           <div class="col-12">
+                              <div class="product-action-bar">
+                                 <div>
+                                    <h5 class="mb-1 fw-bold">Product Information</h5>
+                                    <small class="text-muted">Maintain catalogue identity, stock, supplier and pricing details.</small>
+                                 </div>
+                                 <div class="d-flex flex-wrap gap-2">
+                                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+                                    <a href="<?=url('admin/' . $controllerRoute . '/list/')?>" class="btn btn-outline-secondary"><i class="fa fa-times"></i> Cancel</a>
+                                 </div>
+                              </div>
+                           </div>
                            <div class="col-md-3">
                               <label class="form-label" for="sku">SKU <small class="text-danger">*</small></label>
                               <input type="text" class="form-control" placeholder="Enter SKU" id="sku" name="sku" value="<?=$sku?>" maxlength="10" onkeypress="return isNumber(event)" required style="width: 40%;">
@@ -207,7 +369,7 @@ $current_url                    = url()->current();
                               </div>
                            </div>
 
-                           <h5 class="mb-3">Pricing</h5>
+                           <div class="col-12"><h5 class="product-section-title">Pricing</h5></div>
                            <div class="col-md-2">
                               <label class="form-label" for="cost_price_ex_tax">Cost (Excl. Tax) ($)</label>
                               <input type="text" class="form-control" placeholder="Enter Cost Ex. Tax" name="cost_price_ex_tax" id="cost_price_ex_tax" value="<?=$cost_price_ex_tax?>" maxlength="10" required>
@@ -238,7 +400,7 @@ $current_url                    = url()->current();
                            </div>
 
                            <div class="mb-3 col-md-12">
-                              <div class="d-flex align-items-start align-items-sm-center gap-4">
+                              <div class="product-image-panel d-flex align-items-start align-items-sm-center gap-4">
                                  <?php if($cover_image != ''){?>
                                    <img src="<?=env('UPLOADS_URL').'/product/'.$cover_image?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
                                  <?php } else {?>
@@ -264,7 +426,7 @@ $current_url                    = url()->current();
                            </div>
 
                            <div class="discounts-section">
-                              <h5 class="mb-3">Discounts Voucher</h5>
+                              <h5 class="product-section-title mb-3">Discount Vouchers</h5>
                               <?php
                               $discountVouchers = ProductDiscountVoucher::where('status', '=', 1)->where('product_id', '=', $uId)->get();
                               ?>
@@ -344,7 +506,7 @@ $current_url                    = url()->current();
 
 
                            <div class="multiple-buys-section">
-                              <h5 class="mb-3 mt-3">Multiple Buys</h5>
+                              <h5 class="product-section-title mb-3">Multiple Buys</h5>
                               <?php
                               $multipleBuys = ProductMultipleBuy::where('status', '=', 1)->where('product_id', '=', $uId)->get();
                               ?>
@@ -443,8 +605,9 @@ $current_url                    = url()->current();
                            </div> -->
                         </div>
                      </div>
-                     <div class="mt-2">
-                        <button type="submit" class="btn btn-primary me-2">Save</button>
+                     <div class="product-bottom-action">
+                        <button type="submit" class="btn btn-primary me-2"><i class="fa fa-save"></i> Save Product</button>
+                        <a href="<?=url('admin/' . $controllerRoute . '/list/')?>" class="btn btn-outline-secondary"><i class="fa fa-times"></i> Cancel</a>
                      </div>
                   </div>
                </form>

@@ -74,7 +74,7 @@
                </nav>
                <!-- / Navbar -->
                <!-- Content wrapper -->
-               <div class="content-wrapper">
+               <div class="content-wrapper <?=(($pageSegment == 'dashboard')?'dashboard-content-wrapper':'')?>">
                   <?php if(session('success_message')){?>
                      <div class="alert alert-success alert-dismissible autohide" role="alert">
                         <?=session('success_message')?>

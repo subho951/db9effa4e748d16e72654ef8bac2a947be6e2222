@@ -18,6 +18,159 @@ if(!empty($parameters)){
 $user_type = session('type');
 ?>
 <style type="text/css">
+   #layout-menu {
+      background: linear-gradient(180deg, #111827 0%, #172033 48%, #0f172a 100%) !important;
+      border-right: 1px solid rgba(255, 255, 255, .08);
+      box-shadow: 14px 0 35px rgba(15, 23, 42, .16);
+   }
+   #layout-menu .app-brand {
+      min-height: 84px;
+      padding: 18px 18px 14px;
+      margin-bottom: 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+   }
+   #layout-menu .app-brand-link {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+   }
+   .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #2563eb, #0f766e);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, .26);
+      text-transform: uppercase;
+   }
+   .brand-copy {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+   }
+   #layout-menu .app-brand-text {
+      color: #fff !important;
+      margin-left: 0 !important;
+      font-size: 18px !important;
+      letter-spacing: .01em;
+      max-width: 170px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+   }
+   .brand-caption {
+      color: rgba(226, 232, 240, .62);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      margin-top: 5px;
+      text-transform: uppercase;
+   }
+   #layout-menu .layout-menu-toggle {
+      color: rgba(255, 255, 255, .76) !important;
+      border-radius: 8px;
+   }
+   #layout-menu .menu-inner {
+      padding: 10px 12px 18px !important;
+   }
+   #layout-menu .menu-inner-shadow {
+      display: none;
+   }
+   #layout-menu .menu-item {
+      margin: 3px 0;
+   }
+   #layout-menu .menu-link {
+      min-height: 42px;
+      margin: 0;
+      border-radius: 8px;
+      color: rgba(226, 232, 240, .76) !important;
+      font-weight: 600;
+      letter-spacing: .01em;
+      transition: background-color .18s ease, color .18s ease, transform .18s ease, box-shadow .18s ease;
+   }
+   #layout-menu .menu-link:hover {
+      color: #fff !important;
+      background: rgba(255, 255, 255, .08) !important;
+      transform: translateX(2px);
+   }
+   #layout-menu .menu-icon {
+      width: 34px;
+      height: 34px;
+      margin-right: 10px !important;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #cbd5e1 !important;
+      background: rgba(255, 255, 255, .07);
+      font-size: 14px;
+   }
+   #layout-menu .menu-item.active > .menu-link,
+   #layout-menu .menu-item.open > .menu-link {
+      color: #fff !important;
+      background: linear-gradient(135deg, rgba(37, 99, 235, .95), rgba(15, 118, 110, .95)) !important;
+      box-shadow: 0 12px 24px rgba(15, 118, 110, .24);
+   }
+   #layout-menu .menu-item.active > .menu-link .menu-icon,
+   #layout-menu .menu-item.open > .menu-link .menu-icon {
+      color: #fff !important;
+      background: rgba(255, 255, 255, .16);
+   }
+   #layout-menu .menu-toggle::after {
+      color: rgba(226, 232, 240, .7) !important;
+   }
+   #layout-menu .menu-sub {
+      margin: 6px 0 8px 17px !important;
+      padding: 6px 0 6px 12px !important;
+      border-left: 1px solid rgba(148, 163, 184, .24);
+      background: transparent !important;
+   }
+   #layout-menu .menu-sub .menu-item {
+      margin: 2px 0;
+   }
+   #layout-menu .menu-sub .menu-link {
+      min-height: 34px;
+      padding-left: 14px !important;
+      color: rgba(203, 213, 225, .72) !important;
+      font-size: 12.5px !important;
+      font-weight: 600;
+      border-radius: 7px;
+   }
+   #layout-menu .menu-sub .menu-link::before {
+      display: none !important;
+   }
+   #layout-menu .menu-sub .menu-item.active > .menu-link {
+      color: #fff !important;
+      background: rgba(255, 255, 255, .11) !important;
+      box-shadow: none;
+   }
+   #layout-menu .menu-inner > .menu-item:nth-last-child(2) {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, .08);
+   }
+   #layout-menu .menu-inner > .menu-item:last-child > .menu-link {
+      color: #fecaca !important;
+   }
+   #layout-menu .menu-inner > .menu-item:last-child > .menu-link:hover {
+      background: rgba(220, 38, 38, .16) !important;
+   }
+   #layout-menu .menu-inner::-webkit-scrollbar {
+      width: 6px;
+   }
+   #layout-menu .menu-inner::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, .34);
+      border-radius: 999px;
+   }
    .menu-sub .menu-item .menu-link{
       font-size: 13px;
    }
@@ -117,12 +270,16 @@ $user_type = session('type');
     }
   }
 </style>
-<div class="app-brand demo ">
+<div class="app-brand demo">
    <a href="<?=url('admin/dashboard')?>" class="app-brand-link">
       <!-- <span class="app-brand-logo demo">
          <img src="<?=env('UPLOADS_URL')?><?=$generalSetting->site_logo?>">
       </span> -->
-      <span class="app-brand-text demo menu-text fw-bold ms-2" style="text-transform: uppercase;font-size: 23px;"><?=$generalSetting->site_name?></span>
+      <span class="brand-mark"><?=strtoupper(substr($generalSetting->site_name, 0, 1))?></span>
+      <span class="brand-copy">
+         <span class="app-brand-text demo menu-text fw-bold"><?=$generalSetting->site_name?></span>
+         <span class="brand-caption">Admin Suite</span>
+      </span>
    </a>
    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
    <i class="bx bx-chevron-left bx-sm align-middle"></i>

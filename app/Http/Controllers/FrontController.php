@@ -31,6 +31,7 @@ class FrontController extends Controller
 {
     /* authentication */
         public function login(Request $request){
+            return redirect('admin/');
             if($request->isMethod('post')){
                 $postData = $request->all();
                 $rules = [

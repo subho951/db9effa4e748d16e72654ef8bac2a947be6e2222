@@ -1,49 +1,45 @@
-<div class="container-xxl">
-   <div class="authentication-wrapper authentication-basic container-p-y">
-      <div class="authentication-inner">
-         <!-- Register -->
-         <div class="card">
-            <div class="card-body">
-               <!-- Logo -->
-               <!-- <div class="app-brand justify-content-center">
-                  <a href="index-2.html" class="app-brand-link gap-2">
-                     <span class="app-brand-logo demo">
-                        <img src="<?=env('UPLOADS_URL')?><?=$generalSetting->site_logo?>">   
-                     </span>
-                     <span class="app-brand-text demo text-body fw-bold"><?=$generalSetting->site_name?></span>
-                  </a>
-               </div> -->
-               <!-- /Logo -->
-               <h4 class="mb-2"><?=$page_header?> 🔒</h4>
-               <p class="mb-4">Enter your email and we'll send you instructions to reset your password</p>
-               <?php if(session('success_message')){?>
-                  <div class="alert alert-success alert-dismissible autohide" role="alert">
-                     <?=session('success_message')?>
-                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                  </div>
-               <?php }?>
-               <?php if(session('error_message')){?>
-                  <div class="alert alert-danger alert-dismissible autohide" role="alert">
-                     <?=session('error_message')?>
-                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                  </div>
-               <?php }?>
-               <form id="formAuthentication" class="mb-3" action="" method="POST">
-                  @csrf
-                  <div class="mb-3">
-                     <label for="email" class="form-label">Username</label>
-                     <input type="text" class="form-control" id="email" name="username" placeholder="Enter your username" required autofocus>
-                  </div>
-                  <div class="mb-3">
-                     <button class="btn btn-primary d-grid w-100" type="submit">Submit</button>
-                  </div>
-                  <div class="text-center">
-                    <p>Already Have Account? <a href="<?=url('admin/')?>">Click Here</a></p>
-                  </div>
-               </form>
-            </div>
+<div class="auth-premium-shell">
+   <div class="card auth-premium-card">
+      <div class="auth-premium-top">
+         <div class="auth-brand">
+            <span class="auth-brand-mark"><?=strtoupper(substr($generalSetting->site_name, 0, 1))?></span>
+            <span>
+               <span class="auth-brand-name"><?=$generalSetting->site_name?></span>
+               <span class="auth-brand-caption">PIN Recovery</span>
+            </span>
          </div>
-         <!-- /Register -->
+         <h1 class="auth-premium-title"><?=$page_header?></h1>
+         <p class="auth-premium-subtitle">Enter your username and we will send a verification code to the registered email.</p>
+      </div>
+      <div class="auth-premium-body">
+         <?php if(session('success_message')){?>
+            <div class="alert alert-success alert-dismissible autohide" role="alert">
+               <?=session('success_message')?>
+               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+         <?php }?>
+         <?php if(session('error_message')){?>
+            <div class="alert alert-danger alert-dismissible autohide" role="alert">
+               <?=session('error_message')?>
+               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+         <?php }?>
+         <form id="formAuthentication" action="" method="POST">
+            @csrf
+            <div class="mb-4">
+               <label for="email" class="form-label">Username</label>
+               <div class="auth-input-icon">
+                  <i class="bx bx-user-check"></i>
+                  <input type="text" class="form-control" id="email" name="username" placeholder="Enter username" required autofocus>
+               </div>
+            </div>
+            <div class="auth-note mb-4">For security, the reset code is sent only to the email address linked to this admin account.</div>
+            <button class="btn auth-primary-btn d-grid w-100" type="submit">Send Verification Code</button>
+            <div class="auth-help-row">
+               <span>Remembered your PIN?</span>
+               <a class="auth-secondary-link" href="<?=url('admin/')?>">Back to sign in</a>
+            </div>
+         </form>
       </div>
    </div>
 </div>

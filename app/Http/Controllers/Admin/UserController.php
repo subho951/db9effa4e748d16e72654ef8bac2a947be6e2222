@@ -13,6 +13,11 @@ use App\Models\UserActivity;
 use App\Models\SubscriptionPackage;
 use App\Models\User;
 use App\Models\UserSubscription;
+use App\Models\Brand;
+use App\Models\Supplier;
+use App\Models\Product;
+use App\Models\Order;
+use App\Models\OrderDetail;
 use Auth;
 use Mail;
 use App\Mail\ForgotPwdMail;
@@ -45,7 +50,7 @@ class UserController extends Controller
                     if(Auth::guard('admin')->attempt(['username' => $postData['username'], 'password' => $password, 'status' => 1])){
                         // Helper::pr(Auth::guard('admin')->user());
                         $sessionData = Auth::guard('admin')->user();
-                        if($sessionData->type != 'SO'){
+                        // if($sessionData->type != 'SO'){
                             $request->session()->put('user_id', $sessionData->id);
                             $request->session()->put('name', $sessionData->name);
                             $request->session()->put('type', $sessionData->type);
@@ -66,22 +71,27 @@ class UserController extends Controller
                                 UserActivity::insert($activityData);
                             /* user activity */
                             // Helper::pr($request->session());
-                            return redirect('admin/dashboard');
-                        } else {
-                            /* user activity */
-                                $activityData = [
-                                    'user_email'        => $postData['username'],
-                                    'user_name'         => 'Master Admin',
-                                    'user_type'         => 'ADMIN',
-                                    'ip_address'        => $request->ip(),
-                                    'activity_type'     => 0,
-                                    'activity_details'  => 'You Are Not Authorized To SignIn Here !!!',
-                                    'platform_type'     => 'WEB',
-                                ];
-                                UserActivity::insert($activityData);
-                            /* user activity */
-                            return redirect()->back()->with('error_message', 'You Are Not Authorize To SignIn Here !!!');
-                        }
+
+                            if($sessionData->type == 'MA'){
+                                return redirect('admin/dashboard');
+                            } else {
+                                return redirect('admin/billing/list');
+                            }
+                        // } else {
+                        //     /* user activity */
+                        //         $activityData = [
+                        //             'user_email'        => $postData['username'],
+                        //             'user_name'         => 'Master Admin',
+                        //             'user_type'         => 'ADMIN',
+                        //             'ip_address'        => $request->ip(),
+                        //             'activity_type'     => 0,
+                        //             'activity_details'  => 'You Are Not Authorized To SignIn Here !!!',
+                        //             'platform_type'     => 'WEB',
+                        //         ];
+                        //         UserActivity::insert($activityData);
+                        //     /* user activity */
+                        //     return redirect()->back()->with('error_message', 'You Are Not Authorize To SignIn Here !!!');
+                        // }
                     } else {
                         /* user activity */
                             $activityData = [
@@ -249,6 +259,110 @@ class UserController extends Controller
     /* dashboard */
         public function dashboard(){
             $data                           = [];
+            $today                          = Carbon::today()->toDateString();
+            $monthStart                     = Carbon::now()->startOfMonth()->toDateString();
+            $completedOrdersQuery           = Order::where('status', '=', 5);
+
+            $data['totalSaleOperators']     = Admin::where('type', '=', 'SO')->where('status', '!=', 3)->count();
+            $data['activeSaleOperators']    = Admin::where('type', '=', 'SO')->where('status', '=', 1)->count();
+            $data['totalBrands']            = Brand::where('status', '!=', 3)->count();
+            $data['totalSuppliers']         = Supplier::where('status', '!=', 3)->count();
+            $data['totalProducts']          = Product::where('status', '!=', 3)->count();
+            $data['activeProducts']         = Product::where('status', '=', 1)->count();
+            $data['customerCount']          = Order::where('status', '=', 5)
+                                                    ->whereNotNull('customer_phone')
+                                                    ->where('customer_phone', '!=', '')
+                                                    ->distinct('customer_phone')
+                                                    ->count('customer_phone');
+            $data['totalBillsCount']        = (clone $completedOrdersQuery)->count();
+            $data['totalBillsAmount']       = (clone $completedOrdersQuery)->sum('net_amount');
+            $data['todayBillsCount']        = (clone $completedOrdersQuery)->whereDate('order_date', '=', $today)->count();
+            $data['todayBillsAmount']       = (clone $completedOrdersQuery)->whereDate('order_date', '=', $today)->sum('net_amount');
+            $data['monthBillsCount']        = (clone $completedOrdersQuery)->whereDate('order_date', '>=', $monthStart)->count();
+            $data['monthBillsAmount']       = (clone $completedOrdersQuery)->whereDate('order_date', '>=', $monthStart)->sum('net_amount');
+            $data['ongoingBillsCount']      = Order::where('status', '<', 3)->count();
+            $data['recallBillsCount']       = Order::where('status', '=', 3)->count();
+
+            $data['shopStockQty']           = Product::where('status', '!=', 3)->sum('shop_stock');
+            $data['warehouseStockQty']      = Product::where('status', '!=', 3)->sum('warehouse_stock');
+            $data['lowStockCount']          = Product::where('status', '!=', 3)
+                                                    ->whereRaw('(COALESCE(shop_stock, 0) + COALESCE(warehouse_stock, 0)) > 0')
+                                                    ->whereRaw('(COALESCE(shop_stock, 0) + COALESCE(warehouse_stock, 0)) <= 5')
+                                                    ->count();
+            $data['outOfStockCount']        = Product::where('status', '!=', 3)
+                                                    ->whereRaw('(COALESCE(shop_stock, 0) + COALESCE(warehouse_stock, 0)) <= 0')
+                                                    ->count();
+
+            $data['operatorStats']          = Admin::leftJoin('orders', function($join) {
+                                                        $join->on('admins.id', '=', 'orders.operator_id')
+                                                            ->where('orders.status', '=', 5);
+                                                    })
+                                                    ->select(
+                                                        'admins.id',
+                                                        'admins.name',
+                                                        DB::raw('COUNT(orders.id) as bill_count'),
+                                                        DB::raw('COALESCE(SUM(orders.net_amount), 0) as bill_amount')
+                                                    )
+                                                    ->where('admins.type', '=', 'SO')
+                                                    ->where('admins.status', '!=', 3)
+                                                    ->groupBy('admins.id', 'admins.name')
+                                                    ->orderByDesc('bill_amount')
+                                                    ->get();
+
+            $data['productStockRows']       = Product::select(
+                                                        'id',
+                                                        'sku',
+                                                        'name',
+                                                        'receipt_short_name',
+                                                        'shop_stock',
+                                                        'warehouse_stock',
+                                                        DB::raw('(COALESCE(shop_stock, 0) + COALESCE(warehouse_stock, 0)) as total_stock')
+                                                    )
+                                                    ->where('status', '!=', 3)
+                                                    ->orderBy('total_stock', 'ASC')
+                                                    ->orderBy('name', 'ASC')
+                                                    ->limit(10)
+                                                    ->get();
+
+            $data['topProducts']            = OrderDetail::join('orders', 'order_details.order_id', '=', 'orders.id')
+                                                    ->join('products', 'order_details.item_id', '=', 'products.id')
+                                                    ->select(
+                                                        'products.sku',
+                                                        'products.receipt_short_name',
+                                                        'products.name',
+                                                        DB::raw('SUM(order_details.qty) as total_qty'),
+                                                        DB::raw('SUM(order_details.subtotal) as total_amount')
+                                                    )
+                                                    ->where('orders.status', '=', 5)
+                                                    ->groupBy('products.id', 'products.sku', 'products.receipt_short_name', 'products.name')
+                                                    ->orderByDesc('total_qty')
+                                                    ->limit(5)
+                                                    ->get();
+
+            $data['paymentModeStats']       = Order::select('payment_mode', DB::raw('COUNT(*) as bill_count'), DB::raw('COALESCE(SUM(net_amount), 0) as bill_amount'))
+                                                    ->where('status', '=', 5)
+                                                    ->groupBy('payment_mode')
+                                                    ->orderByDesc('bill_amount')
+                                                    ->get();
+            $data['deliveryModeStats']      = Order::select('delivery_mode', DB::raw('COUNT(*) as bill_count'), DB::raw('COALESCE(SUM(net_amount), 0) as bill_amount'))
+                                                    ->where('status', '=', 5)
+                                                    ->groupBy('delivery_mode')
+                                                    ->orderByDesc('bill_count')
+                                                    ->get();
+            $data['recentBills']            = Order::select('id', 'order_no', 'order_date', 'order_time', 'operator_id', 'customer_name', 'customer_phone', 'delivery_mode', 'payment_mode', 'net_amount')
+                                                    ->where('status', '=', 5)
+                                                    ->orderBy('id', 'DESC')
+                                                    ->limit(20)
+                                                    ->get();
+            $data['operatorNames']          = Admin::whereIn('id', $data['recentBills']->pluck('operator_id')->filter()->unique())
+                                                    ->pluck('name', 'id')
+                                                    ->toArray();
+            $data['salesTrend']             = Order::select('order_date', DB::raw('COUNT(*) as bill_count'), DB::raw('COALESCE(SUM(net_amount), 0) as bill_amount'))
+                                                    ->where('status', '=', 5)
+                                                    ->whereDate('order_date', '>=', Carbon::now()->subDays(6)->toDateString())
+                                                    ->groupBy('order_date')
+                                                    ->orderBy('order_date', 'ASC')
+                                                    ->get();
             $title                          = 'Dashboard';
             $page_name                      = 'dashboard';
             echo $this->admin_after_login_layout($title,$page_name,$data);

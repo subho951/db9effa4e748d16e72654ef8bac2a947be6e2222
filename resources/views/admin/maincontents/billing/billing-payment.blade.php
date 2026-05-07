@@ -344,7 +344,7 @@ $current_url          = url()->current();
                         $('#order-item').html(res.data.item_table_html);
                         // setTimeout(function() {
                         //     location.reload();
-                        // }, 3000);
+                        // }, 2000);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -450,7 +450,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         setTimeout(function() {
                             location.reload();
-                        }, 1000);
+                        }, 2000);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -488,7 +488,7 @@ $current_url          = url()->current();
                         // var cashtenderHTML = '<p>Cash tendered : $'+res.data.cash_tendered+'</p><p>Cash to be returned : $'+res.data.cash_return+'</p>';
                         // $('#cash-tender').html(cashtenderHTML);
 
-                        var redirect_url = base_url + '/admin/billing/list';
+                        var redirect_url = (res.data && res.data.is_redirect) ? res.data.redirect_url : base_url + '/admin/billing/list';
                         toastAlert("success", res.message, true, redirect_url);
                     }else{
                         toastAlert("error", res.message);
@@ -523,7 +523,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         setTimeout(function() {
                             location.reload();
-                        }, 1000);
+                        }, 2000);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -561,7 +561,7 @@ $current_url          = url()->current();
                         var cashtenderHTML = '<div class="payment-total-line"><p>Cash tendered : $'+res.data.cash_tendered+'</p></div><div class="payment-total-line"><p>Cash to be returned : $'+res.data.cash_return+'</p></div>';
                         $('#cash-tender').html(cashtenderHTML);
 
-                        var redirect_url = base_url + '/admin/billing/list';
+                        var redirect_url = (res.data && res.data.is_redirect) ? res.data.redirect_url : base_url + '/admin/billing/list';
                         toastAlert("success", res.message, true, redirect_url);
                     }else{
                         toastAlert("error", res.message);
@@ -595,7 +595,7 @@ $current_url          = url()->current();
                     toastAlert("success", res.message);
                     setTimeout(function () {
                         window.location.href = redirect_url;
-                    }, 10000); // 10 seconds
+                    }, 2000); // 2 seconds
                 }else{
                     toastAlert("error", res.message);
                 }

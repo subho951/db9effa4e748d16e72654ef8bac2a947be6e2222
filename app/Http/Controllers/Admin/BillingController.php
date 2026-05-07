@@ -811,7 +811,7 @@ class BillingController extends Controller
                     }
                     if($delivery_mode == 'Pickup'){
                         $is_redirect    = 1;
-                        $redirect_url   = url('admin/billing/billing-delivery-address/' . Helper::encoded($order_id));
+                        $redirect_url   = url('admin/billing/billing-payment/' . Helper::encoded($order_id));
                     }
                     $apiResponse                        = [
                         'is_redirect'   => $is_redirect,
@@ -929,6 +929,12 @@ class BillingController extends Controller
 
                     $is_redirect    = 1;
                     $redirect_url   = url('admin/billing/billing-payment/' . Helper::encoded($order_id));
+                    $apiMessage     = 'Order delivery address updated successfully';
+                    if($delivery_mode == 'Pickup' && $getOrder->payment_status == 1){
+                        $this->completePaidOrder($order_id, $getOrder->note);
+                        $redirect_url   = url('admin/billing/list');
+                        $apiMessage     = 'Pickup details saved and order completed successfully';
+                    }
                     $apiResponse                        = [
                         'is_redirect'   => $is_redirect,
                         'redirect_url'  => $redirect_url,
@@ -936,7 +942,6 @@ class BillingController extends Controller
                     // Helper::pr($apiResponse);
 
                     // $apiMessage                         = 'Order ' . $delivery_mode . ' address updated successfully';
-                    $apiMessage                         = 'Order delivery address updated successfully';
                     $apiStatus                          = TRUE;
                     http_response_code(200);
                     $apiExtraField                      = 'response_code';
@@ -982,6 +987,28 @@ class BillingController extends Controller
                         if($getOrder){
                             $cash_return = ($cash_tendered - $getOrder->net_amount);
                             Order::where('id', '=', $order_id)->update(['payment_mode' => $payment_mode, 'status' => 2, 'note' => $note, 'cash_tendered' => $cash_tendered, 'cash_return' => $cash_return]);
+                            if($getOrder->delivery_mode == 'Pickup'){
+                                Order::where('id', '=', $order_id)->update([
+                                    'payment_status'    => 1,
+                                    'payment_date_time' => date('Y-m-d H:i:s'),
+                                    'payment_amount'    => $getOrder->net_amount,
+                                ]);
+
+                                $apiResponse                        = [
+                                    'payment_mode'   => $payment_mode,
+                                    'note'           => $note,
+                                    'cash_tendered'  => number_format($cash_tendered,2),
+                                    'cash_return'    => number_format($cash_return,2),
+                                    'is_redirect'    => 1,
+                                    'redirect_url'   => url('admin/billing/billing-delivery-address/' . Helper::encoded($order_id)),
+                                ];
+                                $apiStatus                          = TRUE;
+                                http_response_code(200);
+                                $apiMessage                         = 'Payment completed. Please enter pickup details to complete order';
+                                $apiExtraField                      = 'response_code';
+                                $apiExtraData                       = http_response_code();
+                                $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
+                            }
 
                             /* order place */
                                 $customer_name  = '';
@@ -1111,6 +1138,28 @@ class BillingController extends Controller
                 } elseif($payment_mode == 'CARD'){
                     if($getOrder){
                         Order::where('id', '=', $order_id)->update(['payment_mode' => $payment_mode, 'status' => 2, 'note' => $note]);
+                        if($getOrder->delivery_mode == 'Pickup'){
+                            Order::where('id', '=', $order_id)->update([
+                                'payment_status'    => 1,
+                                'payment_date_time' => date('Y-m-d H:i:s'),
+                                'payment_amount'    => $getOrder->net_amount,
+                            ]);
+
+                            $apiResponse                        = [
+                                'payment_mode'   => $payment_mode,
+                                'note'           => $note,
+                                'cash_tendered'  => 0,
+                                'cash_return'    => 0,
+                                'is_redirect'    => 1,
+                                'redirect_url'   => url('admin/billing/billing-delivery-address/' . Helper::encoded($order_id)),
+                            ];
+                            $apiStatus                          = TRUE;
+                            http_response_code(200);
+                            $apiMessage                         = 'Payment completed. Please enter pickup details to complete order';
+                            $apiExtraField                      = 'response_code';
+                            $apiExtraData                       = http_response_code();
+                            $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
+                        }
 
                         /* order place */
                             $customer_name  = '';
@@ -1302,6 +1351,112 @@ class BillingController extends Controller
                 $apiExtraData       = http_response_code();
             }
             $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
+        }
+        private function completePaidOrder($order_id, $note = ''){
+            $getOrder = Order::where('id', '=', $order_id)->first();
+            if(!$getOrder){
+                return FALSE;
+            }
+            if($getOrder->status == 5){
+                return TRUE;
+            }
+
+            $customer_name  = '';
+            $customer_phone = '';
+            $customer_email = '';
+            if($getOrder->delivery_mode == 'Deliver'){
+                $customer_name  = $getOrder->delivery_name;
+                $customer_phone = $getOrder->delivery_phone;
+                $customer_email = $getOrder->delivery_email;
+            }
+            if($getOrder->delivery_mode == 'Pickup'){
+                $customer_name  = $getOrder->pickup_name;
+                $customer_phone = $getOrder->pickup_phone;
+                $customer_email = $getOrder->pickup_email;
+            }
+
+            $fields = [
+                'customer_name'     => $customer_name,
+                'customer_phone'    => $customer_phone,
+                'customer_email'    => $customer_email,
+                'order_date'        => date('Y-m-d'),
+                'order_time'        => date('H:i:s'),
+                'note'              => $note,
+                'status'            => 5,
+            ];
+            Order::where('id', '=', $order_id)->update($fields);
+
+            /* invoice pdf generate */
+                $data['getOrderDetail']         = Order::where('id', '=', $order_id)->first();
+                $order_no                       = (($data['getOrderDetail'])?$data['getOrderDetail']->order_no:'');
+                $message                        = view('admin.maincontents.billing.pdf-invoice', $data);
+                $options        = new Options();
+                $options->set('defaultFont', 'Courier');
+                $dompdf         = new Dompdf($options);
+                $html           = $message;
+                $dompdf->loadHtml($html);
+                $dompdf->setPaper('A4', 'portrait');
+                $dompdf->render();
+                $output         = $dompdf->output();
+                $filename       = $order_no.'.pdf';
+                $pdfFilePath    = 'public/uploads/invoice/' . $filename;
+                file_put_contents($pdfFilePath, $output);
+                Order::where('id', '=', $order_id)->update(['pdf_invoice' => $filename]);
+            /* invoice pdf generate */
+
+            /* shop stock deduct */
+                $getOrderDetails           = OrderDetail::where('order_id', '=', $order_id)->get();
+                if($getOrderDetails){
+                    foreach($getOrderDetails as $getOrderDetail){
+                        $order_item_id      = $getOrderDetail->id;
+                        $product_id         = $getOrderDetail->item_id;
+                        $qty                = $getOrderDetail->qty;
+                        $price              = $getOrderDetail->price;
+
+                        if($price > 0){
+                            $getProduct         = Product::where('id', $product_id)->first();
+                            $opening_qty2       = (($getProduct)?$getProduct->shop_stock:0);
+                            $txn_qty2           = $qty;
+                            $closing_qty2       = ($opening_qty2 - $txn_qty2);
+
+                            $fields12                   = [
+                                'txn_type'              => 'OUT',
+                                'stock_date'            => date('Y-m-d'),
+                                'product_id'            => $product_id,
+                                'opening_qty'           => $opening_qty2,
+                                'txn_qty'               => $txn_qty2,
+                                'closing_qty'           => $closing_qty2,
+                                'note'                  => 'For order #' . $order_no,
+                                'order_id'              => $order_id,
+                                'order_item_id'         => $order_item_id,
+                            ];
+                            ShopStock::insert($fields12);
+                            Product::where('id', $product_id)->update(['shop_stock' => $closing_qty2]);
+                        } else {
+                            $getProduct         = Product::where('id', $product_id)->first();
+                            $opening_qty2       = (($getProduct)?$getProduct->shop_stock:0);
+                            $txn_qty2           = $qty;
+                            $closing_qty2       = ($opening_qty2 + $txn_qty2);
+
+                            $fields12                   = [
+                                'txn_type'              => 'IN',
+                                'stock_date'            => date('Y-m-d'),
+                                'product_id'            => $product_id,
+                                'opening_qty'           => $opening_qty2,
+                                'txn_qty'               => $txn_qty2,
+                                'closing_qty'           => $closing_qty2,
+                                'note'                  => 'For order #' . $order_no,
+                                'order_id'              => $order_id,
+                                'order_item_id'         => $order_item_id,
+                            ];
+                            ShopStock::insert($fields12);
+                            Product::where('id', $product_id)->update(['shop_stock' => $closing_qty2]);
+                        }
+                    }
+                }
+            /* shop stock deduct */
+
+            return TRUE;
         }
         public function placeOrder(Request $request){
             $apiStatus          = TRUE;

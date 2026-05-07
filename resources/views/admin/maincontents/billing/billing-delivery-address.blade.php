@@ -120,7 +120,7 @@ $current_url          = url()->current();
                                         <div class="row mt-5">
                                             <div class="col-md-12 d-flex justify-content-between">
                                                 <a href="<?=url('admin/billing/list')?>" class="my-btn btn-orange">CANCEL</a>
-                                                <button type="submit" class="my-btn btn-green">Save</button>
+                                                <button type="submit" class="my-btn btn-green">Complete Order</button>
                                             </div>
                                         </div>
                                     </div>
@@ -312,7 +312,7 @@ $current_url          = url()->current();
                         $('#order-item').html(res.data.item_table_html);
                         // setTimeout(function() {
                         //     location.reload();
-                        // }, 3000);
+                        // }, 2000);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -345,7 +345,7 @@ $current_url          = url()->current();
                     toastAlert("success", res.message);
                     setTimeout(function() {
                         window.location.href = redirectUrl;
-                    }, 1000);
+                    }, 2000);
                 }else{
                     toastAlert("error", res.message);
                 }

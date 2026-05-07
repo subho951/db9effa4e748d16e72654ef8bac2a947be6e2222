@@ -363,7 +363,7 @@ $current_url          = url()->current();
                         $('#order-item').html(res.data.item_table_html);
                         // setTimeout(function() {
                         //     location.reload();
-                        // }, 3000);
+                        // }, 2000);
                         $("#barcode").focus();
                     }else{
                         toastAlert("error", res.message);
@@ -409,7 +409,7 @@ $current_url          = url()->current();
                     toastAlert("success", res.message);
                     setTimeout(function() {
                         window.location.href = redirectUrl;
-                    }, 1000);
+                    }, 2000);
                 }else{
                     toastAlert("error", res.message);
                     $("#barcode").focus();
@@ -531,7 +531,7 @@ $current_url          = url()->current();
                             toastAlert("success", res.message);
                             setTimeout(function() {
                                 window.location.reload();
-                            }, 1000);
+                            }, 2000);
                             $("#barcode").focus();
                         }
                     }else{
@@ -633,7 +633,7 @@ $current_url          = url()->current();
                         $('#price-update-btn').addClass("hidden-important");
                         setTimeout(function() {
                             window.location.href = redirectUrl;
-                        }, 1000);
+                        }, 2000);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -665,7 +665,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         setTimeout(function() {
                             window.location.href = redirectUrl;
-                        }, 1000);
+                        }, 2000);
                     }else{
                         toastAlert("error", res.message);
                         $("#barcode").focus();
@@ -706,7 +706,7 @@ $current_url          = url()->current();
         $('#adminpinmodal').on('shown.bs.modal', function () {
             setTimeout(function() {
                 $('#pin1').trigger('focus');
-            }, 200);
+            }, 2000);
         });
 
     });

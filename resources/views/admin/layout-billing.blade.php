@@ -10,7 +10,7 @@
 <head>
     <?=$head?>
 </head>
-<body>
+<body class="admin-billing-ui">
     <!-- Loader -->
     <div id="loader">
         <div class="spinner"></div>

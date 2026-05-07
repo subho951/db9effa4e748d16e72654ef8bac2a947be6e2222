@@ -117,6 +117,68 @@ class BillingController extends Controller
             $page_name                      = 'billing.list';
             echo $this->admin_after_login_billing_layout($title,$page_name,$data);
         }
+        public function productSuggestions(Request $request){
+            $q              = trim((string) $request->get('q', ''));
+            $suggestions    = [];
+            $added          = [];
+
+            if(strlen($q) < 4 || strlen($q) > 12){
+                return response()->json($suggestions);
+            }
+
+            $getProducts = Product::select('id', 'name', 'sku', 'barcode')
+                                ->where('status', '=', 1)
+                                ->where(function($query) use ($q) {
+                                    $query->where('barcode', 'LIKE', '%'.$q.'%')
+                                          ->orWhere('sku', 'LIKE', '%'.$q.'%');
+                                })
+                                ->orderByRaw(
+                                    "CASE WHEN barcode LIKE ? OR sku LIKE ? THEN 0 ELSE 1 END",
+                                    [$q.'%', $q.'%']
+                                )
+                                ->orderBy('name', 'ASC')
+                                ->limit(10)
+                                ->get();
+
+            if($getProducts){
+                foreach($getProducts as $getProduct){
+                    $barcode = (string) $getProduct->barcode;
+                    $sku     = (string) $getProduct->sku;
+
+                    if($barcode != '' && stripos($barcode, $q) !== false && !array_key_exists('Barcode:'.$barcode, $added)){
+                        $suggestions[] = [
+                            'value'     => $barcode,
+                            'type'      => 'Barcode',
+                            'name'      => $getProduct->name,
+                            'sku'       => $sku,
+                            'barcode'   => $barcode,
+                        ];
+                        $added['Barcode:'.$barcode] = true;
+                    }
+
+                    if(count($suggestions) >= 10){
+                        break;
+                    }
+
+                    if($sku != '' && stripos($sku, $q) !== false && !array_key_exists('SKU:'.$sku, $added)){
+                        $suggestions[] = [
+                            'value'     => $sku,
+                            'type'      => 'SKU',
+                            'name'      => $getProduct->name,
+                            'sku'       => $sku,
+                            'barcode'   => $barcode,
+                        ];
+                        $added['SKU:'.$sku] = true;
+                    }
+
+                    if(count($suggestions) >= 10){
+                        break;
+                    }
+                }
+            }
+
+            return response()->json($suggestions);
+        }
         public function addToCart(Request $request){
             $apiStatus          = TRUE;
             $apiMessage         = '';
@@ -149,6 +211,10 @@ class BillingController extends Controller
                                                     $query->where('barcode', 'LIKE', '%'.$barcode.'%')
                                                       ->orWhere('sku', 'LIKE', '%'.$barcode.'%');
                                             })
+                                            ->orderByRaw(
+                                                "CASE WHEN barcode = ? OR sku = ? THEN 0 WHEN barcode LIKE ? OR sku LIKE ? THEN 1 ELSE 2 END",
+                                                [$barcode, $barcode, $barcode.'%', $barcode.'%']
+                                            )
                                             ->first();
                     if($getProduct){
                         /* orders details table */

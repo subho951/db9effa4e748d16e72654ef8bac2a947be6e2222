@@ -34,6 +34,49 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
         opacity: 0.6;         /* Optional: make it look disabled */
         cursor: not-allowed;
     }
+    .barcode-suggestion-wrapper {
+        position: relative;
+        width: 100%;
+    }
+    .barcode-suggestions {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        max-height: 220px;
+        overflow-y: auto;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-top: 0;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+    .barcode-suggestion-item {
+        padding: 8px 10px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+    }
+    .barcode-suggestion-item:hover,
+    .barcode-suggestion-item:focus {
+        background: #f3f8ff;
+    }
+    .barcode-suggestion-item:last-child {
+        border-bottom: 0;
+    }
+    .barcode-suggestion-value {
+        display: block;
+        font-weight: 700;
+        color: #111;
+        line-height: 1.2;
+    }
+    .barcode-suggestion-meta {
+        display: block;
+        margin-top: 2px;
+        font-size: 11px;
+        color: #666;
+        line-height: 1.2;
+    }
 </style>
 <div class="row">
     <!-- Sidebar Section -->
@@ -47,7 +90,12 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
                 </div>
                 <div class="my-1 my-md-4">
                     <div class="row">
-                        <div class="col-6 d-flex"><input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan / Enter Barcode Or SKU" minlength="4" maxlength="12"></div>
+                        <div class="col-6 d-flex">
+                            <div class="barcode-suggestion-wrapper">
+                                <input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan / Enter Barcode Or SKU" minlength="4" maxlength="12" autocomplete="off">
+                                <div id="barcodeSuggestions" class="barcode-suggestions"></div>
+                            </div>
+                        </div>
                         <div class="col-6 d-flex justify-content-end"><a href="javascript:void(0);" class="my-btn btn-sky enter-btn" id="addToCartBtn">Enter</a></div>
                     </div>
                 </div>
@@ -327,6 +375,64 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
     // Get references
     const skuInput = document.getElementById('barcode');
     const addToCartBtn = document.getElementById('addToCartBtn');
+    var barcodeSuggestionTimer = null;
+    var barcodeSuggestionRequest = null;
+
+    function hideBarcodeSuggestions() {
+        $("#barcodeSuggestions").hide().empty();
+    }
+
+    function renderBarcodeSuggestions(items) {
+        var $suggestions = $("#barcodeSuggestions");
+        $suggestions.empty();
+
+        if (!items || !items.length) {
+            hideBarcodeSuggestions();
+            return;
+        }
+
+        items.forEach(function(item) {
+            var $option = $("<div>", {
+                "class": "barcode-suggestion-item",
+                "tabindex": 0,
+                "data-value": item.value
+            });
+            $("<span>", {
+                "class": "barcode-suggestion-value",
+                "text": item.type + ": " + item.value
+            }).appendTo($option);
+            $("<span>", {
+                "class": "barcode-suggestion-meta",
+                "text": item.name + " | SKU: " + item.sku + " | Barcode: " + item.barcode
+            }).appendTo($option);
+            $suggestions.append($option);
+        });
+
+        $suggestions.show();
+    }
+
+    function getBarcodeSkuSuggestions(query) {
+        if (barcodeSuggestionRequest) {
+            barcodeSuggestionRequest.abort();
+        }
+
+        barcodeSuggestionRequest = $.ajax({
+            url: base_url + "/admin/billing/product-suggestions",
+            type: "GET",
+            data: { q: query },
+            dataType: "json",
+            success: function(response) {
+                if ($.trim($("#barcode").val()) === query) {
+                    renderBarcodeSuggestions(response);
+                }
+            },
+            error: function(xhr) {
+                if (xhr.statusText !== "abort") {
+                    hideBarcodeSuggestions();
+                }
+            }
+        });
+    }
 
     function addToCart(){
         var barcode = $('#barcode').val();
@@ -379,8 +485,48 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
     skuInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault(); // Prevent form submission if inside a form
+        hideBarcodeSuggestions();
         addToCartBtn.click(); // Simulate button click
       }
+    });
+
+    $(document).on("input", "#barcode", function() {
+        var query = $.trim($(this).val());
+
+        clearTimeout(barcodeSuggestionTimer);
+        if (query.length < 4 || query.length > 12) {
+            hideBarcodeSuggestions();
+            if (barcodeSuggestionRequest) {
+                barcodeSuggestionRequest.abort();
+            }
+            return;
+        }
+
+        barcodeSuggestionTimer = setTimeout(function() {
+            getBarcodeSkuSuggestions(query);
+        }, 250);
+    });
+
+    $(document).on("mousedown touchstart", ".barcode-suggestion-item", function(e) {
+        e.preventDefault();
+        $("#barcode").val($(this).data("value"));
+        hideBarcodeSuggestions();
+        $("#barcode").focus();
+    });
+
+    $(document).on("keydown", ".barcode-suggestion-item", function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            $("#barcode").val($(this).data("value"));
+            hideBarcodeSuggestions();
+            $("#barcode").focus();
+        }
+    });
+
+    $(document).on("click", function(e) {
+        if (!$(e.target).closest(".barcode-suggestion-wrapper").length) {
+            hideBarcodeSuggestions();
+        }
     });
 
     function itemDelete(itemId, orderId){

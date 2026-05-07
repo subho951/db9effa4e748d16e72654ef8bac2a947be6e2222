@@ -244,6 +244,7 @@ Route::get('/db-test', function () {
             /* page */
             /* billing */
                 Route::get('billing/list', 'BillingController@list');
+                Route::get('billing/product-suggestions', [\App\Http\Controllers\Admin\BillingController::class, 'productSuggestions']);
                 Route::post('billing/billing-item-return', 'BillingController@billingItemReturn');
                 Route::get('billing/billing-item/{id}', 'BillingController@billingItem');
                 Route::post('billing/add-to-cart', 'BillingController@addToCart');

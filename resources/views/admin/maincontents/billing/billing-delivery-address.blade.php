@@ -258,7 +258,7 @@ $current_url          = url()->current();
     function addToCart(){
         var barcode = $('#barcode').val();
         var order_id = '<?=(($getOrder)?$getOrder->id:0)?>';
-        if(barcode.length == 13){
+        if(barcode.length >= 4 && barcode.length <= 12){
             $.ajax({
                 type: "POST",
                 url: base_url + "/admin/billing/add-to-cart",
@@ -289,7 +289,7 @@ $current_url          = url()->current();
                 }
             });
         } else {
-            toastAlert('error', 'Barcode number length will be 13 characters long. Please enter right barcode number');
+            toastAlert('error', 'Barcode or SKU number length must be between 4 and 12 characters. Please enter right barcode or SKU number');
             $('#barcode').val('');
         }
     }
@@ -345,7 +345,7 @@ $current_url          = url()->current();
                     toastAlert("success", res.message);
                     setTimeout(function() {
                         window.location.href = redirectUrl;
-                    }, 2000);
+                    }, 1000);
                 }else{
                     toastAlert("error", res.message);
                 }
@@ -488,7 +488,7 @@ $current_url          = url()->current();
                                         toastAlert("success", res.message);
                                         setTimeout(function() {
                                             location.reload();
-                                        }, 2000);
+                                        }, 1000);
                                     }
                                 }else{
                                     toastAlert("error", res.message);
@@ -549,7 +549,7 @@ $current_url          = url()->current();
                                                         toastAlert("success", res.message);
                                                         setTimeout(function() {
                                                             location.reload();
-                                                        }, 2000);
+                                                        }, 1000);
                                                     }
                                                 }else{
                                                     toastAlert("error", res.message);

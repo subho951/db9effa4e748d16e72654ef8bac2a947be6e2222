@@ -450,7 +450,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         setTimeout(function() {
                             location.reload();
-                        }, 2000);
+                        }, 1000);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -523,7 +523,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         setTimeout(function() {
                             location.reload();
-                        }, 2000);
+                        }, 1000);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -595,7 +595,7 @@ $current_url          = url()->current();
                     toastAlert("success", res.message);
                     setTimeout(function () {
                         window.location.href = redirect_url;
-                    }, 2000); // 2 seconds
+                    }, 1000); // 2 seconds
                 }else{
                     toastAlert("error", res.message);
                 }

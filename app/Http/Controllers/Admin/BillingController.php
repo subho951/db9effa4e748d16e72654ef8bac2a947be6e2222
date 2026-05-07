@@ -127,8 +127,15 @@ class BillingController extends Controller
             if($requestData['key'] == env('PROJECT_KEY')){
                 $barcode            = $requestData['barcode'];
                 $order_id           = $requestData['order_id'];
-                // $getProduct         = Product::where('barcode', '=', $barcode)->first();
-                $getProduct         = Product::select(
+                if(strlen($barcode) < 4 || strlen($barcode) > 12){
+                    $apiStatus          = FALSE;
+                    http_response_code(200);
+                    $apiMessage         = 'Barcode or SKU number length must be between 4 and 12 characters';
+                    $apiExtraField      = 'response_code';
+                    $apiExtraData       = http_response_code();
+                } else {
+                    // $getProduct         = Product::where('barcode', '=', $barcode)->first();
+                    $getProduct         = Product::select(
                                                         'id',
                                                         'name',
                                                         'sku',
@@ -143,15 +150,15 @@ class BillingController extends Controller
                                                       ->orWhere('sku', 'LIKE', '%'.$barcode.'%');
                                             })
                                             ->first();
-                if($getProduct){
-                    /* orders details table */
-                        $checkAlreadyAdded = OrderDetail::where('order_id', '=', $order_id)->where('item_id', '=', $getProduct->id)->first();
-                        if($checkAlreadyAdded){
-                            $qty                = $checkAlreadyAdded->qty + 1;
-                            /* discount calculation */
-                                $discount_amount    = 0;
-                                $today = now(); // Get current date and time
-                                $minDiscountedPrice = \DB::table('product_discount_vouchers as pdv')
+                    if($getProduct){
+                        /* orders details table */
+                            $checkAlreadyAdded = OrderDetail::where('order_id', '=', $order_id)->where('item_id', '=', $getProduct->id)->first();
+                            if($checkAlreadyAdded){
+                                $qty                = $checkAlreadyAdded->qty + 1;
+                                /* discount calculation */
+                                    $discount_amount    = 0;
+                                    $today = now(); // Get current date and time
+                                    $minDiscountedPrice = \DB::table('product_discount_vouchers as pdv')
                                                         ->join('coupons as c', 'pdv.voucher_code', '=', 'c.voucher_code') // Join with coupons table
                                                         ->where('pdv.product_id', $getProduct->id) // Filter by product_id
                                                         ->whereDate('c.from_date', '<=', $today) // Coupon must be active
@@ -349,12 +356,14 @@ class BillingController extends Controller
                                                             ->where('order_details.order_id', '=', $order_id)
                                                             ->orderBy('order_details.id', 'ASC')
                                                             ->get();
+                        $item_count                     = $data['getOrderItems']->count();
                         $item_table_html                = view('admin.maincontents.billing.ajax-order-item', $data)->render();
                     /* item table rearrange on the go */
                     $apiStatus                          = TRUE;
                     http_response_code(200);
                     $apiResponse                        = [
                         'item_table_html' => $item_table_html,
+                        'item_count'      => $item_count,
                     ];
                     $apiMessage                         = 'Product added into cart successfully';
                     $apiExtraField                      = 'response_code';
@@ -365,6 +374,7 @@ class BillingController extends Controller
                     $apiMessage         = 'Product not found';
                     $apiExtraField      = 'response_code';
                     $apiExtraData       = http_response_code();
+                }
                 }
             } else {
                 http_response_code(400);
@@ -414,12 +424,14 @@ class BillingController extends Controller
                                                             ->where('order_details.order_id', '=', $order_id)
                                                             ->orderBy('order_details.id', 'ASC')
                                                             ->get();
+                        $item_count                     = $data['getOrderItems']->count();
                         $item_table_html                = view('admin.maincontents.billing.ajax-order-item', $data)->render();
                     /* item table rearrange on the go */
                     $apiStatus                          = TRUE;
                     http_response_code(200);
                     $apiResponse                        = [
                         'item_table_html' => $item_table_html,
+                        'item_count'      => $item_count,
                     ];
                     $apiMessage                         = 'Product deleted from cart successfully';
                     $apiExtraField                      = 'response_code';
@@ -754,12 +766,14 @@ class BillingController extends Controller
                                                                 ->where('order_details.order_id', '=', $order_id)
                                                                 ->orderBy('order_details.id', 'ASC')
                                                                 ->get();
+                            $item_count                     = $data['getOrderItems']->count();
                             $item_table_html                = view('admin.maincontents.billing.ajax-order-item', $data)->render();
                         /* item table rearrange on the go */
                         $apiStatus                          = TRUE;
                         http_response_code(200);
                         $apiResponse                        = [
                             'item_table_html' => $item_table_html,
+                            'item_count'      => $item_count,
                         ];
                         $apiMessage                         = 'Order item quantity updated successfully';
                         $apiExtraField                      = 'response_code';
@@ -800,28 +814,37 @@ class BillingController extends Controller
                 $note               = $requestData['note'];
                 $getOrder           = Order::where('id', '=', $order_id)->first();
                 if($getOrder){
-                    Order::where('id', '=', $order_id)->update(['delivery_mode' => $delivery_mode, 'status' => 1, 'note' => $note]);
-                    if($delivery_mode == 'Take'){
-                        $is_redirect    = 0;
-                        $redirect_url   = '';
+                    $cartItemCount = OrderDetail::where('order_id', '=', $order_id)->count();
+                    if($cartItemCount <= 0){
+                        $apiStatus      = FALSE;
+                        http_response_code(200);
+                        $apiMessage     = 'Please add at least one product into cart before selecting delivery mode';
+                        $apiExtraField  = 'response_code';
+                        $apiExtraData   = http_response_code();
+                    } else {
+                        Order::where('id', '=', $order_id)->update(['delivery_mode' => $delivery_mode, 'status' => 1, 'note' => $note]);
+                        if($delivery_mode == 'Take'){
+                            $is_redirect    = 0;
+                            $redirect_url   = '';
+                        }
+                        if($delivery_mode == 'Deliver'){
+                            $is_redirect    = 1;
+                            $redirect_url   = url('admin/billing/billing-delivery-address/' . Helper::encoded($order_id));
+                        }
+                        if($delivery_mode == 'Pickup'){
+                            $is_redirect    = 1;
+                            $redirect_url   = url('admin/billing/billing-payment/' . Helper::encoded($order_id));
+                        }
+                        $apiResponse                        = [
+                            'is_redirect'   => $is_redirect,
+                            'redirect_url'  => $redirect_url,
+                        ];
+                        $apiStatus                          = TRUE;
+                        http_response_code(200);
+                        $apiMessage                         = 'Order delivery mode marked as ' . $delivery_mode . ' successfully';
+                        $apiExtraField                      = 'response_code';
+                        $apiExtraData                       = http_response_code();
                     }
-                    if($delivery_mode == 'Deliver'){
-                        $is_redirect    = 1;
-                        $redirect_url   = url('admin/billing/billing-delivery-address/' . Helper::encoded($order_id));
-                    }
-                    if($delivery_mode == 'Pickup'){
-                        $is_redirect    = 1;
-                        $redirect_url   = url('admin/billing/billing-payment/' . Helper::encoded($order_id));
-                    }
-                    $apiResponse                        = [
-                        'is_redirect'   => $is_redirect,
-                        'redirect_url'  => $redirect_url,
-                    ];
-                    $apiStatus                          = TRUE;
-                    http_response_code(200);
-                    $apiMessage                         = 'Order delivery mode marked as ' . $delivery_mode . ' successfully';
-                    $apiExtraField                      = 'response_code';
-                    $apiExtraData                       = http_response_code();
                 } else {
                     $apiStatus          = FALSE;
                     http_response_code(200);

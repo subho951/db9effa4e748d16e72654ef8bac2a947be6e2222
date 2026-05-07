@@ -2,6 +2,16 @@
 use App\Helpers\Helper;
 $controllerRoute      = $module['controller_route'];
 $current_url          = url()->current();
+$cartItemCount        = count($getOrderItems);
+$hasCartItems         = ($cartItemCount > 0);
+$deliveryDisabledClass = $hasCartItems ? '' : ' disabled-link';
+$deliveryDisabledAttr  = $hasCartItems ? 'aria-disabled="false"' : 'aria-disabled="true" tabindex="-1"';
+$takeBtnClass          = ($hasCartItems && $getOrder && $getOrder->delivery_mode == 'Take') ? 'take-btn' : 'outline-red';
+$deliverBtnClass       = ($hasCartItems && $getOrder && $getOrder->delivery_mode == 'Deliver') ? 'take-btn' : 'outline-red';
+$pickupBtnClass        = ($hasCartItems && $getOrder && $getOrder->delivery_mode == 'Pickup') ? 'take-btn' : 'outline-red';
+$takeChecked           = ($hasCartItems && $getOrder && $getOrder->delivery_mode == 'Take') ? 'checked' : '';
+$deliverChecked        = ($hasCartItems && $getOrder && $getOrder->delivery_mode == 'Deliver') ? 'checked' : '';
+$pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode == 'Pickup') ? 'checked' : '';
 ?>
 <style type="text/css">
     .hidden-important {
@@ -37,7 +47,7 @@ $current_url          = url()->current();
                 </div>
                 <div class="my-1 my-md-4">
                     <div class="row">
-                        <div class="col-6 d-flex"><input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan / Enter Barcode Or SKU" maxlength="4"></div>
+                        <div class="col-6 d-flex"><input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan / Enter Barcode Or SKU" minlength="4" maxlength="12"></div>
                         <div class="col-6 d-flex justify-content-end"><a href="javascript:void(0);" class="my-btn btn-sky enter-btn" id="addToCartBtn">Enter</a></div>
                     </div>
                 </div>
@@ -48,8 +58,8 @@ $current_url          = url()->current();
                             <label for="delivery_mode1">&nbsp;Take</label>
                         </a> -->
 
-                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode1">
-                            <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode1" value="Take" <?=(($getOrder)?(($getOrder->delivery_mode == 'Take')?'checked':''):'')?> style="display: none;">
+                        <a href="javascript:void(0);" class="my-btn <?=$takeBtnClass?> text-black deliveryOption cart-required-delivery<?=$deliveryDisabledClass?>" data-radio="delivery_mode1" <?=$deliveryDisabledAttr?>>
+                            <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode1" value="Take" <?=$takeChecked?> style="display: none;">
                             <label for="delivery_mode1">&nbsp;Take</label>
                         </a>
                     </div>
@@ -67,8 +77,8 @@ $current_url          = url()->current();
                             <label for="delivery_mode2">&nbsp;Deliver</label>
                         </a> -->
 
-                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Deliver')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode2">
-                            <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode2" value="Deliver" <?=(($getOrder)?(($getOrder->delivery_mode == 'Deliver')?'checked':''):'')?> style="display: none;">
+                        <a href="javascript:void(0);" class="my-btn <?=$deliverBtnClass?> text-black deliveryOption cart-required-delivery<?=$deliveryDisabledClass?>" data-radio="delivery_mode2" <?=$deliveryDisabledAttr?>>
+                            <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode2" value="Deliver" <?=$deliverChecked?> style="display: none;">
                             <label for="delivery_mode2">&nbsp;Deliver</label>
                         </a>
                     </div>
@@ -95,8 +105,8 @@ $current_url          = url()->current();
                             <label for="delivery_mode3">&nbsp;Pickup</label>
                         </a> -->
 
-                        <a href="javascript:void(0);" class="my-btn <?=(($getOrder)?(($getOrder->delivery_mode == 'Pickup')?'take-btn':'outline-red'):'outline-red')?> text-black deliveryOption" data-radio="delivery_mode3">
-                            <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode3" value="Pickup" <?=(($getOrder)?(($getOrder->delivery_mode == 'Pickup')?'checked':''):'')?> style="display: none;">
+                        <a href="javascript:void(0);" class="my-btn <?=$pickupBtnClass?> text-black deliveryOption cart-required-delivery<?=$deliveryDisabledClass?>" data-radio="delivery_mode3" <?=$deliveryDisabledAttr?>>
+                            <input type="radio" class="radioOption" name="delivery_mode" id="delivery_mode3" value="Pickup" <?=$pickupChecked?> style="display: none;">
                             <label for="delivery_mode3">&nbsp;Pickup</label>
                         </a>
                     </div>
@@ -111,8 +121,8 @@ $current_url          = url()->current();
                 <div class="row mt-0 mt-sm-2 mt-md-4">
                     <div class="col-md-12 d-flex justify-content-between">
                         <!-- <a class="my-btn btn-orange w-auto" href="javascript: void(0)" type="button" data-bs-toggle="modal" data-bs-target="#adminpinmodal">Admin</a> -->
-                        <?php if($getOrder){ if($getOrder->delivery_mode != ''){?>
-                            <a href="<?=url('admin/billing/billing-payment/' . Helper::encoded((($getOrder)?$getOrder->id:0)))?>" class="my-btn btn-green btn-lg">PAYMENT</a>
+                        <?php if($getOrder){ if($getOrder->delivery_mode != '' && $hasCartItems){?>
+                            <a href="<?=url('admin/billing/billing-payment/' . Helper::encoded((($getOrder)?$getOrder->id:0)))?>" class="my-btn btn-green btn-lg" id="payment-btn">PAYMENT</a>
                         <?php } }?>
                     </div>
                 </div>
@@ -269,6 +279,34 @@ $current_url          = url()->current();
 </div>
 <script type="text/javascript">
     var base_url = '<?=url('/')?>';
+    var initialCartItemCount = <?=$cartItemCount?>;
+
+    function setCartDependentControls(itemCount) {
+        var hasItems = parseInt(itemCount, 10) > 0;
+        var $deliveryButtons = $(".cart-required-delivery");
+
+        $deliveryButtons
+            .toggleClass("disabled-link", !hasItems)
+            .attr("aria-disabled", hasItems ? "false" : "true");
+
+        if (hasItems) {
+            $deliveryButtons.removeAttr("tabindex");
+        } else {
+            $deliveryButtons
+                .attr("tabindex", "-1")
+                .removeClass("take-btn")
+                .addClass("outline-red");
+            $deliveryButtons.find(".radioOption").prop("checked", false);
+            $("#cancel-item-btn, #price-modify-btn, #payment-btn").addClass("disabled-link");
+            $("#payment-btn").attr({"aria-disabled": "true", "tabindex": "-1"});
+        }
+    }
+
+    function syncCartDependentControls(res) {
+        if (res.data && typeof res.data.item_count !== "undefined") {
+            setCartDependentControls(res.data.item_count);
+        }
+    }
     
     // ✅ Delegated click handler (works after adding new rows)
     $(document).on('click', '.order-row', function() {
@@ -293,7 +331,7 @@ $current_url          = url()->current();
     function addToCart(){
         var barcode = $('#barcode').val();
         var order_id = '<?=(($getOrder)?$getOrder->id:0)?>';
-        if(barcode.length >= 4){
+        if(barcode.length >= 4 && barcode.length <= 12){
             $.ajax({
                 type: "POST",
                 url: base_url + "/admin/billing/add-to-cart",
@@ -308,6 +346,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         $('#order-item').empty();
                         $('#order-item').html(res.data.item_table_html);
+                        syncCartDependentControls(res);
                         $('#barcode').val('');
                         $("#barcode").focus();
                     }else{
@@ -327,7 +366,7 @@ $current_url          = url()->current();
                 }
             });
         } else {
-            toastAlert('error', 'Barcode or SKU number length will be minimum 4 characters long. Please enter right barcode or SKU number');
+            toastAlert('error', 'Barcode or SKU number length must be between 4 and 12 characters. Please enter right barcode or SKU number');
             $('#barcode').val('');
             $("#barcode").focus();
         }
@@ -361,6 +400,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         $('#order-item').empty();
                         $('#order-item').html(res.data.item_table_html);
+                        syncCartDependentControls(res);
                         // setTimeout(function() {
                         //     location.reload();
                         // }, 2000);
@@ -409,7 +449,7 @@ $current_url          = url()->current();
                     toastAlert("success", res.message);
                     setTimeout(function() {
                         window.location.href = redirectUrl;
-                    }, 2000);
+                    }, 1000);
                 }else{
                     toastAlert("error", res.message);
                     $("#barcode").focus();
@@ -442,6 +482,7 @@ $current_url          = url()->current();
                     toastAlert("success", res.message);
                     $('#order-item').empty();
                     $('#order-item').html(res.data.item_table_html);
+                    syncCartDependentControls(res);
                     $("#barcode").focus();
                 }else{
                     toastAlert("error", res.message);
@@ -476,6 +517,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         $('#order-item').empty();
                         $('#order-item').html(res.data.item_table_html);
+                        syncCartDependentControls(res);
                         $("#barcode").focus();
                     }else{
                         toastAlert("error", res.message);
@@ -497,8 +539,12 @@ $current_url          = url()->current();
     }
     $(document).ready(function() {
         $("#barcode").focus();
+        setCartDependentControls(initialCartItemCount);
         $(".deliveryOption").on("click", function(e) {
             e.preventDefault();
+            if ($(this).hasClass("disabled-link")) {
+                return;
+            }
             var radioId         = $(this).data("radio");
             var selectedOption  = $("#" + radioId);
             selectedOption.prop("checked", true);
@@ -531,7 +577,7 @@ $current_url          = url()->current();
                             toastAlert("success", res.message);
                             setTimeout(function() {
                                 window.location.reload();
-                            }, 2000);
+                            }, 1000);
                             $("#barcode").focus();
                         }
                     }else{
@@ -633,7 +679,7 @@ $current_url          = url()->current();
                         $('#price-update-btn').addClass("hidden-important");
                         setTimeout(function() {
                             window.location.href = redirectUrl;
-                        }, 2000);
+                        }, 1000);
                     }else{
                         toastAlert("error", res.message);
                     }
@@ -665,7 +711,7 @@ $current_url          = url()->current();
                         toastAlert("success", res.message);
                         setTimeout(function() {
                             window.location.href = redirectUrl;
-                        }, 2000);
+                        }, 1000);
                     }else{
                         toastAlert("error", res.message);
                         $("#barcode").focus();
@@ -706,7 +752,7 @@ $current_url          = url()->current();
         $('#adminpinmodal').on('shown.bs.modal', function () {
             setTimeout(function() {
                 $('#pin1').trigger('focus');
-            }, 2000);
+            }, 1000);
         });
 
     });

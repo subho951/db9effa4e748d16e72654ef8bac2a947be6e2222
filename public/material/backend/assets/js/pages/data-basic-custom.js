@@ -1,34 +1,56 @@
 $(document).ready(function() {
     setTimeout(function() {
+        function getTableButtons($table) {
+            var exportColumns = $table.data('export-skip-first') ? ':not(:first-child)' : ':visible';
+            var exportOptions = {
+                columns: exportColumns
+            };
+
+            return [
+                {
+                    extend: 'csv',
+                    exportOptions: exportOptions
+                },
+                {
+                    extend: 'excel',
+                    exportOptions: exportOptions
+                },
+                {
+                    extend: 'pdf',
+                    exportOptions: exportOptions
+                },
+                {
+                    extend: 'print',
+                    exportOptions: exportOptions
+                }
+            ];
+        }
+
+        function initBasicTable(selector) {
+            var $table = $(selector);
+
+            if (!$table.length || $.fn.DataTable.isDataTable(selector)) {
+                return;
+            }
+
+            $table.DataTable({
+                layout: {
+                    topStart: {
+                        buttons: getTableButtons($table)
+                    }
+                },
+                "pageLength": 50, // Default 50 records per page
+            });
+        }
+
         // [ Zero Configuration ] start
         // const dataTable = new simpleDatatables.DataTable("#simpletable", {
         //     searchable: true,
         //     fixedHeight: true,
         // });
-        $('#simpletable').DataTable({
-            layout: {
-                topStart: {
-                    buttons: ['csv', 'excel', 'pdf', 'print']
-                }
-            },
-            "pageLength": 50, // Default 50 records per page
-        });
-        $('#simpletable2').DataTable({
-            layout: {
-                topStart: {
-                    buttons: ['csv', 'excel', 'pdf', 'print']
-                }
-            },
-            "pageLength": 50, // Default 50 records per page
-        });
-        $('#simpletable3').DataTable({
-            layout: {
-                topStart: {
-                    buttons: ['csv', 'excel', 'pdf', 'print']
-                }
-            },
-            "pageLength": 50, // Default 50 records per page
-        });
+        initBasicTable('#simpletable');
+        initBasicTable('#simpletable2');
+        initBasicTable('#simpletable3');
         // let dataTable = new DataTable("#myTable");
 
         // [ Default Ordering ] start

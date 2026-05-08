@@ -262,8 +262,7 @@ $controllerRoute = $module['controller_route'];
         </div>
         <div class="card-body">
           <div class="dt-responsive table-responsive product-table-wrap">
-            <button class="dt-button buttons-export" tabindex="0" aria-controls="simpletable" type="button"><span>Export</span></button>
-            <!-- <button class="dt-button buttons-export" tabindex="0" aria-controls="simpletable" type="button" onclick="openAdminPINModal2();"><span>Export</span></button> -->
+            <button class="dt-button buttons-export" tabindex="0" aria-controls="simpletable" type="button" onclick="openAdminPINModal2();"><span>Export</span></button>
             <table id="simpletable" class="table table-striped table-bordered nowrap">
               <thead>
                 <tr>

@@ -122,7 +122,7 @@ class BillingController extends Controller
             $suggestions    = [];
             $added          = [];
 
-            if(strlen($q) < 4 || strlen($q) > 12){
+            if(strlen($q) < 4 || strlen($q) > 25){
                 return response()->json($suggestions);
             }
 
@@ -189,10 +189,10 @@ class BillingController extends Controller
             if($requestData['key'] == env('PROJECT_KEY')){
                 $barcode            = $requestData['barcode'];
                 $order_id           = $requestData['order_id'];
-                if(strlen($barcode) < 4 || strlen($barcode) > 12){
+                if(strlen($barcode) < 4 || strlen($barcode) > 25){
                     $apiStatus          = FALSE;
                     http_response_code(200);
-                    $apiMessage         = 'Barcode or SKU number length must be between 4 and 12 characters';
+                    $apiMessage         = 'Barcode or SKU number length must be between 4 and 25 characters';
                     $apiExtraField      = 'response_code';
                     $apiExtraData       = http_response_code();
                 } else {

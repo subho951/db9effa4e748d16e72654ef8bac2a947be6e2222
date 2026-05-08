@@ -492,7 +492,7 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
         var query = $.trim($(this).val());
 
         clearTimeout(barcodeSuggestionTimer);
-        if (query.length < 4 || query.length > 12) {
+        if (query.length < 4 || query.length > 25) {
             hideBarcodeSuggestions();
             if (barcodeSuggestionRequest) {
                 barcodeSuggestionRequest.abort();

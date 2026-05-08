@@ -441,8 +441,9 @@ $current_url          = url()->current();
                 success: function(res) {
                     $("#loader").hide();
                     if(res.status){
-                        if(res.data.is_redirect){
-                            toastAlert("success", res.message, true, res.data.redirect_url);
+                        if(res.data && res.data.is_redirect && res.data.redirect_url){
+                            window.location.href = res.data.redirect_url;
+                            return;
                         } else {
                             toastAlert("success", res.message);
                         }

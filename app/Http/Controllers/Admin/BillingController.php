@@ -889,16 +889,10 @@ class BillingController extends Controller
                         $apiExtraData   = http_response_code();
                     } else {
                         Order::where('id', '=', $order_id)->update(['delivery_mode' => $delivery_mode, 'status' => 1, 'note' => $note]);
-                        if($delivery_mode == 'Take'){
-                            $is_redirect    = 0;
-                            $redirect_url   = '';
-                        }
+                        $is_redirect    = 1;
                         if($delivery_mode == 'Deliver'){
-                            $is_redirect    = 1;
                             $redirect_url   = url('admin/billing/billing-delivery-address/' . Helper::encoded($order_id));
-                        }
-                        if($delivery_mode == 'Pickup'){
-                            $is_redirect    = 1;
+                        } else {
                             $redirect_url   = url('admin/billing/billing-payment/' . Helper::encoded($order_id));
                         }
                         $apiResponse                        = [

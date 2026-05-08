@@ -326,9 +326,11 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
 <script type="text/javascript">
     var base_url = '<?=url('/')?>';
     var initialCartItemCount = <?=$cartItemCount?>;
+    var currentCartItemCount = initialCartItemCount;
 
     function setCartDependentControls(itemCount) {
         var hasItems = parseInt(itemCount, 10) > 0;
+        currentCartItemCount = parseInt(itemCount, 10) || 0;
         var $deliveryButtons = $(".cart-required-delivery");
 
         $deliveryButtons
@@ -689,6 +691,7 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
             if ($(this).hasClass("disabled-link")) {
                 return;
             }
+            $(".deliveryOption").addClass("disabled-link").attr({"aria-disabled": "true", "tabindex": "-1"});
             var radioId         = $(this).data("radio");
             var selectedOption  = $("#" + radioId);
             selectedOption.prop("checked", true);
@@ -714,26 +717,23 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
                 success: function(res) {
                     $("#loader").hide();
                     if(res.status){
-                        if(res.data.is_redirect){
-                            toastAlert("success", res.message, true, res.data.redirect_url);
-                            $("#barcode").focus();
-                        } else {
-                            toastAlert("success", res.message);
-                            setTimeout(function() {
-                                window.location.reload();
-                            }, 1000);
-                            $("#barcode").focus();
+                        if(res.data && res.data.is_redirect && res.data.redirect_url){
+                            window.location.href = res.data.redirect_url;
+                            return;
                         }
+                        window.location.reload();
                     }else{
+                        setCartDependentControls(currentCartItemCount);
                         toastAlert("error", res.message);
                         $("#barcode").focus();
                     }
                 },
                 error:function (xhr, ajaxOptions, thrownError){
                     $("#loader").hide();
+                    setCartDependentControls(currentCartItemCount);
                     var res = xhr.responseJSON;
-                    if(!res.status) {
-                        toastAlert("error", res.message);
+                    if(!res || !res.status) {
+                        toastAlert("error", (res && res.message) ? res.message : "Something went wrong. Please try again.");
                         $("#barcode").focus();
                     }
                 }

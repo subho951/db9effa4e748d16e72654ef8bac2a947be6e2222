@@ -8,7 +8,7 @@ $(document).ready(function() {
         $('#simpletable').DataTable({
             layout: {
                 topStart: {
-                    buttons: ['excel', 'pdf', 'print']
+                    buttons: ['csv', 'excel', 'pdf', 'print']
                 }
             },
             "pageLength": 50, // Default 50 records per page
@@ -16,7 +16,7 @@ $(document).ready(function() {
         $('#simpletable2').DataTable({
             layout: {
                 topStart: {
-                    buttons: ['excel', 'pdf', 'print']
+                    buttons: ['csv', 'excel', 'pdf', 'print']
                 }
             },
             "pageLength": 50, // Default 50 records per page
@@ -24,7 +24,7 @@ $(document).ready(function() {
         $('#simpletable3').DataTable({
             layout: {
                 topStart: {
-                    buttons: ['excel', 'pdf', 'print']
+                    buttons: ['csv', 'excel', 'pdf', 'print']
                 }
             },
             "pageLength": 50, // Default 50 records per page

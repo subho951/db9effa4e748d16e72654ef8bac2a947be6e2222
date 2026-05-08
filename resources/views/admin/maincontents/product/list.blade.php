@@ -174,16 +174,39 @@ $controllerRoute = $module['controller_route'];
       border: 1px solid #01CA6A;
       width: 140px
   }
-  .buttons-export {
-      padding: 7px 18px;
-      background: linear-gradient(135deg, #2563eb, #0f766e);
+  .product-export-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+  }
+  .product-export-button {
+      padding: 8px 14px;
       color: #FFF;
       border-radius: 8px;
       border: 0;
       transition: all .3s ease-in-out;
-      box-shadow: 0 10px 22px rgba(15, 118, 110, .18);
-      position: absolute; left: 92px; top: 8px;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, .14);
       font-weight: 700;
+      line-height: 1;
+  }
+  .product-export-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, .18);
+  }
+  .product-export-csv {
+      background: #0f766e;
+  }
+  .product-export-excel {
+      background: #15803d;
+  }
+  .product-export-pdf {
+      background: #dc2626;
+  }
+  .product-table-wrap .dt-buttons .buttons-csv,
+  .product-table-wrap .dt-buttons .buttons-excel,
+  .product-table-wrap .dt-buttons .buttons-pdf {
+      display: none !important;
   }
   @media(max-width: 767px) {
     div.dt-container div.dt-layout-row {
@@ -192,9 +215,6 @@ $controllerRoute = $module['controller_route'];
       justify-content: space-between;
       align-items: center;
     }
-    .buttons-export {
-      top: 11px;
-  }
   }
   @media(max-width: 575px) {
     div.dt-container div.dt-layout-row {
@@ -259,10 +279,14 @@ $controllerRoute = $module['controller_route'];
             <h5 class="card-title">Product Catalogue</h5>
             <small class="text-muted"><?=number_format(count($rows))?> products listed</small>
           </div>
+          <div class="product-export-actions" aria-label="Product export options">
+            <button class="product-export-button product-export-csv" type="button" data-product-export="csv">CSV</button>
+            <button class="product-export-button product-export-excel" type="button" data-product-export="excel">Excel</button>
+            <button class="product-export-button product-export-pdf" type="button" data-product-export="pdf">PDF</button>
+          </div>
         </div>
         <div class="card-body">
           <div class="dt-responsive table-responsive product-table-wrap">
-            <button class="dt-button buttons-export" tabindex="0" aria-controls="simpletable" type="button" onclick="openAdminPINModal2();"><span>Export</span></button>
             <table id="simpletable" class="table table-striped table-bordered nowrap">
               <thead>
                 <tr>
@@ -447,21 +471,97 @@ $controllerRoute = $module['controller_route'];
     $('#adminpinmodal').html(modalHTML);
     $('#adminpinmodal').modal('show');
   }
-  $(function(){
-    <?php if(session('is_export')){?>
-      setTimeout(function hideText() {
-          $('.buttons-excel').show();
-          $('.buttons-pdf').show();
-      }, 1000);
-      $('.buttons-export').css('display', 'none');
-    <?php } else {?>
-      setTimeout(function hideText() {
-          $('.buttons-excel').css('display', 'none');
-          $('.buttons-pdf').css('display', 'none');
-      }, 1000);
-      $('.buttons-export').show();
-    <?php } ?>
-  });
+  (function() {
+    var exportButtonSelectors = {
+      csv: '.buttons-csv',
+      excel: '.buttons-excel',
+      pdf: '.buttons-pdf'
+    };
+
+    function getProductDataTable() {
+      if (!window.jQuery || !jQuery.fn || !jQuery.fn.DataTable || !jQuery.fn.DataTable.isDataTable) {
+        return null;
+      }
+
+      if (jQuery.fn.DataTable.isDataTable('#simpletable')) {
+        return jQuery('#simpletable').DataTable();
+      }
+
+      return jQuery('#simpletable').DataTable({
+        layout: {
+          topStart: {
+            buttons: ['csv', 'excel', 'pdf', 'print']
+          }
+        },
+        pageLength: 50
+      });
+    }
+
+    function getButtonCount(table, selector) {
+      if (!table || !table.buttons) {
+        return 0;
+      }
+
+      return table.buttons(selector).count();
+    }
+
+    function ensureCsvButton(table) {
+      if (!table || !table.button || getButtonCount(table, '.buttons-csv') > 0) {
+        return;
+      }
+
+      table.button().add(0, {
+        extend: 'csv',
+        text: 'CSV',
+        title: 'Product Catalogue'
+      });
+    }
+
+    function setupProductExportButtons(attempt) {
+      var table = getProductDataTable();
+      if (!table || !table.buttons || !table.button) {
+        if (attempt < 20) {
+          setTimeout(function() {
+            setupProductExportButtons(attempt + 1);
+          }, 250);
+        }
+        return;
+      }
+
+      ensureCsvButton(table);
+    }
+
+    window.addEventListener('load', function() {
+      setupProductExportButtons(0);
+    });
+
+    document.addEventListener('click', function(event) {
+      var target = event.target.nodeType === 1 ? event.target : event.target.parentElement;
+      var button = target ? target.closest('[data-product-export]') : null;
+      if (!button) {
+        return;
+      }
+
+      event.preventDefault();
+
+      var exportType = button.getAttribute('data-product-export');
+      var selector = exportButtonSelectors[exportType];
+      var table = getProductDataTable();
+
+      if (!table || !selector) {
+        alert('Export is still loading. Please try again.');
+        return;
+      }
+
+      ensureCsvButton(table);
+
+      if (getButtonCount(table, selector) > 0) {
+        table.buttons(selector).trigger();
+      } else {
+        alert('Export is not ready yet. Please try again.');
+      }
+    });
+  })();
 </script>
 <script>
   $(document).on('input', '.otp__digit', function () {

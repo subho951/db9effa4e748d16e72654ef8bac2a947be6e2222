@@ -435,7 +435,7 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
     function addToCart(){
         var barcode = $('#barcode').val();
         var order_id = '<?=(($getOrder)?$getOrder->id:0)?>';
-        if(barcode.length >= 4 && barcode.length <= 12){
+        if(barcode.length >= 4 && barcode.length <= 25){
             $.ajax({
                 type: "POST",
                 url: base_url + "/admin/billing/add-to-cart",
@@ -470,7 +470,7 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
                 }
             });
         } else {
-            toastAlert('error', 'Barcode or SKU number length must be between 4 and 12 characters. Please enter right barcode or SKU number');
+            toastAlert('error', 'Barcode or SKU number length must be between 4 and 25 characters. Please enter right barcode or SKU number');
             $('#barcode').val('');
             $("#barcode").focus();
         }

@@ -92,7 +92,7 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
                     <div class="row">
                         <div class="col-6 d-flex">
                             <div class="barcode-suggestion-wrapper">
-                                <input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan / Enter Barcode Or SKU" minlength="4" maxlength="12" autocomplete="off">
+                                <input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan / Enter Barcode Or SKU" minlength="4" maxlength="25" autocomplete="off">
                                 <div id="barcodeSuggestions" class="barcode-suggestions"></div>
                             </div>
                         </div>
@@ -179,82 +179,80 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
     </div>
     <!-- Order Items Section -->
     <div class="col-md-7" id="order-item">
-        <?php if(count($getOrderItems) > 0){ ?>
-            <div class="order-summary-right table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th width="40%">ORDER #: <?=(($getOrder)?$getOrder->order_no:'')?></th>
-                            <th class="text-center">Qty</th>
-                            <th class="text-end">Price</th>
-                            <!-- <th class="text-end">Subtotal</th> -->
+        <div class="order-summary-right table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th width="40%">ORDER #: <?=(($getOrder)?$getOrder->order_no:'')?></th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-end">Price</th>
+                        <!-- <th class="text-end">Subtotal</th> -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $totItemQty = 0; if($getOrderItems){ foreach($getOrderItems as $getOrderItem){?>
+                        <tr class="order-row" data-item-id="<?=$getOrderItem->id?>">
+                            <td>
+                                <?php if($getOrderItem->subtotal >= 0){?>
+                                    <input type="radio" name="order_details_id" id="order_details_id<?=$getOrderItem->id?>" value="<?=$getOrderItem->id?>" style="display:none;">
+                                <?php }?>
+                                <span style="<?= (($getOrderItem->status == 4)?'color: red;':'')?>"><?=$getOrderItem->product_name?></span>
+                                <!-- <p><small style="font-size: 9px;color: #0096eb;">SKU : <?=$getOrderItem->product_sku?></small></p> -->
+                                <?php if($getOrderItem->subtotal < 0){?>
+                                    <small style="font-size: 9px; color:#000;" class="badge bg-warning">RETURN</small>
+                                <?php }?>
+                            </td>
+                            <td class="text-center">
+                                <?php if($getOrderItem->status != 4){?>
+                                    <button class="btn-plus-minus" onclick="itemQtyDecrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">-</button>
+                                <?php }?>
+                                <input type="hidden" id="qty-val-<?=$getOrderItem->item_id?>" value="<?=$getOrderItem->qty?>">
+                                <span id="qty-text-<?=$getOrderItem->item_id?>" style="<?= (($getOrderItem->status == 4)?'color: red;':'')?>"><?=$getOrderItem->qty?></span>
+                                <?php if($getOrderItem->status != 4){?>
+                                    <button class="btn-plus-minus" onclick="itemQtyIncrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">+</button>
+                                    <?php $totItemQty += $getOrderItem->qty; ?>
+                                <?php }?>
+                            </td>
+                            <!-- <td class="text-end">
+                                $<?=number_format($getOrderItem->subtotal,2)?>
+                                <a href="javascript:void(0);" onclick="itemDelete(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);"><i class='bx bxs-trash'></i></a>
+                            </td> -->
+                            <td class="text-end">
+                                <span class="price-text" style="<?= (($getOrderItem->status == 4)?'color: red;':'')?>">$<?=number_format($getOrderItem->price,2)?></span>
+                                <input type="text" class="form-control price-val" name="product_price" value="<?=$getOrderItem->price?>" style="display: none;width:30%;">
+                                <input type="hidden" name="item_id" value="<?=$getOrderItem->item_id?>" style="display: none;">
+                                <a href="javascript:void(0);" onclick="itemDelete(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);"><i class='bx bxs-trash'></i></a>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php $totItemQty = 0; if($getOrderItems){ foreach($getOrderItems as $getOrderItem){?>
-                            <tr class="order-row" data-item-id="<?=$getOrderItem->id?>">
-                                <td>
-                                    <?php if($getOrderItem->subtotal >= 0){?>
-                                        <input type="radio" name="order_details_id" id="order_details_id<?=$getOrderItem->id?>" value="<?=$getOrderItem->id?>" style="display:none;">
-                                    <?php }?>
-                                    <span style="<?= (($getOrderItem->status == 4)?'color: red;':'')?>"><?=$getOrderItem->product_name?></span>
-                                    <!-- <p><small style="font-size: 9px;color: #0096eb;">SKU : <?=$getOrderItem->product_sku?></small></p> -->
-                                    <?php if($getOrderItem->subtotal < 0){?>
-                                        <small style="font-size: 9px; color:#000;" class="badge bg-warning">RETURN</small>
-                                    <?php }?>
-                                </td>
-                                <td class="text-center">
-                                    <?php if($getOrderItem->status != 4){?>
-                                        <button class="btn-plus-minus" onclick="itemQtyDecrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">-</button>
-                                    <?php }?>
-                                    <input type="hidden" id="qty-val-<?=$getOrderItem->item_id?>" value="<?=$getOrderItem->qty?>">
-                                    <span id="qty-text-<?=$getOrderItem->item_id?>" style="<?= (($getOrderItem->status == 4)?'color: red;':'')?>"><?=$getOrderItem->qty?></span>
-                                    <?php if($getOrderItem->status != 4){?>
-                                        <button class="btn-plus-minus" onclick="itemQtyIncrease(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);">+</button>
-                                        <?php $totItemQty += $getOrderItem->qty; ?>
-                                    <?php }?>
-                                </td>
-                                <!-- <td class="text-end">
-                                    $<?=number_format($getOrderItem->subtotal,2)?>
-                                    <a href="javascript:void(0);" onclick="itemDelete(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);"><i class='bx bxs-trash'></i></a>
-                                </td> -->
-                                <td class="text-end">
-                                    <span class="price-text" style="<?= (($getOrderItem->status == 4)?'color: red;':'')?>">$<?=number_format($getOrderItem->price,2)?></span>
-                                    <input type="text" class="form-control price-val" name="product_price" value="<?=$getOrderItem->price?>" style="display: none;width:30%;">
-                                    <input type="hidden" name="item_id" value="<?=$getOrderItem->item_id?>" style="display: none;">
-                                    <a href="javascript:void(0);" onclick="itemDelete(<?=$getOrderItem->item_id?>,<?=(($getOrder)?$getOrder->id:0)?>);"><i class='bx bxs-trash'></i></a>
-                                </td>
-                            </tr>
-                        <?php } }?>
-                    </tbody>
-                </table>
-            </div>
-            <div class="table-footer-wrapper">
-                <div class="footer-notes px-4 py-1">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <p class="me-2">Notes </p>
-                        <input type="text" class="form-control" id="note" value="<?=$getOrder->note?>" placeholder="Notes">
-                        <div class="items-count">
-                            <p>ITEMS : <?=$totItemQty?></p>
-                        </div>
+                    <?php } }?>
+                </tbody>
+            </table>
+        </div>
+        <div class="table-footer-wrapper">
+            <div class="footer-notes px-4 py-1">
+                <div class="d-flex justify-content-between align-items-center">
+                    <p class="me-2">Notes </p>
+                    <input type="text" class="form-control" id="note" value="<?=(($getOrder)?$getOrder->note:'')?>" placeholder="Notes">
+                    <div class="items-count">
+                        <p>ITEMS : <?=$totItemQty?></p>
                     </div>
-                </div>
-                <div class="order-footer px-4">
-                    <div class="d-flex justify-content-between py-1">
-                        <p>Discounts</p>
-                        <p>$<?=number_format($getOrder->discount_amount,2)?></p>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <p>Delivery</p>
-                        <p>$<?=number_format($getOrder->delivery_amount,2)?></p>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between totals p-1 p-sm-2 p-md-4">
-                    <!-- <p>ITEMS : ?=$totItemQty?></p> -->
-                    <p>TOTAL $<?=number_format($getOrder->net_amount,2)?></p>
                 </div>
             </div>
-        <?php }?>
+            <div class="order-footer px-4">
+                <div class="d-flex justify-content-between py-1">
+                    <p>Delivery</p>
+                    <p>$<?=number_format((($getOrder)?$getOrder->delivery_amount:0),2)?></p>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <p>Total Discounts</p>
+                    <p>$<?=number_format((($getOrder)?$getOrder->discount_amount:0),2)?></p>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between totals p-1 p-sm-2 p-md-4">
+                <!-- <p>ITEMS : ?=$totItemQty?></p> -->
+                <p>TOTAL $<?=number_format((($getOrder)?$getOrder->net_amount:0),2)?></p>
+            </div>
+        </div>
     </div>
 </div>
 <!-- Admin PIN Modal -->

@@ -64,6 +64,10 @@ $controllerRoute = $module['controller_route'];
   .product-table-wrap .table {
     margin-bottom: 0;
   }
+  .product-catalogue-table {
+    table-layout: fixed;
+    width: 100% !important;
+  }
   .product-table-wrap thead th {
     background: #f8fafc;
     color: #64748b;
@@ -76,6 +80,40 @@ $controllerRoute = $module['controller_route'];
   .product-table-wrap tbody td {
     color: #334155;
     vertical-align: middle;
+  }
+  .product-catalogue-table th,
+  .product-catalogue-table td {
+    padding: 4px 6px !important;
+  }
+  .product-catalogue-table .nowrap-cell {
+    white-space: nowrap;
+  }
+  .product-catalogue-table .ellipsis-cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .product-catalogue-table .barcode-cell {
+    font-size: 11px;
+  }
+  .product-catalogue-table .variety-cell {
+    overflow: hidden;
+  }
+  .product-catalogue-table .promo-list li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+  .product-catalogue-table .promo-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .product-catalogue-table .promo-switch {
+    flex: 0 0 auto;
   }
   .product-table-wrap tbody tr:hover {
     background: #f8fafc;
@@ -248,7 +286,17 @@ $controllerRoute = $module['controller_route'];
         </div>
         <div class="card-body">
           <div class="dt-responsive table-responsive product-table-wrap">
-            <table id="simpletable" class="table table-striped table-bordered nowrap" data-export-skip-first="1">
+            <table id="simpletable" class="table table-striped table-bordered nowrap product-catalogue-table" data-export-skip-first="1">
+              <colgroup>
+                <col style="width: 5%;">
+                <col style="width: 9%;">
+                <col style="width: 22%;">
+                <col style="width: 25%;">
+                <col style="width: 7%;">
+                <col style="width: 8%;">
+                <col style="width: 14%;">
+                <col style="width: 10%;">
+              </colgroup>
               <thead>
                 <tr>
                   <th scope="col"><?=(($status != '')?'<u>Active</u>':'Active')?></th>
@@ -266,19 +314,19 @@ $controllerRoute = $module['controller_route'];
               <tbody>
                 <?php if(count($rows)>0){ $sl=1; foreach($rows as $row){?>
                   <tr>
-                    <td>
+                    <td class="nowrap-cell">
                       <?php if($row->status){?>
                         <a href="<?=url('admin/' . $controllerRoute . '/change-status/'.Helper::encoded($row->id))?>" class="btn btn-outline-success btn-sm product-status-btn" title="Activate <?=$module['title']?>"><i class="fa fa-check"></i></a>
                       <?php } else {?>
                         <a href="<?=url('admin/' . $controllerRoute . '/change-status/'.Helper::encoded($row->id))?>" class="btn btn-outline-warning btn-sm product-status-btn" title="Deactivate <?=$module['title']?>"><i class="fa fa-times"></i></a>
                       <?php }?>
                     </td>
-                    <td>
+                    <td class="nowrap-cell">
                       <a class="product-sku-link" href="<?=url('admin/products/edit/'.Helper::encoded($row->id))?>"><?=$row->sku?></a>
                       <!-- <a href="javascript:void(0);" onclick="openAdminPINModal(<?=$row->id?>);"><?=$row->sku?></a> -->
                     </td>
-                    <td><?=$row->name?></td>
-                    <td>
+                    <td class="ellipsis-cell" title="<?=$row->name?>"><?=$row->name?></td>
+                    <td class="variety-cell">
                       <!-- Discount Vouchers -->
                         <?php $discountVouchers = ProductDiscountVoucher::select('id', 'voucher_code', 'retail_discounted_price', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
                         <ul class="promo-list">
@@ -286,12 +334,10 @@ $controllerRoute = $module['controller_route'];
                             <small style="font-weight: bold; text-decoration:underline;">Discount Vouchers</small>
                             <?php foreach($discountVouchers as $discountVoucher){?>
                               <li>
-                                <?=$discountVoucher->voucher_code?> : $<?=number_format($discountVoucher->retail_discounted_price,2)?>
-                                <span>
-                                  <div class="form-check form-switch" style="display: inline;">
-                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="discount_voucher_switch" name="discount_voucher_switch" value="<?= $discountVoucher->id?>" <?=(($discountVoucher->status)?'checked':'')?>>
-                                  </div>
-                                  </span>
+                                <span class="promo-text" title="<?=$discountVoucher->voucher_code?> : $<?=number_format($discountVoucher->retail_discounted_price,2)?>"><?=$discountVoucher->voucher_code?> : $<?=number_format($discountVoucher->retail_discounted_price,2)?></span>
+                                <div class="promo-switch form-check form-switch" style="display: inline;">
+                                  <input class="form-check-input mt-0" type="checkbox" role="switch" id="discount_voucher_switch" name="discount_voucher_switch" value="<?= $discountVoucher->id?>" <?=(($discountVoucher->status)?'checked':'')?>>
+                                </div>
                               </li>
                             <?php }?>
                           <?php }?>
@@ -304,12 +350,10 @@ $controllerRoute = $module['controller_route'];
                             <small style="font-weight: bold; text-decoration:underline;">Multiple Buys</small>
                             <?php foreach($multipleBuys as $multipleBuy){?>
                               <li>
-                                <?= $multipleBuy->first_barcode?> and <?= $multipleBuy->second_barcode?> = true, then <?= (($multipleBuy->barcode_discount_type == 'PERCENTAGE')?$multipleBuy->discount_amount . '%':'$' . $multipleBuy->discount_amount)?> ($<?= $multipleBuy->discounted_amount?>)
-                                <span>
-                                  <div class="form-check form-switch" style="display: inline;">
-                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="multiplebuy_switch" name="multiplebuy_switch" value="<?= $multipleBuy->id?>" <?=(($multipleBuy->status)?'checked':'')?>>
-                                 </div>
-                                </span>
+                                <span class="promo-text" title="<?= $multipleBuy->first_barcode?> and <?= $multipleBuy->second_barcode?> = true, then <?= (($multipleBuy->barcode_discount_type == 'PERCENTAGE')?$multipleBuy->discount_amount . '%':'$' . $multipleBuy->discount_amount)?> ($<?= $multipleBuy->discounted_amount?>)"><?= $multipleBuy->first_barcode?> and <?= $multipleBuy->second_barcode?> = true, then <?= (($multipleBuy->barcode_discount_type == 'PERCENTAGE')?$multipleBuy->discount_amount . '%':'$' . $multipleBuy->discount_amount)?> ($<?= $multipleBuy->discounted_amount?>)</span>
+                                <div class="promo-switch form-check form-switch" style="display: inline;">
+                                  <input class="form-check-input mt-0" type="checkbox" role="switch" id="multiplebuy_switch" name="multiplebuy_switch" value="<?= $multipleBuy->id?>" <?=(($multipleBuy->status)?'checked':'')?>>
+                                </div>
                               </li>
                             <?php }?>
                             <br><br>
@@ -317,11 +361,11 @@ $controllerRoute = $module['controller_route'];
                         </ul>
                       <!-- Multiple Buys -->
                     </td>
-                    <td><?=$row->size_name?> <?=$row->unit_name?></td>
-                    <td>$<?=number_format($row->retail_price_inc_tax,2)?></td>
+                    <td class="nowrap-cell"><?=$row->size_name?> <?=$row->unit_name?></td>
+                    <td class="nowrap-cell">$<?=number_format($row->retail_price_inc_tax,2)?></td>
                     <!-- <td><?=$row->brand_name?></td> -->
-                    <td><?=$row->supplier_name?></td>
-                    <td><?=$row->barcode?></td>
+                    <td class="ellipsis-cell" title="<?=$row->supplier_name?>"><?=$row->supplier_name?></td>
+                    <td class="ellipsis-cell nowrap-cell barcode-cell" title="<?=$row->barcode?>"><?=$row->barcode?></td>
                     <!-- <td><?=$row->shop_stock?></td> -->
                   </tr>
                 <?php } }?>

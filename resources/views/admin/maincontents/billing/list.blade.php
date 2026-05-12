@@ -77,7 +77,77 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
         color: #666;
         line-height: 1.2;
     }
+    .billing-scan-alert {
+        display: none;
+        position: fixed;
+        z-index: 11000;
+        border-radius: 8px;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+        font-weight: 700;
+        line-height: 1.25;
+        max-width: 92vw;
+    }
+    .billing-scan-alert.is-visible {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+    }
+    .billing-scan-alert.is-success {
+        top: 38%;
+        left: 24px;
+        width: min(440px, calc(42vw - 32px));
+        padding: 14px 16px;
+        background: #0a9b52;
+        color: #fff;
+        border: 1px solid #077b41;
+    }
+    .billing-scan-alert.is-error {
+        top: 50%;
+        left: 50%;
+        width: min(420px, 92vw);
+        min-height: 96px;
+        padding: 20px 18px;
+        transform: translate(-50%, -50%);
+        background: #fff;
+        color: #b42318;
+        border: 2px solid #dc3545;
+        font-size: 20px;
+        text-align: center;
+    }
+    .billing-scan-alert-message {
+        flex: 1 1 auto;
+    }
+    .billing-scan-alert-close {
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.16);
+        color: inherit;
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+    }
+    .billing-scan-alert.is-error .billing-scan-alert-close {
+        align-self: flex-start;
+        background: #dc3545;
+        color: #fff;
+    }
+    @media (max-width: 767px) {
+        .billing-scan-alert.is-success {
+            top: 40%;
+            left: 50%;
+            width: min(420px, 92vw);
+            transform: translateX(-50%);
+        }
+    }
 </style>
+<div class="billing-scan-alert" id="billingScanAlert" role="alert" aria-live="assertive">
+    <span class="billing-scan-alert-message" id="billingScanAlertMessage"></span>
+    <button type="button" class="billing-scan-alert-close" id="billingScanAlertClose" aria-label="Close">&times;</button>
+</div>
 <div class="row">
     <!-- Sidebar Section -->
     <div class="col-md-5">
@@ -327,6 +397,32 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
     var base_url = '<?=url('/')?>';
     var initialCartItemCount = <?=$cartItemCount?>;
     var currentCartItemCount = initialCartItemCount;
+    var billingScanAlertTimer = null;
+
+    function hideBillingScanAlert() {
+        if (billingScanAlertTimer) {
+            clearTimeout(billingScanAlertTimer);
+            billingScanAlertTimer = null;
+        }
+        $("#billingScanAlert").removeClass("is-visible is-success is-error");
+    }
+
+    function showBillingScanAlert(type, message, timeoutMs) {
+        hideBillingScanAlert();
+        $("#billingScanAlertMessage").text(message);
+        $("#billingScanAlert")
+            .addClass("is-visible")
+            .addClass(type === "success" ? "is-success" : "is-error");
+
+        if (timeoutMs) {
+            billingScanAlertTimer = setTimeout(hideBillingScanAlert, timeoutMs);
+        }
+    }
+
+    $("#billingScanAlertClose").on("click", function() {
+        hideBillingScanAlert();
+        $("#barcode").focus();
+    });
 
     function setCartDependentControls(itemCount) {
         var hasItems = parseInt(itemCount, 10) > 0;
@@ -449,14 +545,18 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
                 success: function (res) {
                     $("#loader").hide();
                     if(res.status){
-                        toastAlert("success", res.message);
+                        showBillingScanAlert("success", res.message, 3000);
                         $('#order-item').empty();
                         $('#order-item').html(res.data.item_table_html);
                         syncCartDependentControls(res);
                         $('#barcode').val('');
                         $("#barcode").focus();
                     }else{
-                        toastAlert("error", res.message);
+                        if (res.message === "Product not found") {
+                            showBillingScanAlert("error", res.message, 0);
+                        } else {
+                            toastAlert("error", res.message);
+                        }
                         $('#barcode').val('');
                         $("#barcode").focus();
                     }
@@ -464,8 +564,13 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
                 error:function (xhr, ajaxOptions, thrownError){
                     $("#loader").hide();
                     var res = xhr.responseJSON;
-                    if(!res.status) {
-                        toastAlert("error", res.message);
+                    if(!res || !res.status) {
+                        var message = (res && res.message) ? res.message : "Something went wrong. Please try again.";
+                        if (message === "Product not found") {
+                            showBillingScanAlert("error", message, 0);
+                        } else {
+                            toastAlert("error", message);
+                        }
                         $('#barcode').val('');
                         $("#barcode").focus();
                     }

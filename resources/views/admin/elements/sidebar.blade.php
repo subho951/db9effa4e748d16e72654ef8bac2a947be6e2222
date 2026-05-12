@@ -385,10 +385,7 @@ $user_type = session('type');
       </a>
       <ul class="menu-sub">
          <li class="menu-item <?=(($pageSegment == 'products')?'active':'')?>">
-            <!-- <a href="<?=url('admin/products/list')?>" class="menu-link">
-               <div data-i18n="List">List</div>
-            </a> -->
-            <a href="javascript:void(0);" class="menu-link" onclick="openAdminPINModal();">
+            <a href="<?=url('admin/products/list')?>" class="menu-link">
                <div data-i18n="List">List</div>
             </a>
          </li>

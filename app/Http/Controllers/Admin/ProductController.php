@@ -195,12 +195,11 @@ class ProductController extends Controller
                 $postData = $request->all();
                 // Helper::pr($postData);
                 $rules = [
-                    'sku'                       => 'required',
-                    'barcode'                   => 'required',
+                    'sku'                       => 'required|alpha_num|min:4|max:10',
+                    'barcode'                   => 'required|alpha_num|min:8|max:25',
                     'name'                      => 'required',
                     'receipt_short_name'        => 'required',
                     'shelf_tag_short_name'      => 'required',
-                    'barcode'                   => 'required',
                     'brand_id'                  => 'required',
                     'supplier_id'               => 'required',
                     'cost_price_ex_tax'         => 'required',
@@ -417,12 +416,11 @@ class ProductController extends Controller
                 $postData = $request->all();
                 // Helper::pr($postData);
                 $rules = [
-                    'sku'                       => 'required',
-                    'barcode'                   => 'required',
+                    'sku'                       => 'required|alpha_num|min:4|max:10',
+                    'barcode'                   => 'required|alpha_num|min:8|max:25',
                     'name'                      => 'required',
                     'receipt_short_name'        => 'required',
                     'shelf_tag_short_name'      => 'required',
-                    'barcode'                   => 'required',
                     'brand_id'                  => 'required',
                     'supplier_id'               => 'required',
                     'cost_price_ex_tax'         => 'required',

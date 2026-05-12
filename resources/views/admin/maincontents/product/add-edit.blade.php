@@ -284,11 +284,11 @@ $current_url                    = url()->current();
                            </div>
                            <div class="col-md-3">
                               <label class="form-label" for="sku">SKU <small class="text-danger">*</small></label>
-                              <input type="text" class="form-control" placeholder="Enter SKU" id="sku" name="sku" value="<?=$sku?>" maxlength="10" onkeypress="return isNumber(event)" required style="width: 40%;">
+                              <input type="text" class="form-control" placeholder="Enter SKU" id="sku" name="sku" value="<?=$sku?>" minlength="4" maxlength="10" pattern="[A-Za-z0-9]+" title="SKU must be at least 4 letters or numbers" required style="width: 40%;">
                            </div>
                            <div class="col-md-3">
                               <label class="form-label" for="barcode">Barcode <small class="text-danger">*</small></label>
-                              <input type="text" class="form-control" placeholder="Enter Barcode" id="barcode" name="barcode" value="<?=$barcode?>" minlength="25" maxlength="25" onkeypress="return isNumber(event)" required style="width: 82%;">
+                              <input type="text" class="form-control" placeholder="Enter Barcode" id="barcode" name="barcode" value="<?=$barcode?>" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+" title="Barcode must be at least 8 letters or numbers" required style="width: 82%;">
                            </div>
                            <div class="col-md-3">
                               <label class="form-label" for="shop_stock">Shop Stock (Opening) <small class="text-danger">*</small></label>
@@ -522,7 +522,7 @@ $current_url                    = url()->current();
                                  ?>
                                     <div class="row align-items-center gap-2 gap-lg-0 mb-2">
                                        <div class="col-lg-2">
-                                          <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode<?=$sl?>" value="<?=$multipleBuy->first_barcode?>" minlength="13" maxlength="13">
+                                          <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode<?=$sl?>" value="<?=$multipleBuy->first_barcode?>" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">
                                        </div>
                                        <div class="col-lg-2">
                                           <input type="number" class="form-control" placeholder="Barcode1 Min Qty" name="product1_min_qty[]" id="product1_min_qty<?=$sl?>" min="1" max="9" value="<?=$multipleBuy->product1_min_qty?>">
@@ -533,7 +533,7 @@ $current_url                    = url()->current();
                                        </div>
 
                                        <div class="col-lg-2">
-                                          <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode1" oninput="getBarcodeSuggestions(this.value, <?=$sl?>);" value="<?=$multipleBuy->second_barcode?>" minlength="13" maxlength="13">
+                                          <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode1" oninput="getBarcodeSuggestions(this.value, <?=$sl?>);" value="<?=$multipleBuy->second_barcode?>" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">
                                           <input type="hidden" name="product2_id[]" id="product2_id<?=$sl?>" value="<?=$multipleBuy->product2_id?>">
                                           <div id="barcode_suggestions1001" class="dropdown"></div>
                                        </div>
@@ -559,7 +559,7 @@ $current_url                    = url()->current();
                                  <?php $sl++; } }?>
                                  <!-- <div class="row align-items-center gap-2 gap-lg-0 mb-2">
                                     <div class="col-lg-2">
-                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode301" minlength="13" maxlength="13">
+                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode301" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">
                                     </div>
                                     <div class="col-lg-2">
                                        <input type="number" class="form-control" placeholder="Barcode1 Min Qty" name="product1_min_qty[]" id="product1_min_qty301" min="1" max="9">
@@ -570,7 +570,7 @@ $current_url                    = url()->current();
                                     </div>
 
                                     <div class="col-lg-2">
-                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode301" oninput="getBarcodeSuggestions(this.value, 301);" minlength="13" maxlength="13">
+                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode301" oninput="getBarcodeSuggestions(this.value, 301);" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">
                                        <input type="hidden" name="product2_id[]" id="product2_id301">
                                        <div id="barcode_suggestions301" class="dropdown"></div>
                                     </div>
@@ -865,7 +865,7 @@ $current_url                    = url()->current();
                // console.log(main_barcode);
                var fieldHTML = '<div class="row align-items-center gap-2 gap-lg-0 mb-2">\
                                     <div class="col-lg-2">\
-                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode' + x + '" value="' + main_barcode + '" minlength="13" maxlength="13">\
+                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode' + x + '" value="' + main_barcode + '" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">\
                                     </div>\
                                     <div class="col-lg-2">\
                                        <input type="number" class="form-control" placeholder="Barcode1 Min Qty" name="product1_min_qty[]" id="product1_min_qty' + x + '" min="1" max="9">\
@@ -874,7 +874,7 @@ $current_url                    = url()->current();
                                        <span>and</span>\
                                     </div>\
                                     <div class="col-lg-2">\
-                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode' + x + '" oninput="getBarcodeSuggestions(this.value, ' + x + ');" minlength="13" maxlength="13">\
+                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode' + x + '" oninput="getBarcodeSuggestions(this.value, ' + x + ');" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">\
                                        <input type="hidden" name="product2_id[]" id="product2_id' + x + '">\
                                        <div id="barcode_suggestions' + x + '" class="dropdown"></div>\
                                     </div>\

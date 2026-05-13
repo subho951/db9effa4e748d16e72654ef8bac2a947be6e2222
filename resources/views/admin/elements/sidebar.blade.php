@@ -294,6 +294,14 @@ $user_type = session('type');
          <div data-i18n="Dashboard">Dashboard</div>
       </a>
    </li>
+   <!-- POS Application -->
+   <li class="menu-item <?=(($pageFunction == 'list')?'active':'')?>">
+      <a href="<?=url('admin/billing/list')?>" class="menu-link" target="_blank">
+         <!-- <i class="menu-icon tf-icons fa fa-home"></i> -->
+         <i class="menu-icon fa-solid fa-file-invoice"></i>
+         <div data-i18n="POS Application">POS Application</div>
+      </a>
+   </li>
    <!-- Access & Permission -->
    <li class="menu-item <?=(($pageSegment == 'modules' || $pageSegment == 'roles' || $pageSegment == 'sub-users' || $pageSegment == 'sale-operators')?'open':'')?>">
       <a href="javascript:void(0);" class="menu-link menu-toggle">

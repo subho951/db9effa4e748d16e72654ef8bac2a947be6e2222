@@ -4,6 +4,9 @@ use App\Models\PurchaseOrderItem;
 use App\Helpers\Helper;
 
 $controllerRoute                = $module['controller_route'];
+$prefillItems                   = $prefillItems ?? collect();
+$prefillSupplierId              = $prefillSupplierId ?? '';
+$hasPrefillItems                = (count($prefillItems) > 0);
 ?>
 <style>
   .invoice-footer span {
@@ -20,6 +23,9 @@ $controllerRoute                = $module['controller_route'];
     <span class="text-muted fw-light"><a href="<?= url('admin/dashboard') ?>">Dashboard</a> /</span>
     <span class="text-muted fw-light"><a href="<?= url('admin/' . $controllerRoute . '/list/') ?>"><?= $module['title'] ?> List</a> /</span>
     <?= $page_header ?>
+    <?php if($row){?>
+      <a href="<?=url('admin/purchase-orders/receive/' . Helper::encoded($row->id))?>" class="btn btn-outline-success btn-sm float-end"><i class="fa fa-truck-loading"></i>&nbsp;Receive</a>
+    <?php }?>
   </h4>
   <div class="row">
     <?php
@@ -45,7 +51,7 @@ $controllerRoute                = $module['controller_route'];
     } else {
       $order_date           = '';
       $delivery_id          = '';
-      $supplier_id          = '';
+      $supplier_id          = $prefillSupplierId;
 
       $s_street_address1    = '';
       $s_street_address2    = '';
@@ -63,6 +69,21 @@ $controllerRoute                = $module['controller_route'];
       $tax_total            = 0;
       $total_inc_tax        = 0;
       $note                 = 0;
+
+      if ($hasPrefillItems) {
+        $total_lines = count($prefillItems);
+        $total_quantity = count($prefillItems);
+        $subtotal = 0;
+        $tax_total = 0;
+        $total_inc_tax = 0;
+        foreach($prefillItems as $prefillItem) {
+          $lineSubtotal = $prefillItem->cost_price_ex_tax;
+          $lineTax = ($lineSubtotal * $prefillItem->cost_price_tax) / 100;
+          $subtotal += $lineSubtotal;
+          $tax_total += $lineTax;
+          $total_inc_tax += ($lineSubtotal + $lineTax);
+        }
+      }
     }
     ?>
     <div class="col-md-12">
@@ -140,7 +161,7 @@ $controllerRoute                = $module['controller_route'];
 
               <div class="mb-3 col-md-6">
                 <label for="supplier_id" class="form-label">Supplier <small class="text-danger">*</small></label>
-                <select name="supplier_id" class="form-select" id="supplier_id" required onchange="this.form.submit()">
+                <select name="supplier_id" class="form-select" id="supplier_id" required <?=(($hasPrefillItems)?'':'onchange="this.form.submit()"')?>>
                   <option value="" selected>Select Supplier</option>
                   <?php if ($suppliers) {
                     foreach ($suppliers as $supp) { ?>
@@ -151,7 +172,7 @@ $controllerRoute                = $module['controller_route'];
               </div>
             </div>
 
-            <?php if ($row) { ?>
+            <?php if ($row || $hasPrefillItems) { ?>
               <div class="row">
                 <div class="mb-3 col-md-2">
                   <h6 style="font-weight: bold;">Items</h6>
@@ -192,8 +213,8 @@ $controllerRoute                = $module['controller_route'];
 
               <div class="field_wrapper">
                 <?php
-                $po_items = PurchaseOrderItem::where('purchase_order_id', '=', $id)->get();
-                if($po_items){ $sl=101; foreach($po_items as $po_item){
+                $po_items = (($row)?PurchaseOrderItem::where('purchase_order_id', '=', $id)->get():[]);
+                if($row && $po_items){ $sl=101; foreach($po_items as $po_item){
                 ?>
                   <div class="row" style="border:1px solid #04163d1f; padding:10px; border-radius:10px;margin-bottom:5px;">
                     <div class="mb-3 col-md-2">
@@ -218,7 +239,7 @@ $controllerRoute                = $module['controller_route'];
                       <input type="hidden" name="merchant_sku[]" id="merchant_sku_val_<?= $sl?>" value="<?= $po_item->merchant_sku ?>">
                     </div>
                     <div class="mb-3 col-md-3">
-                      <span id="item_name_text_<?= $sl?>"></span>
+                      <span id="item_name_text_<?= $sl?>"><?= $po_item->item_name ?></span>
                       <input type="hidden" name="item_name[]" id="item_name_val_<?= $sl?>" value="<?= $po_item->item_name ?>">
                     </div>
                     <div class="mb-3 col-md-1">
@@ -235,6 +256,62 @@ $controllerRoute                = $module['controller_route'];
                     <div class="mb-3 col-md-1">
                       <span id="total_inc_tax_text_<?= $sl?>"><?= $po_item->total_inc_tax ?></span>
                       <input type="hidden" class="form-control" name="total_inc_tax[]" id="total_inc_tax_val_<?= $sl?>" value="<?= $po_item->total_inc_tax ?>">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <a href="javascript:void(0);" class="btn btn-danger remove_button" title="Remove row">
+                        <i class="fa fa-minus-circle"></i>
+                      </a>
+                    </div>
+                  </div>
+                <?php $sl++; } } elseif($hasPrefillItems){ $sl=201; foreach($prefillItems as $prefillItem){
+                    $supplierSku = (($prefillItem->supplier_sku != '')?$prefillItem->supplier_sku:$prefillItem->sku);
+                    $merchantSku = $prefillItem->sku;
+                    $itemName = (($prefillItem->supplier_product_name != '')?$prefillItem->supplier_product_name:$prefillItem->name);
+                    $costPrice = $prefillItem->cost_price_ex_tax;
+                    $taxPercent = $prefillItem->cost_price_tax;
+                    $taxAmount = ($costPrice * $taxPercent) / 100;
+                    $lineTotal = ($costPrice + $taxAmount);
+                ?>
+                  <div class="row" style="border:1px solid #04163d1f; padding:10px; border-radius:10px;margin-bottom:5px;">
+                    <div class="mb-3 col-md-2">
+                      <select name="item_id[]" class="form-select" id="item_id_<?= $sl?>" required onchange="getItemInfo(this.value, <?= $sl?>);">
+                        <option value="" selected>Select Items</option>
+                        <?php if ($items) {
+                          foreach ($items as $item) { ?>
+                          <option value="<?= $item->id ?>" <?= (($item->id == $prefillItem->id)?'selected':'') ?>><?= $item->name ?></option>
+                        <?php }
+                        } ?>
+                      </select>
+                      <span class="row-loader d-none" id="loader_<?= $sl?>">
+                        <i class="fa fa-spinner fa-spin"></i>
+                      </span>
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <span id="supplier_sku_text_<?= $sl?>"><?= $supplierSku ?></span>
+                      <input type="hidden" name="supplier_sku[]" id="supplier_sku_val_<?= $sl?>" value="<?= $supplierSku ?>">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <span id="merchant_sku_text_<?= $sl?>"><?= $merchantSku ?></span>
+                      <input type="hidden" name="merchant_sku[]" id="merchant_sku_val_<?= $sl?>" value="<?= $merchantSku ?>">
+                    </div>
+                    <div class="mb-3 col-md-3">
+                      <span id="item_name_text_<?= $sl?>"><?= $itemName ?></span>
+                      <input type="hidden" name="item_name[]" id="item_name_val_<?= $sl?>" value="<?= $itemName ?>">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <input type="text" class="form-control" name="qty[]" maxlength="4" id="qty_val_<?= $sl?>" required value="1">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <input type="text" class="form-control" name="cost_price[]" id="cost_price_val_<?= $sl?>" value="<?= $costPrice ?>">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <span id="tax_percent_text_<?= $sl?>"><?= $taxPercent ?>%</span>
+                      <input type="hidden" name="tax_percent[]" id="tax_percent_val_<?= $sl?>" value="<?= $taxPercent ?>">
+                      <input type="hidden" name="tax_amount[]" id="tax_amount_val_<?= $sl?>" value="<?= number_format($taxAmount, 2, '.', '') ?>">
+                    </div>
+                    <div class="mb-3 col-md-1">
+                      <span id="total_inc_tax_text_<?= $sl?>"><?= number_format($lineTotal, 2, '.', '') ?></span>
+                      <input type="hidden" class="form-control" name="total_inc_tax[]" id="total_inc_tax_val_<?= $sl?>" value="<?= number_format($lineTotal, 2, '.', '') ?>">
                     </div>
                     <div class="mb-3 col-md-1">
                       <a href="javascript:void(0);" class="btn btn-danger remove_button" title="Remove row">

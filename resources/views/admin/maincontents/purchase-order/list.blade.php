@@ -29,6 +29,7 @@ $current_url          = url()->current();
                   <th scope="col">Tax total</th>
                   <th scope="col">Total (inc. tax)</th>
                   <th scope="col">File</th>
+                  <th scope="col">Receive</th>
                 </tr>
               </thead>
               <tbody>
@@ -55,7 +56,12 @@ $current_url          = url()->current();
                     <td>$<?=$row->tax_total?></td>
                     <td>$<?=$row->total_inc_tax?></td>
                     <td>
-                      <a target="_blank" href="<?=env('UPLOADS_URL').'/purchase-order/'.$row->invoice_file?>" class="btn btn-outline-primary btn-sm" title="<?=$row->po_no?>">PO File</a>
+                      <?php if($row->invoice_file){?>
+                        <a target="_blank" href="<?=env('UPLOADS_URL').'/purchase-order/'.$row->invoice_file?>" class="btn btn-outline-primary btn-sm" title="<?=$row->po_no?>">PO File</a>
+                      <?php }?>
+                    </td>
+                    <td>
+                      <a href="<?=url('admin/purchase-orders/receive/' . Helper::encoded($row->id))?>" class="btn btn-outline-success btn-sm" title="Receive <?=$row->po_no?>"><i class="fa fa-truck-loading"></i>&nbsp;Receive</a>
                     </td>
                   </tr>
                 <?php } }?>

@@ -30,7 +30,7 @@ class StockController extends Controller
     /* warehouse stock */
         public function warehouseStock(){
             $data['module']                 = $this->data;
-            $title                          = 'Warehouse ' . $this->data['title'].' List';
+            $title                          = $this->data['title'].' List';
             $page_name                      = 'stock.warehouse-stock-list';
             $data['rows']                   = DB::table('products')
                                                 ->join('brands', 'products.brand_id', '=', 'brands.id')
@@ -78,7 +78,9 @@ class StockController extends Controller
                         $apiStatus                          = TRUE;
                         http_response_code(200);
                         $apiResponse                        = [
-                            'closing_qty' => $closing_qty,
+                            'closing_qty'            => $closing_qty,
+                            'warehouse_closing_qty'  => $closing_qty,
+                            'shop_closing_qty'       => $getProduct->shop_stock,
                         ];
                         $apiMessage                         = $getProduct->name . ' Stock IN successfully';
                         $apiExtraField                      = 'response_code';
@@ -127,7 +129,9 @@ class StockController extends Controller
                             $apiStatus                          = TRUE;
                             http_response_code(200);
                             $apiResponse                        = [
-                                'closing_qty' => $closing_qty,
+                                'closing_qty'            => $closing_qty,
+                                'warehouse_closing_qty'  => $closing_qty,
+                                'shop_closing_qty'       => $closing_qty2,
                             ];
                             $apiMessage                         = $getProduct->name . ' Stock OUT successfully';
                             $apiExtraField                      = 'response_code';
@@ -170,19 +174,7 @@ class StockController extends Controller
     /* warehouse stock */
     /* shop stock */
         public function shopStock(){
-            $data['module']                 = $this->data;
-            $title                          = $this->data['title'].' List';
-            $page_name                      = 'stock.shop-stock-list';
-            $data['rows']                   = DB::table('products')
-                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
-                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
-                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
-                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
-                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
-                                                ->where('products.status', '!=', 3)
-                                                ->orderBy('products.id', 'DESC')
-                                                ->get();
-            echo $this->admin_after_login_layout($title,$page_name,$data);
+            return redirect('admin/stock/warehouse-stock');
         }
         public function shopStockHistory($id){
             $id                             = Helper::decoded($id);

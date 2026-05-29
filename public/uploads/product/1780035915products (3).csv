@@ -1,0 +1,3 @@
+sku,name,receipt_short_name,shelf_tag_short_name,barcode,brand_id,supplier_id,size_id,style,cost_price_ex_tax,cost_price_tax,cost_price_inc_tax,markup_amount,markup_type,added_amount,retail_price_inc_tax,shop_stock,warehouse_stock
+98786464,Product 7,Pro73444,Pro73444,3.25235E+14,Brand 3,,180,,,,,,,,,11,12
+,Product 9,Pro956676,Pro956676,6.23652E+14,Brand 3,Supplier 1,375,test 2,500,10,550,10,PERCENTAGE,55,605,13,14

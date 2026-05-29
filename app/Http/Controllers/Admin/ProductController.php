@@ -196,7 +196,15 @@ class ProductController extends Controller
                 // Helper::pr($postData);
                 $rules = [
                     'sku'                       => 'required|alpha_num|min:4|max:10',
-                    'barcode'                   => 'required|alpha_num|min:8|max:25',
+                    'barcode'                   => [
+                                                        'required',
+                                                        'alpha_num',
+                                                        'min:8',
+                                                        'max:25',
+                                                        Rule::unique('products', 'barcode')->where(function($query) {
+                                                            return $query->where('status', '!=', 3);
+                                                        }),
+                                                    ],
                     'name'                      => 'required',
                     'receipt_short_name'        => 'required',
                     'shelf_tag_short_name'      => 'required',
@@ -206,7 +214,11 @@ class ProductController extends Controller
                     'cost_price_inc_tax'        => 'required',
                     'retail_price_inc_tax'      => 'required',
                 ];
-                if($this->validate($request, $rules)){
+                $messages = [
+                    'barcode.alpha_num' => 'Barcode must contain only letters and numbers.',
+                    'barcode.unique'    => 'Barcode already exists. Please enter a unique barcode.',
+                ];
+                if($this->validate($request, $rules, $messages)){
                     $checkData = Product::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->first();
                     if(!$checkData){
                         /* cover image */
@@ -417,7 +429,15 @@ class ProductController extends Controller
                 // Helper::pr($postData);
                 $rules = [
                     'sku'                       => 'required|alpha_num|min:4|max:10',
-                    'barcode'                   => 'required|alpha_num|min:8|max:25',
+                    'barcode'                   => [
+                                                        'required',
+                                                        'alpha_num',
+                                                        'min:8',
+                                                        'max:25',
+                                                        Rule::unique('products', 'barcode')->ignore($id)->where(function($query) {
+                                                            return $query->where('status', '!=', 3);
+                                                        }),
+                                                    ],
                     'name'                      => 'required',
                     'receipt_short_name'        => 'required',
                     'shelf_tag_short_name'      => 'required',
@@ -427,7 +447,11 @@ class ProductController extends Controller
                     'cost_price_inc_tax'        => 'required',
                     'retail_price_inc_tax'      => 'required',
                 ];
-                if($this->validate($request, $rules)){
+                $messages = [
+                    'barcode.alpha_num' => 'Barcode must contain only letters and numbers.',
+                    'barcode.unique'    => 'Barcode already exists. Please enter a unique barcode.',
+                ];
+                if($this->validate($request, $rules, $messages)){
                     $checkData = Product::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->where('id', '!=', $id)->first();
                     if(!$checkData){
                         /* cover image */
@@ -610,13 +634,212 @@ class ProductController extends Controller
     /* delete */
         public function delete(Request $request, $id){
             $id                             = Helper::decoded($id);
+            if(!$request->isMethod('post')){
+                return redirect("admin/" . $this->data['controller_route'] . "/list")->with('error_message', 'Admin password is required to delete '.$this->data['title'].' !!!');
+            }
+
+            $rules = [
+                'pin1' => ['required', 'regex:/^[0-9]$/'],
+                'pin2' => ['required', 'regex:/^[0-9]$/'],
+                'pin3' => ['required', 'regex:/^[0-9]$/'],
+                'pin4' => ['required', 'regex:/^[0-9]$/'],
+            ];
+            $messages = [
+                'pin1.regex' => 'Admin password must contain numbers only.',
+                'pin2.regex' => 'Admin password must contain numbers only.',
+                'pin3.regex' => 'Admin password must contain numbers only.',
+                'pin4.regex' => 'Admin password must contain numbers only.',
+            ];
+            if($this->validate($request, $rules, $messages)){
+                $adminPassword = $request->pin1.$request->pin2.$request->pin3.$request->pin4;
+                $getAdmin = Admin::where('id','=',1)->first();
+                if(!$getAdmin || !Hash::check($adminPassword, $getAdmin->password)){
+                    return redirect("admin/" . $this->data['controller_route'] . "/list")->with('error_message', 'Admin password does not match !!!');
+                }
+            }
+
             $fields = [
                 'status'             => 3
             ];
             Product::where($this->data['primary_key'], '=', $id)->update($fields);
             return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Deleted Successfully !!!');
         }
+        public function bulkDelete(Request $request){
+            $productIds = $this->parseSelectedProductIds($request->product_ids ?? []);
+            if(empty($productIds)){
+                return redirect("admin/" . $this->data['controller_route'] . "/list")->with('error_message', 'Please select at least one product !!!');
+            }
+
+            $rules = [
+                'pin1' => ['required', 'regex:/^[0-9]$/'],
+                'pin2' => ['required', 'regex:/^[0-9]$/'],
+                'pin3' => ['required', 'regex:/^[0-9]$/'],
+                'pin4' => ['required', 'regex:/^[0-9]$/'],
+            ];
+            $messages = [
+                'pin1.regex' => 'Admin password must contain numbers only.',
+                'pin2.regex' => 'Admin password must contain numbers only.',
+                'pin3.regex' => 'Admin password must contain numbers only.',
+                'pin4.regex' => 'Admin password must contain numbers only.',
+            ];
+            if($this->validate($request, $rules, $messages)){
+                $adminPassword = $request->pin1.$request->pin2.$request->pin3.$request->pin4;
+                $getAdmin = Admin::where('id','=',1)->first();
+                if(!$getAdmin || !Hash::check($adminPassword, $getAdmin->password)){
+                    return redirect("admin/" . $this->data['controller_route'] . "/list")->with('error_message', 'Admin password does not match !!!');
+                }
+            }
+
+            Product::whereIn($this->data['primary_key'], $productIds)->update(['status' => 3]);
+            return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', count($productIds).' product(s) deleted successfully !!!');
+        }
     /* delete */
+    /* transfer selected */
+        public function transferSelected(Request $request){
+            $data['module']                 = $this->data;
+            $title                          = 'Product Stock Transfer';
+            $page_name                      = 'product.transfer-selected';
+            $productIds                     = $this->parseSelectedProductIds($request->product_ids ?? '');
+
+            if(empty($productIds)){
+                return redirect("admin/" . $this->data['controller_route'] . "/list")->with('error_message', 'Please select at least one product to transfer !!!');
+            }
+
+            if($request->isMethod('post')){
+                $direction      = $request->transfer_direction;
+                $stockDate      = (($request->stock_date)?date_format(date_create($request->stock_date), "Y-m-d"):date('Y-m-d'));
+                $note           = trim((string)$request->note);
+                $qtyByProduct   = $request->transfer_qty ?? [];
+
+                if(!in_array($direction, ['WAREHOUSE_TO_SHOP', 'SHOP_TO_WAREHOUSE'], true)){
+                    return redirect()->back()->withInput()->with('error_message', 'Please select a valid transfer direction !!!');
+                }
+
+                $products = Product::whereIn('id', $productIds)->where('status', '!=', 3)->get()->keyBy('id');
+                $transferRows = [];
+                $errors = [];
+
+                foreach($productIds as $productId){
+                    if(!isset($products[$productId])){
+                        continue;
+                    }
+                    $qty = (int)($qtyByProduct[$productId] ?? 0);
+                    if($qty <= 0){
+                        continue;
+                    }
+
+                    $product = $products[$productId];
+                    if($direction == 'WAREHOUSE_TO_SHOP' && $product->warehouse_stock < $qty){
+                        $errors[] = $product->name.' has only '.$product->warehouse_stock.' warehouse stock';
+                    }
+                    if($direction == 'SHOP_TO_WAREHOUSE' && $product->shop_stock < $qty){
+                        $errors[] = $product->name.' has only '.$product->shop_stock.' shop stock';
+                    }
+                    $transferRows[] = [
+                        'product_id' => $productId,
+                        'qty'        => $qty,
+                    ];
+                }
+
+                if(!empty($errors)){
+                    return redirect()->back()->withInput()->with('error_message', implode('<br>', $errors));
+                }
+                if(empty($transferRows)){
+                    return redirect()->back()->withInput()->with('error_message', 'Please enter a transfer quantity for at least one selected product !!!');
+                }
+
+                DB::transaction(function() use ($transferRows, $direction, $stockDate, $note) {
+                    foreach($transferRows as $transferRow){
+                        $product = Product::where('id', '=', $transferRow['product_id'])->lockForUpdate()->first();
+                        if(!$product){
+                            continue;
+                        }
+
+                        $qty = $transferRow['qty'];
+                        if($direction == 'WAREHOUSE_TO_SHOP'){
+                            $warehouseOpening = $product->warehouse_stock;
+                            $warehouseClosing = $warehouseOpening - $qty;
+                            $warehouseStockId = WarehouseStock::insertGetId([
+                                'txn_type'      => 'OUT',
+                                'stock_date'    => $stockDate,
+                                'product_id'    => $product->id,
+                                'opening_qty'   => $warehouseOpening,
+                                'txn_qty'       => $qty,
+                                'closing_qty'   => $warehouseClosing,
+                                'note'          => (($note != '')?$note:'Transfer stock from warehouse to shop'),
+                            ]);
+
+                            $shopOpening = $product->shop_stock;
+                            $shopClosing = $shopOpening + $qty;
+                            ShopStock::insert([
+                                'warehouse_stock_id'    => $warehouseStockId,
+                                'txn_type'              => 'IN',
+                                'stock_date'            => $stockDate,
+                                'product_id'            => $product->id,
+                                'opening_qty'           => $shopOpening,
+                                'txn_qty'               => $qty,
+                                'closing_qty'           => $shopClosing,
+                                'note'                  => (($note != '')?$note:'Transfer stock from warehouse to shop'),
+                            ]);
+
+                            Product::where('id', '=', $product->id)->update([
+                                'warehouse_stock' => $warehouseClosing,
+                                'shop_stock'      => $shopClosing,
+                            ]);
+                        } else {
+                            $shopOpening = $product->shop_stock;
+                            $shopClosing = $shopOpening - $qty;
+                            ShopStock::insert([
+                                'txn_type'      => 'OUT',
+                                'stock_date'    => $stockDate,
+                                'product_id'    => $product->id,
+                                'opening_qty'   => $shopOpening,
+                                'txn_qty'       => $qty,
+                                'closing_qty'   => $shopClosing,
+                                'note'          => (($note != '')?$note:'Transfer stock from shop to warehouse'),
+                            ]);
+
+                            $warehouseOpening = $product->warehouse_stock;
+                            $warehouseClosing = $warehouseOpening + $qty;
+                            WarehouseStock::insert([
+                                'txn_type'      => 'IN',
+                                'stock_date'    => $stockDate,
+                                'product_id'    => $product->id,
+                                'opening_qty'   => $warehouseOpening,
+                                'txn_qty'       => $qty,
+                                'closing_qty'   => $warehouseClosing,
+                                'note'          => (($note != '')?$note:'Transfer stock from shop to warehouse'),
+                            ]);
+
+                            Product::where('id', '=', $product->id)->update([
+                                'warehouse_stock' => $warehouseClosing,
+                                'shop_stock'      => $shopClosing,
+                            ]);
+                        }
+                    }
+                });
+
+                return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', 'Stock transfer completed successfully !!!');
+            }
+
+            $data['rows']                   = DB::table('products')
+                                                ->join('brands', 'products.brand_id', '=', 'brands.id')
+                                                ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                                                ->join('sizes', 'products.size_id', '=', 'sizes.id')
+                                                ->join('units', 'sizes.unit_id', '=', 'units.id')
+                                                ->select('products.*', 'brands.name as brand_name', 'suppliers.name as supplier_name', 'sizes.name as size_name', 'units.name as unit_name')
+                                                ->where('products.status', '!=', 3)
+                                                ->whereIn('products.id', $productIds)
+                                                ->orderBy('products.name', 'ASC')
+                                                ->get();
+
+            if(count($data['rows']) <= 0){
+                return redirect("admin/" . $this->data['controller_route'] . "/list")->with('error_message', 'Selected products were not found !!!');
+            }
+
+            echo $this->admin_after_login_layout($title,$page_name,$data);
+        }
+    /* transfer selected */
     /* change status */
         public function change_status(Request $request, $id){
             $id                             = Helper::decoded($id);
@@ -723,6 +946,75 @@ class ProductController extends Controller
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($data);
     }
+    private function isEmptyCsvRow($row){
+        foreach($row as $cell){
+            if(trim((string)$cell) !== ''){
+                return false;
+            }
+        }
+        return true;
+    }
+    private function generateUniqueCsvSku($reservedSkus = []){
+        do {
+            $sku = (string) random_int(100000, 999999);
+        } while(in_array($sku, $reservedSkus, true) || Product::where('sku', '=', $sku)->exists());
+
+        return $sku;
+    }
+    private function parseSelectedProductIds($productIds){
+        if(is_array($productIds)){
+            $productIds = implode(',', $productIds);
+        }
+
+        return collect(explode(',', (string)$productIds))
+                ->map(function($id){
+                    return trim($id);
+                })
+                ->filter(function($id){
+                    return ctype_digit($id);
+                })
+                ->map(function($id){
+                    return (int)$id;
+                })
+                ->filter(function($id){
+                    return $id > 0;
+                })
+                ->unique()
+                ->values()
+                ->all();
+    }
+    private function normalizeCsvBarcode($barcode){
+        $barcode = trim((string)$barcode);
+        if($barcode === ''){
+            return '';
+        }
+
+        if(preg_match('/^(\d+)\.0+$/', $barcode, $matches)){
+            return $matches[1];
+        }
+
+        if(preg_match('/^(\d+)(?:\.(\d+))?[eE]\+?(\d+)$/', $barcode, $matches)){
+            $integer        = $matches[1];
+            $fraction       = $matches[2] ?? '';
+            $exponent       = (int) $matches[3];
+            $digits         = $integer.$fraction;
+            $decimalPlaces  = strlen($fraction);
+
+            if($exponent >= $decimalPlaces){
+                return $digits.str_repeat('0', $exponent - $decimalPlaces);
+            }
+        }
+
+        return $barcode;
+    }
+    private function normalizeCsvVolId($volId){
+        $volId = trim((string)$volId);
+        if(preg_match('/^(\d+)\.0+$/', $volId, $matches)){
+            return $matches[1];
+        }
+
+        return $volId;
+    }
     /* upload products */
         public function uploadProduct(Request $request){
             $data['module']                 = $this->data;
@@ -743,6 +1035,58 @@ class ProductController extends Controller
                             $uploadedFile   = $this->upload_single_file('filename', $imageName, 'product', 'csv');
                             if($uploadedFile['status']){
                                 $filename       = $uploadedFile['newFilename'];
+                                $file_path      = './public/uploads/product/'.$filename;
+                                $csvWarnings    = [];
+                                $enteredCsvSkus = [];
+                                $validVolIds    = Size::where('status', '=', 1)->pluck('id')->map(function($id){
+                                                    return (string)$id;
+                                                })->all();
+
+                                if (($handle = fopen($file_path, 'r')) !== FALSE) {
+                                    $counter = 0;
+                                    while (($csvRow = fgetcsv($handle, 1000, ',')) !== FALSE) {
+                                        $counter++;
+                                        if($counter == 1 || $this->isEmptyCsvRow($csvRow)){
+                                            continue;
+                                        }
+
+                                        $enteredSku = trim((string)($csvRow[0] ?? ''));
+                                        if($enteredSku !== ''){
+                                            $enteredCsvSkus[] = $enteredSku;
+                                        }
+
+                                        $volId = $this->normalizeCsvVolId($csvRow[7] ?? '');
+                                        $missingFields = [];
+                                        if(trim((string)($csvRow[1] ?? '')) === ''){
+                                            $missingFields[] = 'Product name';
+                                        }
+                                        if($volId === ''){
+                                            $missingFields[] = 'Vol_id';
+                                        }
+
+                                        if(!empty($missingFields)){
+                                            $csvWarnings[] = 'Row '.$counter.': '.implode(', ', $missingFields).' is empty';
+                                        } elseif(!ctype_digit($volId) || !in_array($volId, $validVolIds, true)){
+                                            $csvWarnings[] = 'Row '.$counter.': Vol_id "'.htmlspecialchars($volId, ENT_QUOTES, 'UTF-8').'" is not in the volume list';
+                                        }
+                                    }
+                                    fclose($handle);
+                                } else {
+                                    if(File::exists($file_path)){
+                                        File::delete($file_path);
+                                    }
+                                    return redirect()->back()->with(['error_message' => 'Error opening the file !!!']);
+                                }
+
+                                if(!empty($csvWarnings)){
+                                    if(File::exists($file_path)){
+                                        File::delete($file_path);
+                                    }
+                                    return redirect()->back()->with([
+                                        'error_message' => '<strong>CSV import warning:</strong> Please fix these cells before importing.<br>'.implode('<br>', $csvWarnings),
+                                    ]);
+                                }
+
                                 $sessionData    = Auth::guard('admin')->user();
                                 $fields0         = [
                                     'title'                 => $postData['title'],
@@ -752,40 +1096,43 @@ class ProductController extends Controller
                                 ];
                                 $upload_id = UploadProduct::insertGetId($fields0);
                                 /* extract data from file & insert into three category tables */
-                                    // Path to the CSV file
-                                    $file_path = './public/uploads/product/'.$filename;
+                                    $generatedSkus = $enteredCsvSkus;
                                     // Open the CSV file for reading
                                     if (($handle = fopen($file_path, 'r')) !== FALSE) {
                                         // Loop through each line in the file
                                         $counter = 0;
                                         while (($data = fgetcsv($handle, 1000, ',')) !== FALSE) {
                                             // Print each line's data as an array
-                                            if($counter > 0){
+                                            if($counter > 0 && !$this->isEmptyCsvRow($data)){
                                                 // Helper::pr($data);die;
-                                                $sku                        = $data[0];
-                                                $name                       = $data[1];
-                                                $receipt_short_name         = $data[2];
-                                                $shelf_tag_short_name       = $data[3];
-                                                $barcode                    = $data[4];
-                                                $brand                      = $data[5];
-                                                $supplier                   = $data[6];
-                                                $size                       = $data[7];
-                                                $style                      = $data[8];
-                                                $cost_price_ex_tax          = $data[9];
-                                                $cost_price_tax             = $data[10];
-                                                $cost_price_inc_tax         = $data[11];
-                                                $markup_amount              = $data[12];
-                                                $markup_type                = $data[13];
-                                                $added_amount               = $data[14];
-                                                $retail_price_inc_tax       = $data[15];
-                                                $shop_stock                 = $data[16];
-                                                $warehouse_stock            = $data[17];
+                                                $sku                        = trim((string)($data[0] ?? ''));
+                                                $name                       = trim((string)($data[1] ?? ''));
+                                                $receipt_short_name         = trim((string)($data[2] ?? ''));
+                                                $shelf_tag_short_name       = trim((string)($data[3] ?? ''));
+                                                $barcode                    = $this->normalizeCsvBarcode($data[4] ?? '');
+                                                $brand                      = trim((string)($data[5] ?? ''));
+                                                $supplier                   = trim((string)($data[6] ?? ''));
+                                                $volId                      = $this->normalizeCsvVolId($data[7] ?? '');
+                                                $style                      = trim((string)($data[8] ?? ''));
+                                                $cost_price_ex_tax          = trim((string)($data[9] ?? ''));
+                                                $cost_price_tax             = trim((string)($data[10] ?? ''));
+                                                $cost_price_inc_tax         = trim((string)($data[11] ?? ''));
+                                                $markup_amount              = trim((string)($data[12] ?? ''));
+                                                $markup_type                = trim((string)($data[13] ?? ''));
+                                                $added_amount               = trim((string)($data[14] ?? ''));
+                                                $retail_price_inc_tax       = trim((string)($data[15] ?? ''));
+                                                $shop_stock                 = trim((string)($data[16] ?? ''));
+                                                $warehouse_stock            = trim((string)($data[17] ?? ''));
+
+                                                if($sku == ''){
+                                                    $sku = $this->generateUniqueCsvSku($generatedSkus);
+                                                    $generatedSkus[] = $sku;
+                                                }
 
                                                 $checkProduct               = Product::where('sku', '=', $sku)->first();
                                                 if(empty($checkProduct)){
                                                     $getBrandId                 = Brand::select('id')->where('name', 'LIKE', '%'.$brand.'%')->first();
                                                     $getSupplierId              = Supplier::select('id')->where('name', 'LIKE', '%'.$supplier.'%')->first();
-                                                    $getSizeId                  = Size::select('id')->where('name', 'LIKE', '%'.$size.'%')->first();
 
                                                     $fields = [
                                                         'sku'                       => $sku,
@@ -795,7 +1142,7 @@ class ProductController extends Controller
                                                         'barcode'                   => $barcode,
                                                         'brand_id'                  => (($getBrandId)?$getBrandId->id:0),
                                                         'supplier_id'               => (($getSupplierId)?$getSupplierId->id:0),
-                                                        'size_id'                   => (($getSizeId)?$getSizeId->id:0),
+                                                        'size_id'                   => (int)$volId,
                                                         'style'                     => $style,
                                                         'cost_price_ex_tax'         => $cost_price_ex_tax,
                                                         'cost_price_tax'            => $cost_price_tax,
@@ -873,9 +1220,8 @@ class ProductController extends Controller
                                                         $fields['supplier_id']      = (($getSupplierId)?$getSupplierId->id:0);
                                                     }
 
-                                                    if($size != ''){
-                                                        $getSizeId                  = Size::select('id')->where('name', 'LIKE', '%'.$size.'%')->first();
-                                                        $fields['size_id']          = (($getSizeId)?$getSizeId->id:0);
+                                                    if($volId != ''){
+                                                        $fields['size_id']          = (int)$volId;
                                                     }
 
                                                     if($style != ''){

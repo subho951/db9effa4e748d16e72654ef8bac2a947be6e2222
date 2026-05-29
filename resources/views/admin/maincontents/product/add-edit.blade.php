@@ -288,7 +288,7 @@ $current_url                    = url()->current();
                            </div>
                            <div class="col-md-3">
                               <label class="form-label" for="barcode">Barcode <small class="text-danger">*</small></label>
-                              <input type="text" class="form-control" placeholder="Enter Barcode" id="barcode" name="barcode" value="<?=$barcode?>" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+" title="Barcode must be at least 8 letters or numbers" required style="width: 82%;">
+                              <input type="text" class="form-control no-space" placeholder="Enter Barcode" id="barcode" name="barcode" value="<?=$barcode?>" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+" title="Barcode must be unique and contain only letters or numbers" required style="width: 82%;">
                            </div>
                            <div class="col-md-3">
                               <label class="form-label" for="shop_stock">Shop Stock (Opening) <small class="text-danger">*</small></label>
@@ -348,11 +348,11 @@ $current_url                    = url()->current();
                               <input type="text" class="form-control" placeholder="Enter Supplier Product Name" id="supplier_product_name" name="supplier_product_name" value="<?=$supplier_product_name?>">
                            </div>
                            <div class="col-md-4">
-                              <label class="form-label" for="size_id">Size <small class="text-danger">*</small></label>
+                              <label class="form-label" for="size_id">Vol_id <small class="text-danger">*</small></label>
                               <select name="size_id" class="form-select" id="size_id" required>
-                                 <option value="" selected>Select Size</option>
+                                 <option value="" selected>Select Vol_id</option>
                                  <?php if($sizes){ foreach($sizes as $size){?>
-                                 <option value="<?=$size->id?>" <?=(($size->id == $size_id)?'selected':'')?>><?=$size->name?> <?=$size->unit_name?></option>
+                                 <option value="<?=$size->id?>" <?=(($size->id == $size_id)?'selected':'')?>><?=$size->id?> - <?=$size->name?> <?=$size->unit_name?></option>
                                  <?php } }?>
                                </select>
                            </div>

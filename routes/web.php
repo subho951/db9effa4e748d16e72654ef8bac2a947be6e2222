@@ -202,7 +202,8 @@ Route::get('/db-test', function () {
                 Route::get('products/list', 'ProductController@list');
                 Route::match(['get', 'post'], 'products/add', 'ProductController@add');
                 Route::match(['get', 'post'], 'products/edit/{id}', 'ProductController@edit');
-                Route::get('products/delete/{id}', 'ProductController@delete');
+                Route::match(['get', 'post'], 'products/delete/{id}', 'ProductController@delete');
+                Route::post('products/bulk-delete', 'ProductController@bulkDelete');
                 Route::get('products/change-status/{id}', 'ProductController@change_status');
                 Route::get('products/get-suggestions', 'ProductController@getSuggestions');
                 Route::get('products/select-suggestions', 'ProductController@selectSuggestions');
@@ -220,11 +221,13 @@ Route::get('/db-test', function () {
                 Route::post('products/validate-admin-pin-export', 'ProductController@validateAdminPinExport');
                 Route::post('products/update-discountvoucher-switch-status', 'ProductController@updateDiscountVoucherStatus');
                 Route::post('products/update-multibuy-switch-status', 'ProductController@updateMultiBuyStatus');
+                Route::match(['get', 'post'], 'products/transfer-selected', 'ProductController@transferSelected');
             /* products */
             /* purchase orders */
                 Route::get('purchase-orders/list', 'PurchaseOrderController@list');
                 Route::match(['get', 'post'], 'purchase-orders/add', 'PurchaseOrderController@add');
                 Route::match(['get', 'post'], 'purchase-orders/edit/{id}', 'PurchaseOrderController@edit');
+                Route::match(['get', 'post'], 'purchase-orders/receive/{id}', 'PurchaseOrderController@receive');
                 Route::get('/get-item-info', 'PurchaseOrderController@getItemInfo');
             /* purchase orders */
             /* customer */

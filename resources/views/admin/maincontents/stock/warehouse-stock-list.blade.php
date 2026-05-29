@@ -25,7 +25,8 @@ $current_url          = url()->current();
                   <th scope="col">Brand</th>
                   <th scope="col">Supplier</th>
                   <th scope="col">Size</th>
-                  <th scope="col">Stock Qty</th>
+                  <th scope="col">Shop Stock</th>
+                  <th scope="col">Warehouse Stock</th>
                   <th scope="col">Action</th>
                 </tr>
               </thead>
@@ -39,11 +40,13 @@ $current_url          = url()->current();
                     <td><?=$row->brand_name?></td>
                     <td><?=$row->supplier_name?></td>
                     <td><?=$row->size_name?> <?=$row->unit_name?></td>
-                    <td><span id="stock-<?=$row->id?>"><?=$row->warehouse_stock?></span></td>
+                    <td><span id="shop-stock-<?=$row->id?>"><?=$row->shop_stock?></span></td>
+                    <td><span id="warehouse-stock-<?=$row->id?>"><?=$row->warehouse_stock?></span></td>
                     <td>
                       <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="openStockINModal(<?=$row->id?>, '<?=$row->name?>', '<?=$row->sku?>');"><i class="fa fa-arrow-up"></i>&nbsp;IN</a>
                       <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="openStockOUTModal(<?=$row->id?>, '<?=$row->name?>', '<?=$row->sku?>');"><i class="fa fa-arrow-down"></i>&nbsp;OUT</a>
-                      <a href="<?=url('admin/stock/warehouse-stock-history/' . Helper::encoded($row->id))?>" target="_blank" class="btn btn-info btn-sm"><i class="fa fa-history"></i>&nbsp;HISTORY</a>
+                      <a href="<?=url('admin/stock/warehouse-stock-history/' . Helper::encoded($row->id))?>" target="_blank" class="btn btn-info btn-sm"><i class="fa fa-history"></i>&nbsp;WH HISTORY</a>
+                      <a href="<?=url('admin/stock/shop-stock-history/' . Helper::encoded($row->id))?>" target="_blank" class="btn btn-info btn-sm"><i class="fa fa-history"></i>&nbsp;SHOP HISTORY</a>
                     </td>
                   </tr>
                 <?php } }?>
@@ -72,6 +75,18 @@ $current_url          = url()->current();
       });
     });
   });
+  function refreshStockColumns(productID, responseData) {
+    var warehouseClosingQty = responseData.warehouse_closing_qty;
+    if (typeof warehouseClosingQty === 'undefined') {
+      warehouseClosingQty = responseData.closing_qty;
+    }
+    if (typeof warehouseClosingQty !== 'undefined') {
+      $('#warehouse-stock-' + productID).text(warehouseClosingQty);
+    }
+    if (typeof responseData.shop_closing_qty !== 'undefined') {
+      $('#shop-stock-' + productID).text(responseData.shop_closing_qty);
+    }
+  }
   function openStockINModal(productID, productName, productSKU){
     var modalHTML = '';
     modalHTML = `<div class="modal-dialog modal-dialog-centered">
@@ -131,8 +146,7 @@ $current_url          = url()->current();
             // Handle success (e.g. show toast, reload data, close modal)
             toastAlert("success", response.message);
             $('#open-stock-in-modal').modal('hide');
-            $('#stock-' + productID).empty();
-            $('#stock-' + productID).text(response.data.closing_qty);
+            refreshStockColumns(productID, response.data);
 
             // Highlight the row
             let rowID = '#product-row-' + productID; // assuming product_id is returned
@@ -212,8 +226,7 @@ $current_url          = url()->current();
             // Handle success (e.g. show toast, reload data, close modal)
             toastAlert("success", response.message);
             $('#open-stock-out-modal').modal('hide');
-            $('#stock-' + productID).empty();
-            $('#stock-' + productID).text(response.data.closing_qty);
+            refreshStockColumns(productID, response.data);
 
             // Highlight the row
             let rowID = '#product-row-' + productID; // assuming product_id is returned

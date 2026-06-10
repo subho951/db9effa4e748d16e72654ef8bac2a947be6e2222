@@ -222,11 +222,11 @@ $current_url                    = url()->current();
          $style                            = $row->style;
          $cost_price_ex_tax                = $row->cost_price_ex_tax;
          $cost_price_tax                   = $row->cost_price_tax;
-         $cost_price_inc_tax               = $row->cost_price_inc_tax;
-         $markup_amount                    = $row->markup_amount;
-         $markup_type                      = $row->markup_type;
-         $added_amount                     = $row->added_amount;
          $retail_price_inc_tax             = $row->retail_price_inc_tax;
+         $cost_price_inc_tax               = round($cost_price_ex_tax + (($cost_price_ex_tax * $generalSetting->tax_percent) / 100), 2);
+         $added_amount                     = round($retail_price_inc_tax - $cost_price_inc_tax, 2);
+         $markup_amount                    = ($retail_price_inc_tax > 0) ? round(($added_amount / $retail_price_inc_tax) * 100, 2) : 0.00;
+         $markup_type                      = 'PERCENTAGE';
          $cover_image                      = $row->cover_image;
          $shop_stock                       = $row->shop_stock;
          $warehouse_stock                  = $row->warehouse_stock;
@@ -262,9 +262,6 @@ $current_url                    = url()->current();
       <div class="containers-fluid">
          <div class="row">
             <div class="col-12">
-               <div class="product-helper-strip">
-                  <strong>Required fields are marked with *</strong>. Product, pricing, opening stock, and promotion settings are managed from this screen.
-               </div>
                <form method="POST" action="" enctype="multipart/form-data">
                   @csrf
                   <div class="containers">
@@ -291,11 +288,11 @@ $current_url                    = url()->current();
                               <input type="text" class="form-control no-space" placeholder="Enter Barcode" id="barcode" name="barcode" value="<?=$barcode?>" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+" title="Barcode must be unique and contain only letters or numbers" required style="width: 82%;">
                            </div>
                            <div class="col-md-3">
-                              <label class="form-label" for="shop_stock">Shop Stock (Opening) <small class="text-danger">*</small></label>
+                              <label class="form-label" for="shop_stock">Shop Stock <small class="text-danger">*</small></label>
                               <input type="text" class="form-control" id="shop_stock" name="shop_stock" value="<?=$shop_stock?>" minlength="1" maxlength="1" onkeypress="return isNumber(event)" <?=((empty($row))?'':'readonly')?> style="width: 25%;">
                            </div>
                            <div class="col-md-3">
-                              <label class="form-label" for="warehouse_stock">Warehouse Stock (Opening)</label>
+                              <label class="form-label" for="warehouse_stock">Warehouse Stock</label>
                               <input type="text" class="form-control" id="warehouse_stock" name="warehouse_stock" min="1" value="<?=$warehouse_stock?>" minlength="1" maxlength="1" onkeypress="return isNumber(event)" <?=((empty($row))?'':'readonly')?> style="width: 25%;">
                            </div>
                            <!-- <div class="col-md-2 align-items-center">
@@ -370,59 +367,24 @@ $current_url                    = url()->current();
                            </div>
 
                            <div class="col-12"><h5 class="product-section-title">Pricing</h5></div>
-                           <div class="col-md-2">
-                              <label class="form-label" for="cost_price_ex_tax">Cost (Excl. Tax) ($)</label>
-                              <input type="text" class="form-control" placeholder="Enter Cost Ex. Tax" name="cost_price_ex_tax" id="cost_price_ex_tax" value="<?=$cost_price_ex_tax?>" maxlength="10" required>
-                           </div>
-                           <div class="col-md-2">
-                              <label class="form-label" for="cost_price_inc_tax">Cost (Incl. Tax) ($)</label>
+                           <div class="col-md-3">
+                              <label class="form-label" for="cost_price_ex_tax">Cost Price (Excl. GST) ($)</label>
+                              <input type="number" class="form-control" placeholder="Enter Cost Price" name="cost_price_ex_tax" id="cost_price_ex_tax" value="<?=$cost_price_ex_tax?>" min="0" step="0.01" required>
                               <input type="hidden" name="cost_price_tax" id="cost_price_tax" value="<?=$cost_price_tax?>">
-                              <input type="text" class="form-control" placeholder="Enter Cost Inc. Tax" name="cost_price_inc_tax" id="cost_price_inc_tax" value="<?=$cost_price_inc_tax?>" required maxlength="10" readonly>
+                              <input type="hidden" name="cost_price_inc_tax" id="cost_price_inc_tax" value="<?=$cost_price_inc_tax?>">
+                              <input type="hidden" name="markup_type" value="PERCENTAGE">
                            </div>
-                           <div class="col-md-2">
-                              <label class="form-label" for="markup_type">Markup (<span class="markup-icon"></span>)</label>
-                              <div class="form-check form-switch mt-0">
-                                 <input class="form-check-input" type="checkbox" name="markup_type" role="switch" id="markup_type" <?=(($markup_type == 'PERCENTAGE')?'checked':'')?>>
-                                 <label class="form-check-label" for="markup_type" id="markup_type_text">Flat</label>
-                              </div>
+                           <div class="col-md-3">
+                              <label class="form-label" for="retail_price_inc_tax">Retail Price (Incl. GST) ($)</label>
+                              <input type="number" class="form-control" placeholder="Enter Retail Price Incl. GST" name="retail_price_inc_tax" id="retail_price_inc_tax" value="<?=$retail_price_inc_tax?>" min="0" step="0.01" required>
                            </div>
-                           <div class="col-md-2">
-                              <label class="form-label" for="markup_amount">Markup (<span class="markup-icon"></span>)</label>
-                              <input type="text" class="form-control" placeholder="Enter Markup in $" name="markup_amount" id="markup_amount" value="<?=$markup_amount?>" value="<?=$markup_amount?>" maxlength="10" required>
+                           <div class="col-md-3">
+                              <label class="form-label" for="added_amount">Margin ($)</label>
+                              <input type="text" class="form-control" name="added_amount" id="added_amount" value="<?=$added_amount?>" readonly>
                            </div>
-                           <div class="col-md-2">
-                              <label class="form-label" for="added_amount">Added ($)</label>
-                              <input type="text" class="form-control" placeholder="Enter Markup in %" name="added_amount" id="added_amount" value="<?=$added_amount?>" value="<?=$added_amount?>" required maxlength="10" readonly>
-                           </div>
-                           <div class="col-md-2">
-                              <label class="form-label" for="retail_price_inc_tax">Retail Price (Incl. Tax) ($)</label>
-                              <input type="text" class="form-control" placeholder="Enter Retail Price" name="retail_price_inc_tax" id="retail_price_inc_tax" value="<?=$retail_price_inc_tax?>" value="<?=$retail_price_inc_tax?>" maxlength="10" required readonly>
-                           </div>
-
-                           <div class="mb-3 col-md-12">
-                              <div class="product-image-panel d-flex align-items-start align-items-sm-center gap-4">
-                                 <?php if($cover_image != ''){?>
-                                   <img src="<?=env('UPLOADS_URL').'/product/'.$cover_image?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
-                                 <?php } else {?>
-                                   <img src="<?=env('NO_IMAGE')?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
-                                 <?php } ?>
-                                 <div class="button-wrapper">
-                                    <label for="cover_image" class="btn btn-primary me-2 mb-4" tabindex="0">
-                                      <span class="d-none d-sm-block">Upload Cover Image</span>
-                                      <i class="bx bx-upload d-block d-sm-none"></i>
-                                      <input type="file" id="cover_image" name="cover_image" class="account-file-input" hidden accept="image/png, image/jpeg" />
-                                    </label>
-                                    <?php if($cover_image != ''){?>
-                                      <a href="<?=url('admin/common-delete-image/'.Helper::encoded($current_url).'/products/cover_image/id/'.$uId)?>" title="Remove image" onclick="return confirm('Do You Want To Delete This Image ?');">
-                                        <button type="button" class="btn btn-outline-secondary account-image-reset mb-4">
-                                          <i class="bx bx-reset d-block d-sm-none"></i>
-                                          <span class="d-none d-sm-block">Reset</span>
-                                        </button>
-                                      </a>
-                                    <?php } ?>
-                                    <p class="text-muted mb-0">Allowed JPG, JPEG, ICO, PNG, GIF, SVG, AVIF</p>
-                                 </div>
-                              </div>
+                           <div class="col-md-3">
+                              <label class="form-label" for="markup_amount">Margin (%)</label>
+                              <input type="text" class="form-control" name="markup_amount" id="markup_amount" value="<?=$markup_amount?>" readonly>
                            </div>
 
                            <div class="discounts-section">
@@ -600,6 +562,32 @@ $current_url                    = url()->current();
                                  </div>
                               </div>
                            </div>
+                           <div class="mb-3 col-md-12">
+                              <div class="product-image-panel d-flex align-items-start align-items-sm-center gap-4">
+                                 <?php if($cover_image != ''){?>
+                                   <img src="<?=env('UPLOADS_URL').'/product/'.$cover_image?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
+                                 <?php } else {?>
+                                   <img src="<?=env('NO_IMAGE')?>" alt="<?=$name?>" class="d-block rounded mt-3 mb-3" height="100" width="100" style="border-radius: 50%;" id="uploadedAvatar" />
+                                 <?php } ?>
+                                 <div class="button-wrapper">
+                                    <label for="cover_image" class="btn btn-primary me-2 mb-4" tabindex="0">
+                                      <span class="d-none d-sm-block">Upload Cover Image</span>
+                                      <i class="bx bx-upload d-block d-sm-none"></i>
+                                      <input type="file" id="cover_image" name="cover_image" class="account-file-input" hidden accept="image/png, image/jpeg" />
+                                    </label>
+                                    <?php if($cover_image != ''){?>
+                                      <a href="<?=url('admin/common-delete-image/'.Helper::encoded($current_url).'/products/cover_image/id/'.$uId)?>" title="Remove image" onclick="return confirm('Do You Want To Delete This Image ?');">
+                                        <button type="button" class="btn btn-outline-secondary account-image-reset mb-4">
+                                          <i class="bx bx-reset d-block d-sm-none"></i>
+                                          <span class="d-none d-sm-block">Reset</span>
+                                        </button>
+                                      </a>
+                                    <?php } ?>
+                                    <p class="text-muted mb-1">Recommended size: 800 x 800 px (1:1 square ratio).</p>
+                                    <p class="text-muted mb-0">Allowed formats: JPG, JPEG or PNG.</p>
+                                 </div>
+                              </div>
+                           </div>
                            <!-- <div class="col-12 mt-3">
                               <button class="my-btn btn-green w-100" style="max-width: 100%;">Save</button>
                            </div> -->
@@ -638,79 +626,23 @@ $current_url                    = url()->current();
        textbox.addEventListener('input', removeSpacesOnInput);
    });
    $(document).ready(function() {
-      if ($('#markup_type').is(':checked')) {
-         $('.markup-icon').text('%');
-         $('#markup_type_text').text('Percentage');
-      } else {
-         $('.markup-icon').text('$');
-         $('#markup_type_text').text('Flat');
+      function calculateMargins() {
+         var taxPercent = parseFloat('<?=$generalSetting->tax_percent?>') || 0;
+         var costPrice = parseFloat($('#cost_price_ex_tax').val()) || 0;
+         var retailPrice = parseFloat($('#retail_price_inc_tax').val()) || 0;
+         var costTax = (costPrice * taxPercent) / 100;
+         var costPriceIncTax = costPrice + costTax;
+         var marginAmount = retailPrice - costPriceIncTax;
+         var marginPercent = retailPrice > 0 ? (marginAmount / retailPrice) * 100 : 0;
+
+         $('#cost_price_tax').val(taxPercent.toFixed(2));
+         $('#cost_price_inc_tax').val(costPriceIncTax.toFixed(2));
+         $('#added_amount').val(marginAmount.toFixed(2));
+         $('#markup_amount').val(marginPercent.toFixed(2));
       }
 
-      $('#markup_type').change(function() {
-         if ($(this).is(':checked')) {
-            $('#markup_type_text').text('Percentage');
-            var markup_type         = 'PERCENTAGE';
-            $('.markup-icon').text('%');
-         } else {
-            $('#markup_type_text').text('Flat');
-            var markup_type         = 'FLAT';
-            $('.markup-icon').text('$');
-         }
-         var cost_price_inc_tax     = parseFloat($('#cost_price_inc_tax').val());
-         var markup_amount          = parseFloat($('#markup_amount').val());
-         if(markup_type == 'PERCENTAGE'){
-            var added_amount = ((cost_price_inc_tax * markup_amount) / 100);
-         } else {
-            var added_amount = markup_amount;
-         }
-         var retail_price_inc_tax  = (cost_price_inc_tax + added_amount);
-         $('#added_amount').val(added_amount.toFixed(2));
-         $('#retail_price_inc_tax').val(retail_price_inc_tax.toFixed(2));
-      });
-      $('#cost_price_ex_tax').on('input', function(){
-         var tax_percent         = '<?=$generalSetting->tax_percent?>';
-         var cost_price_ex_tax   = parseFloat($('#cost_price_ex_tax').val());
-         var cost_price_tax      = ((cost_price_ex_tax * tax_percent) / 100);
-         var cost_price_inc_tax  = (cost_price_ex_tax + cost_price_tax);
-         $('#cost_price_tax').val(cost_price_tax.toFixed(2));
-         $('#cost_price_inc_tax').val(cost_price_inc_tax.toFixed(2));
-
-         var markup_amount          = parseFloat($('#markup_amount').val());
-         if ($('#markup_type').is(':checked')) {
-            var markup_type         = 'PERCENTAGE';
-            $('.markup-icon').text('%');
-         } else {
-            var markup_type         = 'FLAT';
-            $('.markup-icon').text('$');
-         }
-         if(markup_type == 'PERCENTAGE'){
-            var added_amount = ((cost_price_inc_tax * markup_amount) / 100);
-         } else {
-            var added_amount = markup_amount;
-         }
-         var retail_price_inc_tax  = (cost_price_inc_tax + added_amount);
-         $('#added_amount').val(added_amount.toFixed(2));
-         $('#retail_price_inc_tax').val(retail_price_inc_tax.toFixed(2));
-      });
-      $('#markup_amount').on('input', function(){
-         var cost_price_inc_tax     = parseFloat($('#cost_price_inc_tax').val());
-         var markup_amount          = parseFloat($('#markup_amount').val());
-         if ($('#markup_type').is(':checked')) {
-            var markup_type         = 'PERCENTAGE';
-            $('.markup-icon').text('%');
-         } else {
-            var markup_type         = 'FLAT';
-            $('.markup-icon').text('$');
-         }
-         if(markup_type == 'PERCENTAGE'){
-            var added_amount = ((cost_price_inc_tax * markup_amount) / 100);
-         } else {
-            var added_amount = markup_amount;
-         }
-         var retail_price_inc_tax  = (cost_price_inc_tax + added_amount);
-         $('#added_amount').val(added_amount.toFixed(2));
-         $('#retail_price_inc_tax').val(retail_price_inc_tax.toFixed(2));
-      });
+      $('#cost_price_ex_tax, #retail_price_inc_tax').on('input', calculateMargins);
+      calculateMargins();
    });
 </script>
 <script type="text/javascript">

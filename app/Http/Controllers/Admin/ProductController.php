@@ -210,9 +210,8 @@ class ProductController extends Controller
                     'shelf_tag_short_name'      => 'required',
                     'brand_id'                  => 'required',
                     'supplier_id'               => 'required',
-                    'cost_price_ex_tax'         => 'required',
-                    'cost_price_inc_tax'        => 'required',
-                    'retail_price_inc_tax'      => 'required',
+                    'cost_price_ex_tax'         => 'required|numeric|min:0',
+                    'retail_price_inc_tax'      => 'required|numeric|min:0',
                 ];
                 $messages = [
                     'barcode.alpha_num' => 'Barcode must contain only letters and numbers.',
@@ -249,6 +248,12 @@ class ProductController extends Controller
                             }
                         /* new brand name */
 
+                        $pricing = $this->calculateProductPricing(
+                            $postData['cost_price_ex_tax'],
+                            $postData['retail_price_inc_tax'],
+                            $generalSetting->tax_percent
+                        );
+
                         $fields = [
                             'sku'                       => $postData['sku'],
                             'name'                      => $postData['name'],
@@ -262,13 +267,13 @@ class ProductController extends Controller
                             'supplier_id'               => $postData['supplier_id'],
                             'size_id'                   => $postData['size_id'],
                             'style'                     => $postData['style'],
-                            'cost_price_ex_tax'         => $postData['cost_price_ex_tax'],
-                            'cost_price_tax'            => $generalSetting->tax_percent,
-                            'cost_price_inc_tax'        => $postData['cost_price_inc_tax'],
-                            'markup_amount'             => $postData['markup_amount'],
-                            'markup_type'               => ((array_key_exists("markup_type",$postData))?'PERCENTAGE':'FLAT'),
-                            'added_amount'              => $postData['added_amount'],
-                            'retail_price_inc_tax'      => $postData['retail_price_inc_tax'],
+                            'cost_price_ex_tax'         => $pricing['cost_price_ex_tax'],
+                            'cost_price_tax'            => $pricing['cost_price_tax'],
+                            'cost_price_inc_tax'        => $pricing['cost_price_inc_tax'],
+                            'markup_amount'             => $pricing['margin_percent'],
+                            'markup_type'               => 'PERCENTAGE',
+                            'added_amount'              => $pricing['margin_amount'],
+                            'retail_price_inc_tax'      => $pricing['retail_price_inc_tax'],
                             'cover_image'               => $cover_image,
                             'shop_stock'                => $postData['shop_stock'],
                             'warehouse_stock'           => $postData['warehouse_stock'],
@@ -443,9 +448,8 @@ class ProductController extends Controller
                     'shelf_tag_short_name'      => 'required',
                     'brand_id'                  => 'required',
                     'supplier_id'               => 'required',
-                    'cost_price_ex_tax'         => 'required',
-                    'cost_price_inc_tax'        => 'required',
-                    'retail_price_inc_tax'      => 'required',
+                    'cost_price_ex_tax'         => 'required|numeric|min:0',
+                    'retail_price_inc_tax'      => 'required|numeric|min:0',
                 ];
                 $messages = [
                     'barcode.alpha_num' => 'Barcode must contain only letters and numbers.',
@@ -483,6 +487,12 @@ class ProductController extends Controller
                             }
                         /* new brand name */
 
+                        $pricing = $this->calculateProductPricing(
+                            $postData['cost_price_ex_tax'],
+                            $postData['retail_price_inc_tax'],
+                            $generalSetting->tax_percent
+                        );
+
                         $fields = [
                             'sku'                       => $postData['sku'],
                             'name'                      => $postData['name'],
@@ -496,13 +506,13 @@ class ProductController extends Controller
                             'supplier_id'               => $postData['supplier_id'],
                             'size_id'                   => $postData['size_id'],
                             'style'                     => $postData['style'],
-                            'cost_price_ex_tax'         => $postData['cost_price_ex_tax'],
-                            'cost_price_tax'            => $generalSetting->tax_percent,
-                            'cost_price_inc_tax'        => $postData['cost_price_inc_tax'],
-                            'markup_amount'             => $postData['markup_amount'],
-                            'markup_type'               => ((array_key_exists("markup_type",$postData))?'PERCENTAGE':'FLAT'),
-                            'added_amount'              => $postData['added_amount'],
-                            'retail_price_inc_tax'      => $postData['retail_price_inc_tax'],
+                            'cost_price_ex_tax'         => $pricing['cost_price_ex_tax'],
+                            'cost_price_tax'            => $pricing['cost_price_tax'],
+                            'cost_price_inc_tax'        => $pricing['cost_price_inc_tax'],
+                            'markup_amount'             => $pricing['margin_percent'],
+                            'markup_type'               => 'PERCENTAGE',
+                            'added_amount'              => $pricing['margin_amount'],
+                            'retail_price_inc_tax'      => $pricing['retail_price_inc_tax'],
                             'cover_image'               => $cover_image,
                             'shop_stock'                => $postData['shop_stock'],
                             'warehouse_stock'           => $postData['warehouse_stock'],
@@ -1015,12 +1025,59 @@ class ProductController extends Controller
 
         return $volId;
     }
+    private function calculateProductPricing($costPriceExTax, $retailPriceIncTax, $taxPercent){
+        $costPriceExTax     = round((float)$costPriceExTax, 2);
+        $retailPriceIncTax  = round((float)$retailPriceIncTax, 2);
+        $taxPercent         = round((float)$taxPercent, 2);
+        $costPriceIncTax    = round($costPriceExTax + (($costPriceExTax * $taxPercent) / 100), 2);
+        $marginAmount       = round($retailPriceIncTax - $costPriceIncTax, 2);
+        $marginPercent      = ($retailPriceIncTax > 0)
+                                ? round(($marginAmount / $retailPriceIncTax) * 100, 2)
+                                : 0.00;
+
+        return [
+            'cost_price_ex_tax'     => $costPriceExTax,
+            'cost_price_tax'        => $taxPercent,
+            'cost_price_inc_tax'    => $costPriceIncTax,
+            'retail_price_inc_tax'  => $retailPriceIncTax,
+            'margin_amount'         => $marginAmount,
+            'margin_percent'        => $marginPercent,
+        ];
+    }
+    private function buildCsvHeaderMap($headers){
+        $headerMap = [];
+        foreach($headers as $index => $header){
+            $header = preg_replace('/^\xEF\xBB\xBF/', '', (string)$header);
+            $header = strtolower(trim($header));
+            $header = preg_replace('/[^a-z0-9]+/', '_', $header);
+            $header = trim($header, '_');
+            if($header !== ''){
+                $headerMap[$header] = $index;
+            }
+        }
+
+        return $headerMap;
+    }
+    private function getCsvValue($row, $headerMap, $headerNames, $fallbackIndex = null){
+        foreach($headerNames as $headerName){
+            if(array_key_exists($headerName, $headerMap)){
+                return trim((string)($row[$headerMap[$headerName]] ?? ''));
+            }
+        }
+
+        if($fallbackIndex !== null){
+            return trim((string)($row[$fallbackIndex] ?? ''));
+        }
+
+        return '';
+    }
     /* upload products */
         public function uploadProduct(Request $request){
             $data['module']                 = $this->data;
             $title                          = $this->data['title'].' Upload List';
             $page_name                      = 'product.upload-product';
             $data['rows']                   = UploadProduct::where('status', '=', 1)->orderBy('id', 'DESC')->get();
+            $generalSetting                 = GeneralSetting::find('1');
             if($request->isMethod('post')){
                 $postData = $request->all();
                 $rules = [
@@ -1044,20 +1101,28 @@ class ProductController extends Controller
 
                                 if (($handle = fopen($file_path, 'r')) !== FALSE) {
                                     $counter = 0;
+                                    $csvHeaderMap = [];
                                     while (($csvRow = fgetcsv($handle, 1000, ',')) !== FALSE) {
                                         $counter++;
-                                        if($counter == 1 || $this->isEmptyCsvRow($csvRow)){
+                                        if($counter == 1){
+                                            $csvHeaderMap = $this->buildCsvHeaderMap($csvRow);
+                                            continue;
+                                        }
+                                        if($this->isEmptyCsvRow($csvRow)){
                                             continue;
                                         }
 
-                                        $enteredSku = trim((string)($csvRow[0] ?? ''));
+                                        $enteredSku = $this->getCsvValue($csvRow, $csvHeaderMap, ['sku'], 0);
                                         if($enteredSku !== ''){
                                             $enteredCsvSkus[] = $enteredSku;
                                         }
 
-                                        $volId = $this->normalizeCsvVolId($csvRow[7] ?? '');
+                                        $productName = $this->getCsvValue($csvRow, $csvHeaderMap, ['name', 'product_name'], 1);
+                                        $volId = $this->normalizeCsvVolId($this->getCsvValue($csvRow, $csvHeaderMap, ['vol_id', 'volume_id'], 7));
+                                        $costPrice = $this->getCsvValue($csvRow, $csvHeaderMap, ['cost_price', 'cost_price_ex_gst', 'cost_price_ex_tax'], 9);
+                                        $retailPrice = $this->getCsvValue($csvRow, $csvHeaderMap, ['retail_inc_gst', 'retail_price_inc_gst', 'retail_price_inc_tax'], 15);
                                         $missingFields = [];
-                                        if(trim((string)($csvRow[1] ?? '')) === ''){
+                                        if($productName === ''){
                                             $missingFields[] = 'Product name';
                                         }
                                         if($volId === ''){
@@ -1068,6 +1133,12 @@ class ProductController extends Controller
                                             $csvWarnings[] = 'Row '.$counter.': '.implode(', ', $missingFields).' is empty';
                                         } elseif(!ctype_digit($volId) || !in_array($volId, $validVolIds, true)){
                                             $csvWarnings[] = 'Row '.$counter.': Vol_id "'.htmlspecialchars($volId, ENT_QUOTES, 'UTF-8').'" is not in the volume list';
+                                        }
+                                        if($costPrice !== '' && (!is_numeric($costPrice) || (float)$costPrice < 0)){
+                                            $csvWarnings[] = 'Row '.$counter.': Cost price must be a positive number or zero';
+                                        }
+                                        if($retailPrice !== '' && (!is_numeric($retailPrice) || (float)$retailPrice < 0)){
+                                            $csvWarnings[] = 'Row '.$counter.': Retail price incl. GST must be a positive number or zero';
                                         }
                                     }
                                     fclose($handle);
@@ -1101,28 +1172,27 @@ class ProductController extends Controller
                                     if (($handle = fopen($file_path, 'r')) !== FALSE) {
                                         // Loop through each line in the file
                                         $counter = 0;
+                                        $csvHeaderMap = [];
                                         while (($data = fgetcsv($handle, 1000, ',')) !== FALSE) {
-                                            // Print each line's data as an array
-                                            if($counter > 0 && !$this->isEmptyCsvRow($data)){
-                                                // Helper::pr($data);die;
-                                                $sku                        = trim((string)($data[0] ?? ''));
-                                                $name                       = trim((string)($data[1] ?? ''));
-                                                $receipt_short_name         = trim((string)($data[2] ?? ''));
-                                                $shelf_tag_short_name       = trim((string)($data[3] ?? ''));
-                                                $barcode                    = $this->normalizeCsvBarcode($data[4] ?? '');
-                                                $brand                      = trim((string)($data[5] ?? ''));
-                                                $supplier                   = trim((string)($data[6] ?? ''));
-                                                $volId                      = $this->normalizeCsvVolId($data[7] ?? '');
-                                                $style                      = trim((string)($data[8] ?? ''));
-                                                $cost_price_ex_tax          = trim((string)($data[9] ?? ''));
-                                                $cost_price_tax             = trim((string)($data[10] ?? ''));
-                                                $cost_price_inc_tax         = trim((string)($data[11] ?? ''));
-                                                $markup_amount              = trim((string)($data[12] ?? ''));
-                                                $markup_type                = trim((string)($data[13] ?? ''));
-                                                $added_amount               = trim((string)($data[14] ?? ''));
-                                                $retail_price_inc_tax       = trim((string)($data[15] ?? ''));
-                                                $shop_stock                 = trim((string)($data[16] ?? ''));
-                                                $warehouse_stock            = trim((string)($data[17] ?? ''));
+                                            if($counter === 0){
+                                                $csvHeaderMap = $this->buildCsvHeaderMap($data);
+                                                $counter++;
+                                                continue;
+                                            }
+                                            if(!$this->isEmptyCsvRow($data)){
+                                                $sku                        = $this->getCsvValue($data, $csvHeaderMap, ['sku'], 0);
+                                                $name                       = $this->getCsvValue($data, $csvHeaderMap, ['name', 'product_name'], 1);
+                                                $receipt_short_name         = $this->getCsvValue($data, $csvHeaderMap, ['receipt_short_name'], 2);
+                                                $shelf_tag_short_name       = $this->getCsvValue($data, $csvHeaderMap, ['shelf_tag_short_name'], 3);
+                                                $barcode                    = $this->normalizeCsvBarcode($this->getCsvValue($data, $csvHeaderMap, ['barcode'], 4));
+                                                $brand                      = $this->getCsvValue($data, $csvHeaderMap, ['brand', 'brand_id'], 5);
+                                                $supplier                   = $this->getCsvValue($data, $csvHeaderMap, ['supplier', 'supplier_id'], 6);
+                                                $volId                      = $this->normalizeCsvVolId($this->getCsvValue($data, $csvHeaderMap, ['vol_id', 'volume_id'], 7));
+                                                $style                      = $this->getCsvValue($data, $csvHeaderMap, ['style'], 8);
+                                                $cost_price_ex_tax          = $this->getCsvValue($data, $csvHeaderMap, ['cost_price', 'cost_price_ex_gst', 'cost_price_ex_tax'], 9);
+                                                $retail_price_inc_tax       = $this->getCsvValue($data, $csvHeaderMap, ['retail_inc_gst', 'retail_price_inc_gst', 'retail_price_inc_tax'], 15);
+                                                $shop_stock                 = $this->getCsvValue($data, $csvHeaderMap, ['shop_stock'], 16);
+                                                $warehouse_stock            = $this->getCsvValue($data, $csvHeaderMap, ['warehouse_stock'], 17);
 
                                                 if($sku == ''){
                                                     $sku = $this->generateUniqueCsvSku($generatedSkus);
@@ -1133,6 +1203,11 @@ class ProductController extends Controller
                                                 if(empty($checkProduct)){
                                                     $getBrandId                 = Brand::select('id')->where('name', 'LIKE', '%'.$brand.'%')->first();
                                                     $getSupplierId              = Supplier::select('id')->where('name', 'LIKE', '%'.$supplier.'%')->first();
+                                                    $pricing                    = $this->calculateProductPricing(
+                                                        ($cost_price_ex_tax !== '') ? $cost_price_ex_tax : 0,
+                                                        ($retail_price_inc_tax !== '') ? $retail_price_inc_tax : 0,
+                                                        $generalSetting->tax_percent
+                                                    );
 
                                                     $fields = [
                                                         'sku'                       => $sku,
@@ -1144,13 +1219,13 @@ class ProductController extends Controller
                                                         'supplier_id'               => (($getSupplierId)?$getSupplierId->id:0),
                                                         'size_id'                   => (int)$volId,
                                                         'style'                     => $style,
-                                                        'cost_price_ex_tax'         => $cost_price_ex_tax,
-                                                        'cost_price_tax'            => $cost_price_tax,
-                                                        'cost_price_inc_tax'        => $cost_price_inc_tax,
-                                                        'markup_amount'             => $markup_amount,
-                                                        'markup_type'               => $markup_type,
-                                                        'added_amount'              => $added_amount,
-                                                        'retail_price_inc_tax'      => $retail_price_inc_tax,
+                                                        'cost_price_ex_tax'         => $pricing['cost_price_ex_tax'],
+                                                        'cost_price_tax'            => $pricing['cost_price_tax'],
+                                                        'cost_price_inc_tax'        => $pricing['cost_price_inc_tax'],
+                                                        'markup_amount'             => $pricing['margin_percent'],
+                                                        'markup_type'               => 'PERCENTAGE',
+                                                        'added_amount'              => $pricing['margin_amount'],
+                                                        'retail_price_inc_tax'      => $pricing['retail_price_inc_tax'],
                                                         'upload_id'                 => $upload_id,
                                                         'shop_stock'                => $shop_stock,
                                                         'warehouse_stock'           => $warehouse_stock,
@@ -1190,6 +1265,7 @@ class ProductController extends Controller
                                                         ShopStock::insert($fields12);
                                                     // shop stock
                                                 } else  {
+                                                    $fields                 = [];
                                                     $fields['sku']          = $sku;
                                                     $fields['status']       = 1;
                                                     $fields['upload_id']    = $upload_id;
@@ -1228,36 +1304,19 @@ class ProductController extends Controller
                                                         $fields['style']   = $style;
                                                     }
 
-                                                    if($cost_price_ex_tax != ''){
-                                                        $fields['cost_price_ex_tax']   = $cost_price_ex_tax;
-                                                    }
-
-                                                    if($cost_price_tax != ''){
-                                                        $fields['cost_price_tax']   = $cost_price_tax;
-                                                    }
-
-                                                    if($cost_price_inc_tax != ''){
-                                                        $fields['cost_price_inc_tax']   = $cost_price_inc_tax;
-                                                    }
-
-                                                    if($markup_amount != ''){
-                                                        $fields['markup_amount']   = $markup_amount;
-                                                    }
-
-                                                    if($markup_type != ''){
-                                                        $fields['markup_type']   = $markup_type;
-                                                    }
-
-                                                    if($markup_type != ''){
-                                                        $fields['markup_type']   = $markup_type;
-                                                    }
-
-                                                    if($added_amount != ''){
-                                                        $fields['added_amount']   = $added_amount;
-                                                    }
-
-                                                    if($retail_price_inc_tax != ''){
-                                                        $fields['retail_price_inc_tax']   = $retail_price_inc_tax;
+                                                    if($cost_price_ex_tax !== '' || $retail_price_inc_tax !== ''){
+                                                        $pricing = $this->calculateProductPricing(
+                                                            ($cost_price_ex_tax !== '') ? $cost_price_ex_tax : $checkProduct->cost_price_ex_tax,
+                                                            ($retail_price_inc_tax !== '') ? $retail_price_inc_tax : $checkProduct->retail_price_inc_tax,
+                                                            $generalSetting->tax_percent
+                                                        );
+                                                        $fields['cost_price_ex_tax']     = $pricing['cost_price_ex_tax'];
+                                                        $fields['cost_price_tax']        = $pricing['cost_price_tax'];
+                                                        $fields['cost_price_inc_tax']    = $pricing['cost_price_inc_tax'];
+                                                        $fields['markup_amount']         = $pricing['margin_percent'];
+                                                        $fields['markup_type']           = 'PERCENTAGE';
+                                                        $fields['added_amount']          = $pricing['margin_amount'];
+                                                        $fields['retail_price_inc_tax']  = $pricing['retail_price_inc_tax'];
                                                     }
 
                                                     $product_id = $checkProduct->id;

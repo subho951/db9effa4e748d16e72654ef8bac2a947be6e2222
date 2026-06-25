@@ -257,11 +257,200 @@ class UserController extends Controller
         }
     /* authentication */
     /* dashboard */
-        public function dashboard(){
+        private function parseDashboardDate($date, $fallback){
+            if(trim((string)$date) == ''){
+                return $fallback;
+            }
+
+            try {
+                return Carbon::parse($date)->toDateString();
+            } catch (\Exception $e) {
+                return $fallback;
+            }
+        }
+
+        private function dashboardDateRange(Request $request){
+            $today      = Carbon::today();
+            $preset     = $request->date_preset ?: 'this_month';
+            $fromDate   = $today->copy()->startOfMonth()->toDateString();
+            $toDate     = $today->toDateString();
+
+            if($request->filled('from_date') || $request->filled('to_date')){
+                $preset = $request->date_preset ?: 'custom';
+            }
+
+            if($preset == 'today'){
+                $fromDate = $today->toDateString();
+                $toDate   = $today->toDateString();
+            } elseif($preset == 'yesterday'){
+                $fromDate = $today->copy()->subDay()->toDateString();
+                $toDate   = $today->copy()->subDay()->toDateString();
+            } elseif($preset == 'last_7'){
+                $fromDate = $today->copy()->subDays(6)->toDateString();
+                $toDate   = $today->toDateString();
+            } elseif($preset == 'last_30'){
+                $fromDate = $today->copy()->subDays(29)->toDateString();
+                $toDate   = $today->toDateString();
+            } elseif($preset == 'last_month'){
+                $lastMonth = $today->copy()->subMonthNoOverflow();
+                $fromDate  = $lastMonth->copy()->startOfMonth()->toDateString();
+                $toDate    = $lastMonth->copy()->endOfMonth()->toDateString();
+            } elseif($preset == 'custom'){
+                $fromDate = $this->parseDashboardDate($request->from_date, $fromDate);
+                $toDate   = $this->parseDashboardDate($request->to_date, $toDate);
+            }
+
+            if(strtotime($fromDate) > strtotime($toDate)){
+                $tmp      = $fromDate;
+                $fromDate = $toDate;
+                $toDate   = $tmp;
+            }
+
+            return [
+                'from_date'   => $fromDate,
+                'to_date'     => $toDate,
+                'date_preset' => $preset,
+            ];
+        }
+
+        private function applyDashboardDateRange($query, $fromDate, $toDate, $column = 'orders.order_date'){
+            return $query->whereDate($column, '>=', $fromDate)
+                         ->whereDate($column, '<=', $toDate);
+        }
+
+        private function applyDashboardLineSearch($query, $searchKeyword){
+            $searchKeyword = trim((string)$searchKeyword);
+            if($searchKeyword == ''){
+                return $query;
+            }
+
+            $like = '%'.$searchKeyword.'%';
+            return $query->where(function($q) use ($like){
+                $q->where('orders.order_no', 'LIKE', $like)
+                    ->orWhere('orders.customer_name', 'LIKE', $like)
+                    ->orWhere('orders.customer_phone', 'LIKE', $like)
+                    ->orWhere('orders.customer_email', 'LIKE', $like)
+                    ->orWhere('orders.customer_tag', 'LIKE', $like)
+                    ->orWhere('orders.delivery_name', 'LIKE', $like)
+                    ->orWhere('orders.pickup_name', 'LIKE', $like)
+                    ->orWhere('products.name', 'LIKE', $like)
+                    ->orWhere('products.receipt_short_name', 'LIKE', $like)
+                    ->orWhere('products.shelf_tag_short_name', 'LIKE', $like)
+                    ->orWhere('products.sku', 'LIKE', $like)
+                    ->orWhere('products.barcode', 'LIKE', $like)
+                    ->orWhere('products.style', 'LIKE', $like)
+                    ->orWhere('products.supplier_sku', 'LIKE', $like)
+                    ->orWhere('products.supplier_product_name', 'LIKE', $like)
+                    ->orWhere('brands.name', 'LIKE', $like)
+                    ->orWhere('suppliers.name', 'LIKE', $like)
+                    ->orWhere('product_categories.name', 'LIKE', $like);
+            });
+        }
+
+        private function dashboardOrderSearch($query, $searchKeyword){
+            $searchKeyword = trim((string)$searchKeyword);
+            if($searchKeyword == ''){
+                return $query;
+            }
+
+            $like = '%'.$searchKeyword.'%';
+            return $query->where(function($q) use ($like){
+                $q->where('orders.order_no', 'LIKE', $like)
+                    ->orWhere('orders.customer_name', 'LIKE', $like)
+                    ->orWhere('orders.customer_phone', 'LIKE', $like)
+                    ->orWhere('orders.customer_email', 'LIKE', $like)
+                    ->orWhere('orders.customer_tag', 'LIKE', $like)
+                    ->orWhere('orders.delivery_name', 'LIKE', $like)
+                    ->orWhere('orders.pickup_name', 'LIKE', $like)
+                    ->orWhereExists(function($exists) use ($like){
+                        $exists->select(DB::raw(1))
+                            ->from('order_details')
+                            ->leftJoin('products', 'order_details.item_id', '=', 'products.id')
+                            ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
+                            ->leftJoin('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                            ->leftJoin('product_categories', 'products.category_id', '=', 'product_categories.id')
+                            ->whereColumn('order_details.order_id', 'orders.id')
+                            ->where(function($item) use ($like){
+                                $item->where('products.name', 'LIKE', $like)
+                                    ->orWhere('products.receipt_short_name', 'LIKE', $like)
+                                    ->orWhere('products.shelf_tag_short_name', 'LIKE', $like)
+                                    ->orWhere('products.sku', 'LIKE', $like)
+                                    ->orWhere('products.barcode', 'LIKE', $like)
+                                    ->orWhere('products.style', 'LIKE', $like)
+                                    ->orWhere('products.supplier_sku', 'LIKE', $like)
+                                    ->orWhere('products.supplier_product_name', 'LIKE', $like)
+                                    ->orWhere('brands.name', 'LIKE', $like)
+                                    ->orWhere('suppliers.name', 'LIKE', $like)
+                                    ->orWhere('product_categories.name', 'LIKE', $like);
+                            });
+                    });
+            });
+        }
+
+        private function buildDashboardSalesSummary($fromDate, $toDate, $searchKeyword){
+            $generalSetting = GeneralSetting::find(1);
+            $taxPercent     = (($generalSetting)?(float)$generalSetting->tax_percent:0);
+            $taxMultiplier  = 1 + ($taxPercent / 100);
+
+            $lineQuery = DB::table('order_details')
+                ->join('orders', 'order_details.order_id', '=', 'orders.id')
+                ->leftJoin('products', 'order_details.item_id', '=', 'products.id')
+                ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
+                ->leftJoin('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                ->leftJoin('product_categories', 'products.category_id', '=', 'product_categories.id')
+                ->where('orders.status', '=', 5);
+
+            $lineQuery = $this->applyDashboardDateRange($lineQuery, $fromDate, $toDate, 'orders.order_date');
+            $lineQuery = $this->applyDashboardLineSearch($lineQuery, $searchKeyword);
+
+            $lineSummary = $lineQuery
+                ->selectRaw('COALESCE(SUM(CASE WHEN order_details.subtotal >= 0 THEN order_details.subtotal ELSE 0 END), 0) as positive_subtotal')
+                ->selectRaw('COALESCE(SUM(CASE WHEN order_details.subtotal < 0 OR order_details.price < 0 THEN ABS(order_details.subtotal) ELSE 0 END), 0) as refunds')
+                ->selectRaw('COALESCE(SUM(CASE WHEN order_details.subtotal >= 0 THEN order_details.discount_amount ELSE 0 END), 0) as line_discounts')
+                ->selectRaw('COALESCE(SUM(CASE WHEN order_details.subtotal >= 0 THEN COALESCE(products.cost_price_ex_tax, 0) * order_details.qty ELSE 0 END), 0) as cogs')
+                ->first();
+
+            $orderDiscountQuery = Order::where('status', '=', 5);
+            $orderDiscountQuery = $this->applyDashboardDateRange($orderDiscountQuery, $fromDate, $toDate, 'order_date');
+
+            $discounts = trim((string)$searchKeyword) == ''
+                ? (float)$orderDiscountQuery->sum('discount_amount')
+                : (float)$lineSummary->line_discounts;
+
+            $deliveryQuery = DB::table('orders')->where('orders.status', '=', 5);
+            $deliveryQuery = $this->applyDashboardDateRange($deliveryQuery, $fromDate, $toDate, 'orders.order_date');
+            $deliveryQuery = $this->dashboardOrderSearch($deliveryQuery, $searchKeyword);
+
+            $salesInc    = max(0, ((float)$lineSummary->positive_subtotal - $discounts));
+            $salesEx     = ($taxMultiplier > 0) ? ($salesInc / $taxMultiplier) : $salesInc;
+            $cogs        = (float)$lineSummary->cogs;
+            $grossProfit = $salesEx - $cogs;
+            $margin      = ($cogs > 0) ? ((($salesEx / $cogs) - 1) * 100) : 0;
+
+            return [
+                'sales_inc'    => $salesInc,
+                'sales_ex'     => $salesEx,
+                'refunds'      => (float)$lineSummary->refunds,
+                'discounts'    => $discounts,
+                'cogs'         => $cogs,
+                'gross_profit' => $grossProfit,
+                'margin'       => $margin,
+                'delivery'     => (float)$deliveryQuery->sum('delivery_amount'),
+                'tax_percent'  => $taxPercent,
+            ];
+        }
+
+        public function dashboard(Request $request){
             $data                           = [];
             $today                          = Carbon::today()->toDateString();
             $monthStart                     = Carbon::now()->startOfMonth()->toDateString();
             $completedOrdersQuery           = Order::where('status', '=', 5);
+            $summaryRange                   = $this->dashboardDateRange($request);
+            $data['summaryFromDate']        = $summaryRange['from_date'];
+            $data['summaryToDate']          = $summaryRange['to_date'];
+            $data['summaryDatePreset']      = $summaryRange['date_preset'];
+            $data['summarySearchKeyword']   = trim((string)$request->summary_filter);
+            $data['salesSummary']           = $this->buildDashboardSalesSummary($data['summaryFromDate'], $data['summaryToDate'], $data['summarySearchKeyword']);
 
             $data['totalSaleOperators']     = Admin::where('type', '=', 'SO')->where('status', '!=', 3)->count();
             $data['activeSaleOperators']    = Admin::where('type', '=', 'SO')->where('status', '=', 1)->count();

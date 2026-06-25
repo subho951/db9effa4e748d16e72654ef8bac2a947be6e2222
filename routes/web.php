@@ -148,6 +148,13 @@ Route::get('/db-test', function () {
                     Route::get('brands/delete/{id}', 'BrandController@delete');
                     Route::get('brands/change-status/{id}', 'BrandController@change_status');
                 /* brands */
+                /* categories */
+                    Route::get('categories/list', 'ProductCategoryController@list');
+                    Route::match(['get', 'post'], 'categories/add', 'ProductCategoryController@add');
+                    Route::match(['get', 'post'], 'categories/edit/{id}', 'ProductCategoryController@edit');
+                    Route::get('categories/delete/{id}', 'ProductCategoryController@delete');
+                    Route::get('categories/change-status/{id}', 'ProductCategoryController@change_status');
+                /* categories */
                 /* suppliers */
                     Route::get('suppliers/list', 'SupplierController@list');
                     Route::match(['get', 'post'], 'suppliers/add', 'SupplierController@add');

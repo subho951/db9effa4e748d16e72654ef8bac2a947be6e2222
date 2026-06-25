@@ -215,6 +215,7 @@ $current_url                    = url()->current();
          $shelf_tag_short_name             = $row->shelf_tag_short_name;
          $barcode                          = $row->barcode;
          $brand_id                         = $row->brand_id;
+         $category_id                      = $row->category_id;
          $supplier_sku                     = $row->supplier_sku;
          $supplier_product_name            = $row->supplier_product_name;
          $supplier_id                      = $row->supplier_id;
@@ -239,6 +240,7 @@ $current_url                    = url()->current();
          $shelf_tag_short_name             = '';
          $barcode                          = '';
          $brand_id                         = '';
+         $category_id                      = '';
          $supplier_sku                     = '';
          $supplier_product_name            = '';
          $supplier_id                      = '';
@@ -335,6 +337,15 @@ $current_url                    = url()->current();
                                  <?php } }?>
                                </select>
                                <input type="text" class="form-control" placeholder="Enter Brand Name" id="brand_name" name="brand_name" style="display:none;">
+                           </div>
+                           <div class="col-md-4">
+                              <label class="form-label" for="category_id">Category <small class="text-danger">*</small></label>
+                              <select name="category_id" class="form-select" id="category_id" required>
+                                 <option value="" selected>Select Category</option>
+                                 <?php if($categories){ foreach($categories as $category){?>
+                                 <option value="<?=$category->id?>" <?=(($category->id == $category_id)?'selected':'')?>><?=$category->name?></option>
+                                 <?php } }?>
+                               </select>
                            </div>
                            <div class="col-md-4">
                               <label class="form-label" for="supplier_sku">Supplier SKU</label>

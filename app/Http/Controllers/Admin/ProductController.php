@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Models\GeneralSetting;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\Brand;
 use App\Models\Supplier;
 use App\Models\Unit;
@@ -209,6 +210,12 @@ class ProductController extends Controller
                     'receipt_short_name'        => 'required',
                     'shelf_tag_short_name'      => 'required',
                     'brand_id'                  => 'required',
+                    'category_id'               => [
+                                                        'required',
+                                                        Rule::exists('product_categories', 'id')->where(function($query) {
+                                                            return $query->where('status', '=', 1);
+                                                        }),
+                                                    ],
                     'supplier_id'               => 'required',
                     'cost_price_ex_tax'         => 'required|numeric|min:0',
                     'retail_price_inc_tax'      => 'required|numeric|min:0',
@@ -262,6 +269,7 @@ class ProductController extends Controller
                             'barcode'                   => $postData['barcode'],
                             'barcode_image_url'         => $barcode_image_url,
                             'brand_id'                  => $brand_id,
+                            'category_id'               => $postData['category_id'],
                             'supplier_sku'              => $postData['supplier_sku'],
                             'supplier_product_name'     => $postData['supplier_product_name'],
                             'supplier_id'               => $postData['supplier_id'],
@@ -403,6 +411,7 @@ class ProductController extends Controller
             $page_name                      = 'product.add-edit';
             $data['row']                    = [];
             $data['brands']                 = Brand::select('id', 'name')->where('status', '=', 1)->get();
+            $data['categories']             = ProductCategory::select('id', 'name')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $data['suppliers']              = Supplier::select('id', 'name')->where('status', '=', 1)->get();
             $data['sizes']                  = DB::table('sizes')
                                                 ->join('units', 'sizes.unit_id', '=', 'units.id')
@@ -422,6 +431,7 @@ class ProductController extends Controller
             $page_name                      = 'product.add-edit';
             $data['row']                    = Product::where($this->data['primary_key'], '=', $id)->first();
             $data['brands']                 = Brand::select('id', 'name')->where('status', '=', 1)->get();
+            $data['categories']             = ProductCategory::select('id', 'name')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $data['suppliers']              = Supplier::select('id', 'name')->where('status', '=', 1)->get();
             $data['sizes']                  = DB::table('sizes')
                                                 ->join('units', 'sizes.unit_id', '=', 'units.id')
@@ -447,6 +457,12 @@ class ProductController extends Controller
                     'receipt_short_name'        => 'required',
                     'shelf_tag_short_name'      => 'required',
                     'brand_id'                  => 'required',
+                    'category_id'               => [
+                                                        'required',
+                                                        Rule::exists('product_categories', 'id')->where(function($query) {
+                                                            return $query->where('status', '=', 1);
+                                                        }),
+                                                    ],
                     'supplier_id'               => 'required',
                     'cost_price_ex_tax'         => 'required|numeric|min:0',
                     'retail_price_inc_tax'      => 'required|numeric|min:0',
@@ -456,8 +472,6 @@ class ProductController extends Controller
                     'barcode.unique'    => 'Barcode already exists. Please enter a unique barcode.',
                 ];
                 if($this->validate($request, $rules, $messages)){
-                    $checkData = Product::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->where('id', '!=', $id)->first();
-                    if(!$checkData){
                         /* cover image */
                             $imageFile      = $request->file('cover_image');
                             if($imageFile != ''){
@@ -501,6 +515,7 @@ class ProductController extends Controller
                             'barcode'                   => $postData['barcode'],
                             'barcode_image_url'         => $barcode_image_url,
                             'brand_id'                  => $brand_id,
+                            'category_id'               => $postData['category_id'],
                             'supplier_sku'              => $postData['supplier_sku'],
                             'supplier_product_name'     => $postData['supplier_product_name'],
                             'supplier_id'               => $postData['supplier_id'],
@@ -630,10 +645,7 @@ class ProductController extends Controller
                             // ];
                             // ShopStock::insert($fields11);
                         /* shop stock opening entry */
-                        return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Updated Successfully !!!');
-                    } else {
-                        return redirect()->back()->with('error_message', $this->data['title'].' Already Exists !!!');
-                    }
+                    return redirect("admin/" . $this->data['controller_route'] . "/list")->with('success_message', $this->data['title'].' Updated Successfully !!!');
                 } else {
                     return redirect()->back()->with('error_message', 'All Fields Required !!!');
                 }
@@ -1025,6 +1037,15 @@ class ProductController extends Controller
 
         return $volId;
     }
+    private function findProductCategoryId($categoryName){
+        $categoryName = trim((string)$categoryName);
+        if($categoryName === ''){
+            return 0;
+        }
+
+        $category = ProductCategory::select('id')->where('name', 'LIKE', '%'.$categoryName.'%')->where('status', '=', 1)->first();
+        return (($category)?$category->id:0);
+    }
     private function calculateProductPricing($costPriceExTax, $retailPriceIncTax, $taxPercent){
         $costPriceExTax     = round((float)$costPriceExTax, 2);
         $retailPriceIncTax  = round((float)$retailPriceIncTax, 2);
@@ -1187,6 +1208,7 @@ class ProductController extends Controller
                                                 $barcode                    = $this->normalizeCsvBarcode($this->getCsvValue($data, $csvHeaderMap, ['barcode'], 4));
                                                 $brand                      = $this->getCsvValue($data, $csvHeaderMap, ['brand', 'brand_id'], 5);
                                                 $supplier                   = $this->getCsvValue($data, $csvHeaderMap, ['supplier', 'supplier_id'], 6);
+                                                $category                   = $this->getCsvValue($data, $csvHeaderMap, ['category', 'product_category']);
                                                 $volId                      = $this->normalizeCsvVolId($this->getCsvValue($data, $csvHeaderMap, ['vol_id', 'volume_id'], 7));
                                                 $style                      = $this->getCsvValue($data, $csvHeaderMap, ['style'], 8);
                                                 $cost_price_ex_tax          = $this->getCsvValue($data, $csvHeaderMap, ['cost_price', 'cost_price_ex_gst', 'cost_price_ex_tax'], 9);
@@ -1203,6 +1225,7 @@ class ProductController extends Controller
                                                 if(empty($checkProduct)){
                                                     $getBrandId                 = Brand::select('id')->where('name', 'LIKE', '%'.$brand.'%')->first();
                                                     $getSupplierId              = Supplier::select('id')->where('name', 'LIKE', '%'.$supplier.'%')->first();
+                                                    $categoryId                 = $this->findProductCategoryId($category);
                                                     $pricing                    = $this->calculateProductPricing(
                                                         ($cost_price_ex_tax !== '') ? $cost_price_ex_tax : 0,
                                                         ($retail_price_inc_tax !== '') ? $retail_price_inc_tax : 0,
@@ -1216,6 +1239,7 @@ class ProductController extends Controller
                                                         'shelf_tag_short_name'      => $shelf_tag_short_name,
                                                         'barcode'                   => $barcode,
                                                         'brand_id'                  => (($getBrandId)?$getBrandId->id:0),
+                                                        'category_id'               => $categoryId,
                                                         'supplier_id'               => (($getSupplierId)?$getSupplierId->id:0),
                                                         'size_id'                   => (int)$volId,
                                                         'style'                     => $style,
@@ -1294,6 +1318,10 @@ class ProductController extends Controller
                                                     if($supplier != ''){
                                                         $getSupplierId              = Supplier::select('id')->where('name', 'LIKE', '%'.$supplier.'%')->first();
                                                         $fields['supplier_id']      = (($getSupplierId)?$getSupplierId->id:0);
+                                                    }
+
+                                                    if($category != ''){
+                                                        $fields['category_id']      = $this->findProductCategoryId($category);
                                                     }
 
                                                     if($volId != ''){

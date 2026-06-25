@@ -528,7 +528,7 @@ $controllerRoute = $module['controller_route'];
                     <td class="nowrap-cell char-cell" title="$<?=number_format($row->retail_price_inc_tax,2)?>">$<?=number_format($row->retail_price_inc_tax,2)?></td>
                     <td class="nowrap-cell char-cell" title="<?=$row->shop_stock?>"><?=$row->shop_stock?></td>
                     <!-- <td><?=$row->brand_name?></td> -->
-                    <td class="ellipsis-cell char-cell" title="<?=$row->supplier_name?>"><?=$row->supplier_name?></td>
+                    <td class="ellipsis-cell char-cell" title="<?=$row->supplier_name?>" data-search="<?=htmlspecialchars($row->supplier_name, ENT_QUOTES, 'UTF-8')?>"><?=$row->supplier_name?></td>
                     <td class="ellipsis-cell nowrap-cell barcode-cell char-cell" title="<?=$row->barcode?>"><?=$row->barcode?></td>
                     <td class="nowrap-cell delete-cell">
                       <a href="javascript:void(0);" class="btn btn-outline-danger btn-sm product-status-btn js-delete-product" title="Delete <?=$module['title']?>" data-product-id="<?=Helper::encoded($row->id)?>" data-product-name="<?=htmlspecialchars($row->name, ENT_QUOTES, 'UTF-8')?>"><i class="fa fa-trash"></i></a>
@@ -813,7 +813,10 @@ $controllerRoute = $module['controller_route'];
               $(this).addClass('d-none');
           }
       });
-      filter.find('input').attr('placeholder', 'Search products, SKU, barcode');
+      filter.find('input').attr({
+          'placeholder': 'Search products, SKU, barcode, supplier',
+          'aria-label': 'Search products by name, SKU, barcode, or supplier'
+      });
       return true;
   }
   function selectedProductCheckboxes() {

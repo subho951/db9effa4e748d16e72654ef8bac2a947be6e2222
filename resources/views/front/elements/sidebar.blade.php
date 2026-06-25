@@ -67,7 +67,7 @@ $user_type = session('type');
       </ul>
    </li>
    <!-- Masters -->
-   <li class="menu-item <?=(($pageSegment == 'locations' || $pageSegment == 'brands' || $pageSegment == 'suppliers' || $pageSegment == 'shipping-charges' || $pageSegment == 'coupons' || $pageSegment == 'fast-buttons')?'open':'')?>">
+   <li class="menu-item <?=(($pageSegment == 'locations' || $pageSegment == 'brands' || $pageSegment == 'categories' || $pageSegment == 'suppliers' || $pageSegment == 'shipping-charges' || $pageSegment == 'coupons' || $pageSegment == 'fast-buttons')?'open':'')?>">
       <a href="javascript:void(0);" class="menu-link menu-toggle">
          <i class="menu-icon tf-icons fa fa-database"></i>
          <div data-i18n="Masters">Masters</div>
@@ -81,6 +81,11 @@ $user_type = session('type');
          <li class="menu-item <?=(($pageSegment == 'brands')?'active':'')?>">
             <a href="<?=url('admin/brands/list')?>" class="menu-link">
                <div data-i18n="Brands">Brands</div>
+            </a>
+         </li>
+         <li class="menu-item <?=(($pageSegment == 'categories')?'active':'')?>">
+            <a href="<?=url('admin/categories/list')?>" class="menu-link">
+               <div data-i18n="Categories">Categories</div>
             </a>
          </li>
          <li class="menu-item <?=(($pageSegment == 'suppliers')?'active':'')?>">

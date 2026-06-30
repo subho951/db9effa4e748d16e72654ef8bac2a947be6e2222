@@ -291,6 +291,13 @@ Route::get('/db-test', function () {
             /* stock */
             /* reports */
                 Route::match(['get', 'post'], 'report/advance-search-report', 'ReportController@advanceSearchReport');
+                Route::match(['get', 'post'], 'report/sales-by-items', 'ReportController@salesByItems');
+                Route::match(['get', 'post'], 'report/sales-transactions', 'ReportController@salesTransactions');
+                Route::match(['get', 'post'], 'report/register', 'ReportController@register');
+                Route::match(['get', 'post'], 'report/payments', 'ReportController@payments');
+                Route::match(['get', 'post'], 'report/customers', 'ReportController@customers');
+                Route::match(['get', 'post'], 'report/custom-reports', 'ReportController@customReports');
+                Route::match(['get', 'post'], 'report/detail-analytics', 'ReportController@detailAnalytics');
                 Route::match(['get', 'post'], 'report/sale-report', 'ReportController@saleReport');
             /* reports */
         });

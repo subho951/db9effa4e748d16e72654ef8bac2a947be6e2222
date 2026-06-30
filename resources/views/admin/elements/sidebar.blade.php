@@ -464,16 +464,25 @@ $user_type = session('type');
          <div data-i18n="Reports">Reports</div>
       </a>
       <ul class="menu-sub">
-         <!-- <li class="menu-item <?=(($pageFunction == 'advance-search-report')?'active':'')?>">
-            <a href="<?=url('admin/report/advance-search-report')?>" class="menu-link">
-               <div data-i18n="Advance Search Reports">Advance Search Reports</div>
-            </a>
-         </li> -->
-         <li class="menu-item <?=(($pageFunction == 'sale-report')?'active':'')?>">
-            <a href="<?=url('admin/report/sale-report')?>" class="menu-link">
-               <div data-i18n="Sale Reports">Sale Reports</div>
-            </a>
-         </li>
+         <?php
+         $reportMenuItems = [
+            'sales-by-items' => 'Sales by items',
+            'sales-transactions' => 'Sales Transactions',
+            'register' => 'Register',
+            'payments' => 'Payments',
+            'customers' => 'Customers',
+            'custom-reports' => 'Custom Reports',
+            'detail-analytics' => 'Detail Analytics',
+         ];
+         foreach($reportMenuItems as $reportSlug => $reportLabel){
+            $isReportActive = ($pageFunction == $reportSlug) || ($pageFunction == 'sale-report' && $reportSlug == 'sales-by-items');
+         ?>
+            <li class="menu-item <?=(($isReportActive)?'active':'')?>">
+               <a href="<?=url('admin/report/' . $reportSlug)?>" class="menu-link">
+                  <div data-i18n="<?=$reportLabel?>"><?=$reportLabel?></div>
+               </a>
+            </li>
+         <?php }?>
       </ul>
    </li>
    <!-- Login Logs -->

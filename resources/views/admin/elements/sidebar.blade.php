@@ -428,7 +428,7 @@ $user_type = session('type');
    <li class="menu-item <?=(($pageSegment == 'stock')?'active':'')?>">
       <a href="<?=url('admin/stock/warehouse-stock')?>" class="menu-link">
          <i class="menu-icon tf-icons fa fa-list-alt"></i>
-         <div data-i18n="Stocks">Stocks</div>
+         <div data-i18n="Stock">Stock</div>
       </a>
    </li>
    <!-- Billing -->

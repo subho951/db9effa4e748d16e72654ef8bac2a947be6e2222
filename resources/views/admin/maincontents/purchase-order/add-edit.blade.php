@@ -6,6 +6,8 @@ use App\Helpers\Helper;
 $controllerRoute                = $module['controller_route'];
 $prefillItems                   = $prefillItems ?? collect();
 $prefillSupplierId              = $prefillSupplierId ?? '';
+$selectedSupplierId             = $selectedSupplierId ?? $prefillSupplierId;
+$supplierProducts               = $supplierProducts ?? collect();
 $hasPrefillItems                = (count($prefillItems) > 0);
 ?>
 <style>
@@ -16,6 +18,12 @@ $hasPrefillItems                = (count($prefillItems) > 0);
 
   .invoice-footer h6 {
       margin-bottom: 0;
+  }
+  .supplier-product-select-table th:first-child,
+  .supplier-product-select-table td:first-child {
+      width: 44px;
+      text-align: center;
+      vertical-align: middle;
   }
 </style>
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -51,7 +59,7 @@ $hasPrefillItems                = (count($prefillItems) > 0);
     } else {
       $order_date           = '';
       $delivery_id          = '';
-      $supplier_id          = $prefillSupplierId;
+      $supplier_id          = $selectedSupplierId;
 
       $s_street_address1    = '';
       $s_street_address2    = '';
@@ -161,7 +169,7 @@ $hasPrefillItems                = (count($prefillItems) > 0);
 
               <div class="mb-3 col-md-6">
                 <label for="supplier_id" class="form-label">Supplier <small class="text-danger">*</small></label>
-                <select name="supplier_id" class="form-select" id="supplier_id" required <?=(($hasPrefillItems)?'':'onchange="this.form.submit()"')?>>
+                <select name="supplier_id" class="form-select" id="supplier_id" required>
                   <option value="" selected>Select Supplier</option>
                   <?php if ($suppliers) {
                     foreach ($suppliers as $supp) { ?>
@@ -171,6 +179,61 @@ $hasPrefillItems                = (count($prefillItems) > 0);
                 </select>
               </div>
             </div>
+
+            <?php if(!$row && $supplier_id != '' && !$hasPrefillItems){?>
+              <div class="row">
+                <div class="col-md-12">
+                  <h5 class="mt-3">Supplier Products</h5>
+                  <div class="dt-responsive table-responsive">
+                    <table class="table table-striped table-bordered nowrap supplier-product-select-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">
+                            <input type="checkbox" class="form-check-input" id="supplier_product_select_all">
+                          </th>
+                          <th scope="col">Product</th>
+                          <th scope="col">Supplier SKU</th>
+                          <th scope="col">Merchant SKU</th>
+                          <th scope="col">Barcode</th>
+                          <th scope="col">Cost ex GST</th>
+                          <th scope="col">GST</th>
+                          <th scope="col">Stock</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php if(count($supplierProducts) > 0){ foreach($supplierProducts as $supplierProduct){
+                          $productName = (($supplierProduct->supplier_product_name != '')?$supplierProduct->supplier_product_name:$supplierProduct->name);
+                          $supplierSku = (($supplierProduct->supplier_sku != '')?$supplierProduct->supplier_sku:$supplierProduct->sku);
+                          $stockTotal = ((int)$supplierProduct->shop_stock + (int)$supplierProduct->warehouse_stock);
+                        ?>
+                          <tr>
+                            <td>
+                              <input type="checkbox" class="form-check-input supplier-product-checkbox" value="<?= $supplierProduct->id ?>">
+                            </td>
+                            <td><?= htmlspecialchars((string)$productName, ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars((string)$supplierSku, ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars((string)$supplierProduct->sku, ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars((string)$supplierProduct->barcode, ENT_QUOTES, 'UTF-8') ?></td>
+                            <td>$<?= number_format((float)$supplierProduct->cost_price_ex_tax, 2) ?></td>
+                            <td><?= number_format((float)$supplierProduct->cost_price_tax, 2) ?>%</td>
+                            <td><?= $stockTotal ?></td>
+                          </tr>
+                        <?php } } else {?>
+                          <tr>
+                            <td colspan="8" class="text-center">No products found for this supplier.</td>
+                          </tr>
+                        <?php }?>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="mt-2 mb-3">
+                    <button type="button" class="btn btn-primary" id="proceedSupplierProducts" <?=(count($supplierProducts) <= 0?'disabled':'')?>>
+                      <i class="fa fa-arrow-right"></i>&nbsp;&nbsp;Proceed
+                    </button>
+                  </div>
+                </div>
+              </div>
+            <?php }?>
 
             <?php if ($row || $hasPrefillItems) { ?>
               <div class="row">
@@ -406,13 +469,47 @@ $hasPrefillItems                = (count($prefillItems) > 0);
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
-  let firstLoad = true;
+  const purchaseOrderAddUrl = '<?= url('admin/' . $controllerRoute . '/add') ?>';
+  const purchaseOrderIsEdit = <?=($row?'true':'false')?>;
+
   document.getElementById('supplier_id').addEventListener('change', function() {
-    if (firstLoad) {
-      firstLoad = false;
+    if (purchaseOrderIsEdit) {
       return;
     }
-    document.getElementById('filterForm').submit();
+    if (this.value) {
+      window.location.href = purchaseOrderAddUrl + '?supplier_id=' + encodeURIComponent(this.value);
+    }
+  });
+
+  function showSupplierProductMessage(type, message) {
+    if (typeof toastAlert === 'function') {
+      toastAlert(type, message);
+      return;
+    }
+    alert(message.replace(/<br\s*\/?>/gi, "\n"));
+  }
+
+  $(document).on('change', '#supplier_product_select_all', function() {
+    $('.supplier-product-checkbox').prop('checked', this.checked);
+  });
+
+  $(document).on('change', '.supplier-product-checkbox', function() {
+    const totalProducts = $('.supplier-product-checkbox').length;
+    const selectedProducts = $('.supplier-product-checkbox:checked').length;
+    $('#supplier_product_select_all').prop('checked', totalProducts > 0 && totalProducts === selectedProducts);
+  });
+
+  $(document).on('click', '#proceedSupplierProducts', function() {
+    const productIds = $('.supplier-product-checkbox:checked').map(function() {
+      return this.value;
+    }).get();
+
+    if (productIds.length <= 0) {
+      showSupplierProductMessage('warning', 'Please select at least one product.');
+      return;
+    }
+
+    window.location.href = purchaseOrderAddUrl + '?product_ids=' + encodeURIComponent(productIds.join(','));
   });
 </script>
 <script>

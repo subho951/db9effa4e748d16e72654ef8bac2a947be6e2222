@@ -116,6 +116,7 @@ class PurchaseOrderController extends Controller
                     return redirect()->back()->with('error_message', 'All Fields Required !!!');
                 }
             }
+            $selectedSupplierId            = $this->parseSupplierId($request->query('supplier_id', ''));
             $prefillProductIds             = $this->parseSelectedProductIds($request->query('product_ids', ''));
             $prefillItems                  = collect();
             $prefillSupplierId             = '';
@@ -129,6 +130,7 @@ class PurchaseOrderController extends Controller
                     return redirect("admin/products/list")->with('error_message', 'Please select products from one supplier only !!!');
                 }
                 $prefillSupplierId = $supplierIds[0];
+                $selectedSupplierId = $prefillSupplierId;
             }
             $data['module']                 = $this->data;
             $title                          = $this->data['title'].' Add';
@@ -137,13 +139,33 @@ class PurchaseOrderController extends Controller
             $data['suppliers']              = Supplier::select('id', 'name', 'supplier_code', 'phone')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $data['deliveryLocations']      = DeliveryLocation::select('id', 'name', 'address', 'phone')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $itemsQuery                     = Product::select('id', 'name')->where('status', '=', 1);
-            if($prefillSupplierId != ''){
-                $itemsQuery->where('supplier_id', '=', $prefillSupplierId);
+            if($selectedSupplierId != ''){
+                $itemsQuery->where('supplier_id', '=', $selectedSupplierId);
             }
             $data['items']                  = $itemsQuery->orderBy('name', 'ASC')->get();
+            $data['supplierProducts']       = collect();
+            if($selectedSupplierId != '' && count($prefillItems) <= 0){
+                $data['supplierProducts']   = Product::select(
+                                                    'id',
+                                                    'name',
+                                                    'sku',
+                                                    'barcode',
+                                                    'supplier_sku',
+                                                    'supplier_product_name',
+                                                    'cost_price_ex_tax',
+                                                    'cost_price_tax',
+                                                    'shop_stock',
+                                                    'warehouse_stock'
+                                                )
+                                                ->where('status', '=', 1)
+                                                ->where('supplier_id', '=', $selectedSupplierId)
+                                                ->orderBy('name', 'ASC')
+                                                ->get();
+            }
             $data['couns']                  = Country::select('country', 'currency_name', 'currency_code')->where('status', '=', 1)->orderBy('country', 'ASC')->get();
             $data['prefillItems']           = $prefillItems;
             $data['prefillSupplierId']      = $prefillSupplierId;
+            $data['selectedSupplierId']     = $selectedSupplierId;
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
     /* add */
@@ -444,6 +466,19 @@ class PurchaseOrderController extends Controller
                 ->unique()
                 ->values()
                 ->all();
+    }
+    private function parseSupplierId($supplierId){
+        $supplierId = trim((string)$supplierId);
+        if($supplierId === '' || !ctype_digit($supplierId)){
+            return '';
+        }
+
+        $supplierId = (int)$supplierId;
+        if($supplierId <= 0){
+            return '';
+        }
+
+        return Supplier::where('id', '=', $supplierId)->where('status', '=', 1)->exists() ? $supplierId : '';
     }
     private function insertPurchaseOrderItems($purchase_order_id, $postData){
         $item_id                = $postData['item_id'];

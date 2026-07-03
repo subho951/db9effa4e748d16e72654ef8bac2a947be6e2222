@@ -122,7 +122,7 @@ $current_url                    = url()->current();
         background: #fff;
     }
     .discounts-section,
-    .multiple-buys-section {
+    .discount-offers-section {
         margin-top: 8px;
         border: 1px solid #e2e8f0;
         background: #fff;
@@ -130,12 +130,33 @@ $current_url                    = url()->current();
         padding: 18px;
     }
     .discount-vouchers-section,
-    .multiple-buy-section.field_wrapper2,
+    .discount-offer-section.field_wrapper2,
     .field_wrapper.discount-vouchers-section {
         border: 1px solid #e2e8f0 !important;
         background: #f8fafc;
         border-radius: 8px !important;
         padding: 14px !important;
+    }
+    .discount-offer-row {
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 14px;
+        padding-bottom: 14px;
+    }
+    .discount-offer-row:last-child {
+        border-bottom: 0;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .discount-offer-days {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 14px;
+        min-height: 42px;
+        align-items: center;
+    }
+    .discount-offer-days .form-check-label {
+        font-size: 13px;
+        color: #475569;
     }
     .product-form-page .form-check-input {
         cursor: pointer;
@@ -478,98 +499,200 @@ $current_url                    = url()->current();
 
 
 
-                           <div class="multiple-buys-section">
-                              <h5 class="product-section-title mb-3">Multiple Buys</h5>
+                           <div class="discount-offers-section">
+                              <h5 class="product-section-title mb-3">Discount Offers</h5>
                               <?php
-                              $multipleBuys = ProductMultipleBuy::where('status', '=', 1)->where('product_id', '=', $uId)->get();
+                              $discountOffers = ProductMultipleBuy::where('status', '!=', 3)->where('product_id', '=', $uId)->get();
+                              $dayLabels = [
+                                 'ALL' => 'All',
+                                 'MON' => 'Mon',
+                                 'TUE' => 'Tue',
+                                 'WED' => 'Wed',
+                                 'THU' => 'Thu',
+                                 'FRI' => 'Fri',
+                                 'SAT' => 'Sat',
+                                 'SUN' => 'Sun',
+                              ];
                               ?>
                               <div class="col-auto">
                                  <div class="form-check form-switch mt-0 pt-0 pb-0">
-                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="multiple_buys" name="multiple_buys" <?=((count($multipleBuys) > 0)?'checked':'')?>>
+                                    <input class="form-check-input mt-0" type="checkbox" role="switch" id="discount_offers" name="discount_offers" <?=((count($discountOffers) > 0)?'checked':'')?>>
+                                    <label class="form-check-label" for="discount_offers">Enable discount offers</label>
                                  </div>
                               </div>
 
-                              <div class="field_wrapper2 multiple-buy-section" style="border: 1px solid #04163d52; padding: 10px; border-radius: 10px;<?=((count($multipleBuys) > 0)?'':'display: none;')?>">
-                                 <?php
-                                 if($multipleBuys){ $sl= 1001; foreach($multipleBuys as $multipleBuy){
+                              <div class="field_wrapper2 discount-offer-section" style="<?=((count($discountOffers) > 0)?'':'display: none;')?>">
+                                 <?php if(count($discountOffers) > 0){ $sl= 1001; foreach($discountOffers as $discountOffer){
+                                    $offerDays = json_decode($discountOffer->offer_available_days ?? '["ALL"]', true);
+                                    if(!is_array($offerDays) || empty($offerDays)){ $offerDays = ['ALL']; }
+                                    $offerName = (($discountOffer->offer_name != '')?$discountOffer->offer_name:'Discount Offer');
+                                    $offerDisplayName = (($discountOffer->offer_display_name != '')?$discountOffer->offer_display_name:$offerName);
+                                    $offerScope = (($discountOffer->discount_scope == 'BRAND')?'BRAND':'PRODUCT');
+                                    $offerType = (($discountOffer->barcode_discount_type == 'PERCENTAGE')?'PERCENTAGE':'FLAT');
                                  ?>
-                                    <div class="row align-items-center gap-2 gap-lg-0 mb-2">
-                                       <div class="col-lg-2">
-                                          <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode<?=$sl?>" value="<?=$multipleBuy->first_barcode?>" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">
-                                       </div>
-                                       <div class="col-lg-2">
-                                          <input type="number" class="form-control" placeholder="Barcode1 Min Qty" name="product1_min_qty[]" id="product1_min_qty<?=$sl?>" min="1" max="9" value="<?=$multipleBuy->product1_min_qty?>">
-                                       </div>
-
-                                       <div class="col-auto">
-                                          <span>and</span>
-                                       </div>
-
-                                       <div class="col-lg-2">
-                                          <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode1" oninput="getBarcodeSuggestions(this.value, <?=$sl?>);" value="<?=$multipleBuy->second_barcode?>" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">
-                                          <input type="hidden" name="product2_id[]" id="product2_id<?=$sl?>" value="<?=$multipleBuy->product2_id?>">
-                                          <div id="barcode_suggestions1001" class="dropdown"></div>
-                                       </div>
-                                       <div class="col-lg-2">
-                                          <input type="number" class="form-control" placeholder="Barcode2 Min Qty" name="product2_min_qty[]" id="product2_min_qty<?=$sl?>" min="1" max="9" value="<?=$multipleBuy->product2_min_qty?>">
-                                       </div>
-
-                                       <div class="col-lg-1">
-                                          <span>= true, then</span>
-                                       </div>
-
-                                       <div class="col-lg-1">
-                                          <div class="form-check form-switch mt-0">
-                                             <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type<?=$sl?>" onchange="change_discount_type(<?=$sl?>);" <?=(($multipleBuy->barcode_discount_type == 'PERCENTAGE')?'checked':'')?>>
-                                             <label class="form-check-label" for="discount_type<?=$sl?>" id="discount_type_text<?=$sl?>" style="font-size: 10px;"><?=(($multipleBuy->barcode_discount_type == 'PERCENTAGE')?'Percentage':'Flat')?></label>
+                                    <div class="discount-offer-row" data-offer-row="<?=$sl?>">
+                                       <div class="row g-3">
+                                          <div class="col-md-4">
+                                             <label class="form-label">Offer name (internal) <small class="text-danger">*</small></label>
+                                             <input type="text" class="form-control" name="offer_name[<?=$sl?>]" value="<?=htmlspecialchars((string)$offerName, ENT_QUOTES, 'UTF-8')?>" placeholder="Offer name">
+                                          </div>
+                                          <div class="col-md-4">
+                                             <label class="form-label">Offer display name (in POS)</label>
+                                             <input type="text" class="form-control" name="offer_display_name[<?=$sl?>]" value="<?=htmlspecialchars((string)$offerDisplayName, ENT_QUOTES, 'UTF-8')?>" placeholder="POS display name">
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Discount type</label>
+                                             <select class="form-select" name="discount_scope[<?=$sl?>]">
+                                                <option value="PRODUCT" <?=(($offerScope == 'PRODUCT')?'selected':'')?>>Product</option>
+                                                <option value="BRAND" <?=(($offerScope == 'BRAND')?'selected':'')?>>Brand</option>
+                                             </select>
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Status</label>
+                                             <div class="form-check form-switch mt-2">
+                                                <input class="form-check-input" type="checkbox" name="offer_status[<?=$sl?>]" value="1" <?=(($discountOffer->status == 1)?'checked':'')?>>
+                                                <label class="form-check-label">Active</label>
+                                             </div>
+                                          </div>
+                                          <div class="col-md-3">
+                                             <label class="form-label">Offer start date</label>
+                                             <input type="date" class="form-control" name="offer_start_date[<?=$sl?>]" value="<?=($discountOffer->offer_start_date ?: date('Y-m-d'))?>">
+                                          </div>
+                                          <div class="col-md-3">
+                                             <label class="form-label">Offer end date</label>
+                                             <input type="date" class="form-control" name="offer_end_date[<?=$sl?>]" value="<?=$discountOffer->offer_end_date?>">
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label d-block">Expiry</label>
+                                             <div class="form-check mt-2">
+                                                <input class="form-check-input" type="checkbox" name="offer_no_expiry[<?=$sl?>]" value="1" <?=(($discountOffer->offer_no_expiry || $discountOffer->offer_end_date == '')?'checked':'')?>>
+                                                <label class="form-check-label">No expiry</label>
+                                             </div>
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Start time</label>
+                                             <input type="time" class="form-control" name="offer_start_time[<?=$sl?>]" value="<?=($discountOffer->offer_start_time ? date('H:i', strtotime($discountOffer->offer_start_time)) : '')?>">
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">End time</label>
+                                             <input type="time" class="form-control" name="offer_end_time[<?=$sl?>]" value="<?=($discountOffer->offer_end_time ? date('H:i', strtotime($discountOffer->offer_end_time)) : '')?>">
+                                          </div>
+                                          <div class="col-md-4">
+                                             <label class="form-label">Applicable days</label>
+                                             <div class="discount-offer-days">
+                                                <?php foreach($dayLabels as $dayValue => $dayLabel){?>
+                                                   <div class="form-check">
+                                                      <input class="form-check-input" type="checkbox" name="offer_available_days[<?=$sl?>][]" value="<?=$dayValue?>" <?=(in_array($dayValue, $offerDays)?'checked':'')?>>
+                                                      <label class="form-check-label"><?=$dayLabel?></label>
+                                                   </div>
+                                                <?php }?>
+                                             </div>
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Min qty</label>
+                                             <input type="number" min="1" class="form-control" name="offer_min_qty[<?=$sl?>]" value="<?=max(1, (int)$discountOffer->product1_min_qty)?>">
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Value type</label>
+                                             <select class="form-select" name="offer_discount_type[<?=$sl?>]">
+                                                <option value="FLAT" <?=(($offerType == 'FLAT')?'selected':'')?>>Flat $</option>
+                                                <option value="PERCENTAGE" <?=(($offerType == 'PERCENTAGE')?'selected':'')?>>Percentage</option>
+                                             </select>
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Discount</label>
+                                             <input type="number" min="0" step="0.01" class="form-control" name="offer_discount_amount[<?=$sl?>]" value="<?=$discountOffer->discount_amount?>">
+                                          </div>
+                                          <div class="col-md-2 d-flex align-items-end">
+                                             <a href="javascript:void(0);" class="btn btn-outline-danger remove_button2"><i class="fa fa-minus-circle"></i>&nbsp;Remove</a>
                                           </div>
                                        </div>
-                                       <div class="col-lg-1">
-                                          <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount<?=$sl?>" value="<?=$multipleBuy->discount_amount?>">
-                                          <a href="javascript:void(0);" class="remove_button2"><i class="fa fa-minus-circle text-danger"></i></a>
+                                    </div>
+                                 <?php $sl++; } } else { $sl = 301; ?>
+                                    <div class="discount-offer-row" data-offer-row="<?=$sl?>">
+                                       <div class="row g-3">
+                                          <div class="col-md-4">
+                                             <label class="form-label">Offer name (internal) <small class="text-danger">*</small></label>
+                                             <input type="text" class="form-control" name="offer_name[<?=$sl?>]" placeholder="Offer name">
+                                          </div>
+                                          <div class="col-md-4">
+                                             <label class="form-label">Offer display name (in POS)</label>
+                                             <input type="text" class="form-control" name="offer_display_name[<?=$sl?>]" placeholder="POS display name">
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Discount type</label>
+                                             <select class="form-select" name="discount_scope[<?=$sl?>]">
+                                                <option value="PRODUCT">Product</option>
+                                                <option value="BRAND">Brand</option>
+                                             </select>
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Status</label>
+                                             <div class="form-check form-switch mt-2">
+                                                <input class="form-check-input" type="checkbox" name="offer_status[<?=$sl?>]" value="1" checked>
+                                                <label class="form-check-label">Active</label>
+                                             </div>
+                                          </div>
+                                          <div class="col-md-3">
+                                             <label class="form-label">Offer start date</label>
+                                             <input type="date" class="form-control" name="offer_start_date[<?=$sl?>]" value="<?=date('Y-m-d')?>">
+                                          </div>
+                                          <div class="col-md-3">
+                                             <label class="form-label">Offer end date</label>
+                                             <input type="date" class="form-control" name="offer_end_date[<?=$sl?>]">
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label d-block">Expiry</label>
+                                             <div class="form-check mt-2">
+                                                <input class="form-check-input" type="checkbox" name="offer_no_expiry[<?=$sl?>]" value="1" checked>
+                                                <label class="form-check-label">No expiry</label>
+                                             </div>
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Start time</label>
+                                             <input type="time" class="form-control" name="offer_start_time[<?=$sl?>]">
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">End time</label>
+                                             <input type="time" class="form-control" name="offer_end_time[<?=$sl?>]">
+                                          </div>
+                                          <div class="col-md-4">
+                                             <label class="form-label">Applicable days</label>
+                                             <div class="discount-offer-days">
+                                                <?php foreach($dayLabels as $dayValue => $dayLabel){?>
+                                                   <div class="form-check">
+                                                      <input class="form-check-input" type="checkbox" name="offer_available_days[<?=$sl?>][]" value="<?=$dayValue?>" <?=(($dayValue == 'ALL')?'checked':'')?>>
+                                                      <label class="form-check-label"><?=$dayLabel?></label>
+                                                   </div>
+                                                <?php }?>
+                                             </div>
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Min qty</label>
+                                             <input type="number" min="1" class="form-control" name="offer_min_qty[<?=$sl?>]" value="1">
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Value type</label>
+                                             <select class="form-select" name="offer_discount_type[<?=$sl?>]">
+                                                <option value="FLAT">Flat $</option>
+                                                <option value="PERCENTAGE">Percentage</option>
+                                             </select>
+                                          </div>
+                                          <div class="col-md-2">
+                                             <label class="form-label">Discount</label>
+                                             <input type="number" min="0" step="0.01" class="form-control" name="offer_discount_amount[<?=$sl?>]">
+                                          </div>
+                                          <div class="col-md-2 d-flex align-items-end">
+                                             <a href="javascript:void(0);" class="btn btn-outline-danger remove_button2"><i class="fa fa-minus-circle"></i>&nbsp;Remove</a>
+                                          </div>
                                        </div>
                                     </div>
-                                 <?php $sl++; } }?>
-                                 <!-- <div class="row align-items-center gap-2 gap-lg-0 mb-2">
-                                    <div class="col-lg-2">
-                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode301" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">
-                                    </div>
-                                    <div class="col-lg-2">
-                                       <input type="number" class="form-control" placeholder="Barcode1 Min Qty" name="product1_min_qty[]" id="product1_min_qty301" min="1" max="9">
-                                    </div>
-
-                                    <div class="col-auto">
-                                       <span>and</span>
-                                    </div>
-
-                                    <div class="col-lg-2">
-                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode301" oninput="getBarcodeSuggestions(this.value, 301);" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">
-                                       <input type="hidden" name="product2_id[]" id="product2_id301">
-                                       <div id="barcode_suggestions301" class="dropdown"></div>
-                                    </div>
-                                    <div class="col-lg-2">
-                                       <input type="number" class="form-control" placeholder="Barcode2 Min Qty" name="product2_min_qty[]" id="product2_min_qty301" min="1" max="9">
-                                    </div>
-
-                                    <div class="col-lg-1">
-                                       <span>= true, then</span>
-                                    </div>
-                                    <div class="col-lg-1">
-                                       <div class="form-check form-switch mt-0">
-                                          <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type301" onchange="change_discount_type(301);">
-                                          <label class="form-check-label" for="discount_type301" id="discount_type_text301" style="font-size: 10px;">Flat</label>
-                                       </div>
-                                    </div>
-                                    <div class="col-lg-1">
-                                       <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount301">
-                                       <a style="opacity: 0;"  class="d-none d-lg-block"><i class="fa fa-minus-circle text-danger"></i></a>
-                                    </div>
-                                 </div> -->
+                                 <?php }?>
                               </div>
 
-                              <div class="row align-items-center gap-2 gap-lg-0 multiple-buy-section" style="<?=((count($multipleBuys) > 0)?'':'display: none;')?>">
+                              <div class="row align-items-center gap-2 gap-lg-0 discount-offer-section" style="<?=((count($discountOffers) > 0)?'':'display: none;')?>">
                                  <div class="col-12 mt-3">
-                                    <button class="my-btn btn-sky add_button2" type="button">Add<i class='bx bx-plus'></i></button>
+                                    <button class="my-btn btn-sky add_button2" type="button">Add Discount Offer<i class='bx bx-plus'></i></button>
                                  </div>
                               </div>
                            </div>
@@ -784,15 +907,13 @@ $current_url                    = url()->current();
          }
       });
 
-      $('#multiple_buys').change(function() {
+      $('#discount_offers').change(function() {
          if ($(this).is(':checked')) {
-            $('.multiple-buy-section').show();
+            $('.discount-offer-section').show();
          } else {
-            $('.multiple-buy-section').hide();
+            $('.discount-offer-section').hide();
          }
       });
-
-      $('.first_barcode').val($('#barcode').val());
 
        var maxField = 310; //Input fields increment limitation
        var addButton = $('.add_button2'); //Add button selector
@@ -804,40 +925,87 @@ $current_url                    = url()->current();
            //Check maximum number of input fields
            if(x < maxField){ 
                x++; //Increase field counter
-               var main_barcode = $('#barcode').val();
-               // console.log(main_barcode);
-               var fieldHTML = '<div class="row align-items-center gap-2 gap-lg-0 mb-2">\
-                                    <div class="col-lg-2">\
-                                       <input type="text" class="form-control first_barcode" placeholder="Barcode 1" name="first_barcode[]" id="first_barcode' + x + '" value="' + main_barcode + '" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">\
+               var today = new Date().toISOString().slice(0, 10);
+               var fieldHTML = '<div class="discount-offer-row" data-offer-row="' + x + '">\
+                                  <div class="row g-3">\
+                                    <div class="col-md-4">\
+                                      <label class="form-label">Offer name (internal) <small class="text-danger">*</small></label>\
+                                      <input type="text" class="form-control" name="offer_name[' + x + ']" placeholder="Offer name">\
                                     </div>\
-                                    <div class="col-lg-2">\
-                                       <input type="number" class="form-control" placeholder="Barcode1 Min Qty" name="product1_min_qty[]" id="product1_min_qty' + x + '" min="1" max="9">\
+                                    <div class="col-md-4">\
+                                      <label class="form-label">Offer display name (in POS)</label>\
+                                      <input type="text" class="form-control" name="offer_display_name[' + x + ']" placeholder="POS display name">\
                                     </div>\
-                                    <div class="col-auto">\
-                                       <span>and</span>\
+                                    <div class="col-md-2">\
+                                      <label class="form-label">Discount type</label>\
+                                      <select class="form-select" name="discount_scope[' + x + ']">\
+                                        <option value="PRODUCT">Product</option>\
+                                        <option value="BRAND">Brand</option>\
+                                      </select>\
                                     </div>\
-                                    <div class="col-lg-2">\
-                                       <input type="text" class="form-control" placeholder="Barcode 2" name="second_barcode[]" id="second_barcode' + x + '" oninput="getBarcodeSuggestions(this.value, ' + x + ');" minlength="8" maxlength="25" pattern="[A-Za-z0-9]+">\
-                                       <input type="hidden" name="product2_id[]" id="product2_id' + x + '">\
-                                       <div id="barcode_suggestions' + x + '" class="dropdown"></div>\
+                                    <div class="col-md-2">\
+                                      <label class="form-label">Status</label>\
+                                      <div class="form-check form-switch mt-2">\
+                                        <input class="form-check-input" type="checkbox" name="offer_status[' + x + ']" value="1" checked>\
+                                        <label class="form-check-label">Active</label>\
+                                      </div>\
                                     </div>\
-                                    <div class="col-lg-2">\
-                                       <input type="number" class="form-control" placeholder="Barcode2 Min Qty" name="product2_min_qty[]" id="product2_min_qty' + x + '" min="1" max="9">\
+                                    <div class="col-md-3">\
+                                      <label class="form-label">Offer start date</label>\
+                                      <input type="date" class="form-control" name="offer_start_date[' + x + ']" value="' + today + '">\
                                     </div>\
-                                    <div class="col-lg-1">\
-                                       <span>= true, then</span>\
+                                    <div class="col-md-3">\
+                                      <label class="form-label">Offer end date</label>\
+                                      <input type="date" class="form-control" name="offer_end_date[' + x + ']">\
                                     </div>\
-                                    <div class="col-lg-1">\
-                                       <div class="form-check form-switch mt-0">\
-                                          <input class="form-check-input" type="checkbox" name="barcode_discount_type[]" role="switch" id="discount_type' + x + '" onchange="change_discount_type(' + x + ');">\
-                                          <label class="form-check-label" for="discount_type' + x + '" id="discount_type_text' + x + '" style="font-size: 10px;">Flat</label>\
-                                       </div>\
+                                    <div class="col-md-2">\
+                                      <label class="form-label d-block">Expiry</label>\
+                                      <div class="form-check mt-2">\
+                                        <input class="form-check-input" type="checkbox" name="offer_no_expiry[' + x + ']" value="1" checked>\
+                                        <label class="form-check-label">No expiry</label>\
+                                      </div>\
                                     </div>\
-                                    <div class="col-lg-1">\
-                                       <input type="text" class="form-control" placeholder="Discount $" name="discount_amount[]" id="discount_amount' + x + '">\
-                                        <a href="javascript:void(0);" class="remove_button2"><i class="fa fa-minus-circle text-danger"></i></a>\
+                                    <div class="col-md-2">\
+                                      <label class="form-label">Start time</label>\
+                                      <input type="time" class="form-control" name="offer_start_time[' + x + ']">\
                                     </div>\
-                                 </div>'; //New input field html
+                                    <div class="col-md-2">\
+                                      <label class="form-label">End time</label>\
+                                      <input type="time" class="form-control" name="offer_end_time[' + x + ']">\
+                                    </div>\
+                                    <div class="col-md-4">\
+                                      <label class="form-label">Applicable days</label>\
+                                      <div class="discount-offer-days">\
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="offer_available_days[' + x + '][]" value="ALL" checked><label class="form-check-label">All</label></div>\
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="offer_available_days[' + x + '][]" value="MON"><label class="form-check-label">Mon</label></div>\
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="offer_available_days[' + x + '][]" value="TUE"><label class="form-check-label">Tue</label></div>\
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="offer_available_days[' + x + '][]" value="WED"><label class="form-check-label">Wed</label></div>\
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="offer_available_days[' + x + '][]" value="THU"><label class="form-check-label">Thu</label></div>\
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="offer_available_days[' + x + '][]" value="FRI"><label class="form-check-label">Fri</label></div>\
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="offer_available_days[' + x + '][]" value="SAT"><label class="form-check-label">Sat</label></div>\
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="offer_available_days[' + x + '][]" value="SUN"><label class="form-check-label">Sun</label></div>\
+                                      </div>\
+                                    </div>\
+                                    <div class="col-md-2">\
+                                      <label class="form-label">Min qty</label>\
+                                      <input type="number" min="1" class="form-control" name="offer_min_qty[' + x + ']" value="1">\
+                                    </div>\
+                                    <div class="col-md-2">\
+                                      <label class="form-label">Value type</label>\
+                                      <select class="form-select" name="offer_discount_type[' + x + ']">\
+                                        <option value="FLAT">Flat $</option>\
+                                        <option value="PERCENTAGE">Percentage</option>\
+                                      </select>\
+                                    </div>\
+                                    <div class="col-md-2">\
+                                      <label class="form-label">Discount</label>\
+                                      <input type="number" min="0" step="0.01" class="form-control" name="offer_discount_amount[' + x + ']">\
+                                    </div>\
+                                    <div class="col-md-2 d-flex align-items-end">\
+                                      <a href="javascript:void(0);" class="btn btn-outline-danger remove_button2"><i class="fa fa-minus-circle"></i>&nbsp;Remove</a>\
+                                    </div>\
+                                  </div>\
+                                </div>'; //New input field html
                $(wrapper).append(fieldHTML); //Add field html
 
            }else{
@@ -848,25 +1016,10 @@ $current_url                    = url()->current();
        // Once remove button is clicked
        $(wrapper).on('click', '.remove_button2', function(e){
            e.preventDefault();
-           $(this).parent('div').parent('div').remove(); //Remove field html
+           $(this).closest('.discount-offer-row').remove(); //Remove field html
            x--; //Decrease field counter
        });
-
-      
-      $('#barcode').on('input', function(){
-         $('.first_barcode').val($('#barcode').val());
-      });
    });
-
-   function change_discount_type(sl){
-      if ($('#discount_type' + sl).is(':checked')) {
-         console.log('a');
-         $('#discount_type_text' + sl).text('Percentage');
-      } else {
-         console.log('b');
-         $('#discount_type_text' + sl).text('Flat');
-      }
-   }
 
    var baseUrl = '<?=url('/')?>'
    function getBarcodeSuggestions(valam, sl){

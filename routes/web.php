@@ -227,6 +227,7 @@ Route::get('/db-test', function () {
                 Route::post('products/validate-admin-pin-product', 'ProductController@validateAdminPinProduct');
                 Route::post('products/validate-admin-pin-export', 'ProductController@validateAdminPinExport');
                 Route::post('products/update-discountvoucher-switch-status', 'ProductController@updateDiscountVoucherStatus');
+                Route::post('products/update-discountoffer-switch-status', 'ProductController@updateMultiBuyStatus');
                 Route::post('products/update-multibuy-switch-status', 'ProductController@updateMultiBuyStatus');
                 Route::match(['get', 'post'], 'products/transfer-selected', 'ProductController@transferSelected');
             /* products */

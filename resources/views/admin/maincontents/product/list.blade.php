@@ -506,23 +506,26 @@ $controllerRoute = $module['controller_route'];
                           <?php }?>
                         </ul>
                       <!-- Discount Vouchers -->
-                      <!-- Multiple Buys -->
-                        <?php $multipleBuys = ProductMultipleBuy::select('id', 'first_barcode', 'second_barcode', 'barcode_discount_type', 'discount_amount', 'discounted_amount', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
+                      <!-- Discount Offers -->
+                        <?php $discountOffers = ProductMultipleBuy::select('id', 'offer_name', 'offer_display_name', 'discount_scope', 'barcode_discount_type', 'discount_amount', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
                         <ul class="promo-list">
-                          <?php if(count($multipleBuys) > 0){?>
-                            <small style="font-weight: bold; text-decoration:underline;">Multiple Buys</small>
-                            <?php foreach($multipleBuys as $multipleBuy){?>
+                          <?php if(count($discountOffers) > 0){?>
+                            <small style="font-weight: bold; text-decoration:underline;">Discount Offers</small>
+                            <?php foreach($discountOffers as $discountOffer){
+                              $offerLabel = (($discountOffer->offer_display_name != '')?$discountOffer->offer_display_name:(($discountOffer->offer_name != '')?$discountOffer->offer_name:'Discount Offer'));
+                              $offerValue = (($discountOffer->barcode_discount_type == 'PERCENTAGE')?$discountOffer->discount_amount . '%':'$' . number_format($discountOffer->discount_amount, 2));
+                            ?>
                               <li>
-                                <span class="promo-text" title="<?= $multipleBuy->first_barcode?> and <?= $multipleBuy->second_barcode?> = true, then <?= (($multipleBuy->barcode_discount_type == 'PERCENTAGE')?$multipleBuy->discount_amount . '%':'$' . $multipleBuy->discount_amount)?> ($<?= $multipleBuy->discounted_amount?>)"><?= $multipleBuy->first_barcode?> and <?= $multipleBuy->second_barcode?> = true, then <?= (($multipleBuy->barcode_discount_type == 'PERCENTAGE')?$multipleBuy->discount_amount . '%':'$' . $multipleBuy->discount_amount)?> ($<?= $multipleBuy->discounted_amount?>)</span>
+                                <span class="promo-text" title="<?=htmlspecialchars((string)$offerLabel, ENT_QUOTES, 'UTF-8')?> | <?=ucfirst(strtolower($discountOffer->discount_scope))?> | <?=$offerValue?>"><?=htmlspecialchars((string)$offerLabel, ENT_QUOTES, 'UTF-8')?> : <?=$offerValue?></span>
                                 <div class="promo-switch form-check form-switch" style="display: inline;">
-                                  <input class="form-check-input mt-0" type="checkbox" role="switch" id="multiplebuy_switch" name="multiplebuy_switch" value="<?= $multipleBuy->id?>" <?=(($multipleBuy->status)?'checked':'')?>>
+                                  <input class="form-check-input mt-0" type="checkbox" role="switch" id="discount_offer_switch" name="discount_offer_switch" value="<?= $discountOffer->id?>" <?=(($discountOffer->status)?'checked':'')?>>
                                 </div>
                               </li>
                             <?php }?>
                             <br><br>
                           <?php }?>
                         </ul>
-                      <!-- Multiple Buys -->
+                      <!-- Discount Offers -->
                     </td>
                     <td class="nowrap-cell char-cell" title="<?=$row->size_name?> <?=$row->unit_name?>"><?=$row->size_id?></td>
                     <td class="nowrap-cell char-cell" title="$<?=number_format($row->retail_price_inc_tax,2)?>">$<?=number_format($row->retail_price_inc_tax,2)?></td>
@@ -753,12 +756,12 @@ $controllerRoute = $module['controller_route'];
 <script>
   $(document).on('change', '.form-check-input', function() {
       var base_url = '<?=url('/')?>';
-      let switchId = $(this).attr('id');              // e.g. "multiplebuy_switch"
-      let id = $(this).attr('value');              // e.g. "multiplebuy_switch"
+      let switchId = $(this).attr('id');              // e.g. "discount_offer_switch"
+      let id = $(this).attr('value');                 // selected promo row id
       let status = $(this).is(':checked') ? 1 : 0;    // 1 = ON, 0 = OFF
       
-      if(switchId == 'multiplebuy_switch'){
-        url = base_url + '/admin/products/update-multibuy-switch-status';
+      if(switchId == 'discount_offer_switch'){
+        url = base_url + '/admin/products/update-discountoffer-switch-status';
       } else {
         url = base_url + '/admin/products/update-discountvoucher-switch-status';
       }

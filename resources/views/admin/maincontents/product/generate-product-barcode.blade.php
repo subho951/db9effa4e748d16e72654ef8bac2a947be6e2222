@@ -207,20 +207,23 @@ $controllerRoute = $module['controller_route'];
                                           <?php }?>
                                         </ul>
                                       <!-- Discount Vouchers -->
-                                      <!-- Multiple Buys -->
-                                        <?php $multipleBuys = ProductMultipleBuy::select('id', 'first_barcode', 'second_barcode', 'barcode_discount_type', 'discount_amount', 'discounted_amount', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
+                                      <!-- Discount Offers -->
+                                        <?php $discountOffers = ProductMultipleBuy::select('id', 'offer_name', 'offer_display_name', 'discount_scope', 'barcode_discount_type', 'discount_amount', 'status')->where('product_id', $row->id)->where('status', '!=', 3)->get(); ?>
                                         <ul style="list-style: none; padding: 0; margin: 0;">
-                                          <?php if(count($multipleBuys) > 0){?>
-                                            <small style="font-weight: bold; text-decoration:underline;">Multiple Buys</small>
-                                            <?php foreach($multipleBuys as $multipleBuy){?>
+                                          <?php if(count($discountOffers) > 0){?>
+                                            <small style="font-weight: bold; text-decoration:underline;">Discount Offers</small>
+                                            <?php foreach($discountOffers as $discountOffer){
+                                              $offerLabel = (($discountOffer->offer_display_name != '')?$discountOffer->offer_display_name:(($discountOffer->offer_name != '')?$discountOffer->offer_name:'Discount Offer'));
+                                              $offerValue = (($discountOffer->barcode_discount_type == 'PERCENTAGE')?$discountOffer->discount_amount . '%':'$' . number_format($discountOffer->discount_amount, 2));
+                                            ?>
                                               <li>
-                                                <?= $multipleBuy->first_barcode?> and <?= $multipleBuy->second_barcode?> = true, then <?= (($multipleBuy->barcode_discount_type == 'PERCENTAGE')?$multipleBuy->discount_amount . '%':'$' . $multipleBuy->discount_amount)?> ($<?= $multipleBuy->discounted_amount?>)
+                                                <?=htmlspecialchars((string)$offerLabel, ENT_QUOTES, 'UTF-8')?> : <?=$offerValue?>
                                               </li>
                                             <?php }?>
                                             <br><br>
                                           <?php }?>
                                         </ul>
-                                      <!-- Multiple Buys -->
+                                      <!-- Discount Offers -->
                                     </td>
                                 </tr>
                             <?php } }?>

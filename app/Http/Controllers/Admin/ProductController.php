@@ -225,6 +225,11 @@ class ProductController extends Controller
                     'barcode.unique'    => 'Barcode already exists. Please enter a unique barcode.',
                 ];
                 if($this->validate($request, $rules, $messages)){
+                    $offerErrors = $this->validateProductDiscountOfferRows($postData);
+                    if(!empty($offerErrors)){
+                        return redirect()->back()->withInput()->with('error_message', implode('<br>', $offerErrors));
+                    }
+
                     $checkData = Product::where('name', 'LIKE', '%'.$postData['name'].'%')->where('status', '!=', 3)->first();
                     if(!$checkData){
                         /* cover image */
@@ -314,60 +319,7 @@ class ProductController extends Controller
                                 }
                             }
                         /* discount vouchers */
-                        /* multiple buys */
-                            if (array_key_exists("multiple_buys",$postData)){
-                                $first_barcode              = $postData['first_barcode'];
-                                $second_barcode             = $postData['second_barcode'];
-                                $product2_id                = $postData['product2_id'];
-                                $product1_min_qty           = $postData['product1_min_qty'];
-                                $product2_min_qty           = $postData['product2_min_qty'];
-
-                                if($first_barcode == $second_barcode){
-                                    return redirect()->back()->with('error_message', 'Barcode1 & barcode2 can\'t be same !!!');
-                                }
-
-                                $barcode_discount_type      = ((array_key_exists('barcode_discount_type', $postData))?$postData['barcode_discount_type']:[]);
-                                $discount_amount            = $postData['discount_amount'];
-                                if(count($voucher_code) > 0){
-                                    for($k=0;$k<count($second_barcode);$k++){
-                                        if($second_barcode[$k] != ''){
-                                            $getProduct1            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product_id)->first();
-                                            $getProduct2            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product2_id[$k])->first();
-
-                                            if($product2_id[$k] == ''){
-                                                return redirect()->back()->with('error_message', 'Product2 ID can\'t be null. Please type product2 barcode and tap on the auto suggesion coming on below the barcode2 box !!!');
-                                            }
-
-                                            $retail_price_inc_tax1  = (($getProduct1)?$getProduct1->retail_price_inc_tax:'');
-                                            $retail_price_inc_tax2  = (($getProduct2)?$getProduct2->retail_price_inc_tax:'');
-                                            $total_price            = ($retail_price_inc_tax1 + $retail_price_inc_tax2);
-                                            $discAmt                = 0;
-                                            if(array_key_exists('barcode_discount_type', $postData)){
-                                                $discAmt        = (($total_price * $discount_amount[$k]) / 100);
-                                                $discountType  = 'PERCENTAGE';
-                                            } else {
-                                                $discAmt        = $discount_amount[$k];
-                                                $discountType  = 'FLAT';
-                                            }
-                                            $discounted_amount = ($total_price - $discAmt);
-                                            $fields2                = [
-                                                'product_id'                        => $product_id,
-                                                'first_barcode'                     => $first_barcode[$k],
-                                                'product1_min_qty'                  => $product1_min_qty[$k],
-                                                'second_barcode'                    => $second_barcode[$k],
-                                                'product2_id'                       => $product2_id[$k],
-                                                'product2_min_qty'                  => $product2_min_qty[$k],
-                                                'barcode_discount_type'             => $discountType,
-                                                'discount_amount'                   => $discount_amount[$k],
-                                                'discounted_amount'                 => $discounted_amount,
-                                            ];
-                                            // Helper::pr($fields2);
-                                            ProductMultipleBuy::insert($fields2);
-                                        }
-                                    }
-                                }
-                            }
-                        /* multiple buys */
+                        $this->syncProductDiscountOffers($product_id, $postData);
                         /* warehouse stock opening entry */
                             $opening_qty                = 0;
                             $txn_qty                    = $postData['warehouse_stock'];
@@ -472,6 +424,11 @@ class ProductController extends Controller
                     'barcode.unique'    => 'Barcode already exists. Please enter a unique barcode.',
                 ];
                 if($this->validate($request, $rules, $messages)){
+                    $offerErrors = $this->validateProductDiscountOfferRows($postData);
+                    if(!empty($offerErrors)){
+                        return redirect()->back()->withInput()->with('error_message', implode('<br>', $offerErrors));
+                    }
+
                         /* cover image */
                             $imageFile      = $request->file('cover_image');
                             if($imageFile != ''){
@@ -562,61 +519,7 @@ class ProductController extends Controller
                                 }
                             }
                         /* discount vouchers */
-                        /* multiple buys */
-                            if (array_key_exists("multiple_buys",$postData)){
-                                $first_barcode              = $postData['first_barcode'];
-                                $second_barcode             = $postData['second_barcode'];
-                                $product2_id                = $postData['product2_id'];
-                                $product1_min_qty           = $postData['product1_min_qty'];
-                                $product2_min_qty           = $postData['product2_min_qty'];
-
-                                if($first_barcode == $second_barcode){
-                                    return redirect()->back()->with('error_message', 'Barcode1 & barcode2 can\'t be same !!!');
-                                }
-
-                                $barcode_discount_type      = ((array_key_exists('barcode_discount_type', $postData))?$postData['barcode_discount_type']:[]);
-                                $discount_amount            = $postData['discount_amount'];
-                                if(count($voucher_code) > 0){
-                                    ProductMultipleBuy::where('status', '=', 1)->where('product_id', '=', $id)->delete();
-                                    for($k=0;$k<count($first_barcode);$k++){
-                                        if($first_barcode[$k] != ''){
-                                            $getProduct1            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product_id)->first();
-                                            $getProduct2            = Product::select('retail_price_inc_tax')->where('status', '=', 1)->where('id', '=', $product2_id[$k])->first();
-                                            // if($product2_id[$k] == ''){
-                                            //     return redirect()->back()->with('error_message', 'Product2 ID can\'t be null. Please type product2 barcode and tap on the auto suggesion coming on below the barcode2 box !!!');
-                                            // }
-
-                                            $retail_price_inc_tax1  = (($getProduct1)?$getProduct1->retail_price_inc_tax:'');
-                                            $retail_price_inc_tax2  = (($getProduct2)?$getProduct2->retail_price_inc_tax:0);
-                                            
-                                            $total_price            = ($retail_price_inc_tax1 + $retail_price_inc_tax2);
-                                            $discAmt                = 0;
-                                            if(array_key_exists('barcode_discount_type', $postData)){
-                                                $discAmt        = (($total_price * $discount_amount[$k]) / 100);
-                                                $discountType  = 'PERCENTAGE';
-                                            } else {
-                                                $discAmt        = $discount_amount[$k];
-                                                $discountType  = 'FLAT';
-                                            }
-                                            $discounted_amount = ($total_price - $discAmt);
-                                            $fields2                = [
-                                                'product_id'                        => $product_id,
-                                                'first_barcode'                     => $first_barcode[$k],
-                                                'product1_min_qty'                  => $product1_min_qty[$k],
-                                                'second_barcode'                    => $second_barcode[$k],
-                                                'product2_id'                       => (($product2_id[$k] != '')?$product2_id[$k]:0),
-                                                'product2_min_qty'                  => (($product2_min_qty[$k] != '')?$product2_min_qty[$k]:0),
-                                                'barcode_discount_type'             => $discountType,
-                                                'discount_amount'                   => $discount_amount[$k],
-                                                'discounted_amount'                 => $discounted_amount,
-                                            ];
-                                            // Helper::pr($fields2);
-                                            ProductMultipleBuy::insert($fields2);
-                                        }
-                                    }
-                                }
-                            }
-                        /* multiple buys */
+                        $this->syncProductDiscountOffers($product_id, $postData);
                         /* warehouse stock opening entry */
                             // $opening_qty                = 0;
                             // $txn_qty                    = $postData['warehouse_stock'];
@@ -967,6 +870,171 @@ class ProductController extends Controller
         $data = ['status' => $apiStatus, 'response' => $response];
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($data);
+    }
+    private function validateProductDiscountOfferRows($postData){
+        $errors = [];
+        if(!array_key_exists('discount_offers', $postData)){
+            return $errors;
+        }
+
+        $rows = $this->productDiscountOfferRows($postData);
+        foreach($rows as $index => $row){
+            $label = 'Discount offer '.($index + 1);
+            if($row['offer_name'] === ''){
+                $errors[] = $label.' offer name is required';
+            }
+            if($row['discount_amount'] <= 0){
+                $errors[] = $label.' discount amount must be greater than zero';
+            }
+            if($row['product1_min_qty'] <= 0){
+                $errors[] = $label.' minimum quantity must be greater than zero';
+            }
+            if($row['discount_scope'] === ''){
+                $errors[] = $label.' discount type is required';
+            }
+            if($row['barcode_discount_type'] === ''){
+                $errors[] = $label.' discount value type is required';
+            }
+            if($row['offer_start_date'] !== '' && !empty($row['offer_end_date']) && strtotime($row['offer_end_date']) < strtotime($row['offer_start_date'])){
+                $errors[] = $label.' end date can not be before start date';
+            }
+        }
+
+        return $errors;
+    }
+    private function productDiscountOfferRows($postData){
+        $offerNames          = $postData['offer_name'] ?? [];
+        $offerDisplayNames  = $postData['offer_display_name'] ?? [];
+        $discountScopes     = $postData['discount_scope'] ?? [];
+        $startDates         = $postData['offer_start_date'] ?? [];
+        $endDates           = $postData['offer_end_date'] ?? [];
+        $noExpiry           = $postData['offer_no_expiry'] ?? [];
+        $startTimes         = $postData['offer_start_time'] ?? [];
+        $endTimes           = $postData['offer_end_time'] ?? [];
+        $daysByKey          = $postData['offer_available_days'] ?? [];
+        $minQtys            = $postData['offer_min_qty'] ?? [];
+        $discountTypes      = $postData['offer_discount_type'] ?? [];
+        $discountAmounts    = $postData['offer_discount_amount'] ?? [];
+        $statuses           = $postData['offer_status'] ?? [];
+        $rows               = [];
+        $allowedDays        = ['ALL', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+
+        foreach($offerNames as $key => $offerName){
+            $offerName          = trim((string)$offerName);
+            $displayName        = trim((string)($offerDisplayNames[$key] ?? ''));
+            $discountAmount     = (float)($discountAmounts[$key] ?? 0);
+            $hasAnyValue        = $offerName !== ''
+                                || $displayName !== ''
+                                || $discountAmount > 0
+                                || trim((string)($startDates[$key] ?? '')) !== ''
+                                || trim((string)($endDates[$key] ?? '')) !== '';
+
+            if(!$hasAnyValue){
+                continue;
+            }
+
+            $scope = strtoupper((string)($discountScopes[$key] ?? 'PRODUCT'));
+            if(!in_array($scope, ['PRODUCT', 'BRAND'], true)){
+                $scope = '';
+            }
+
+            $type = strtoupper((string)($discountTypes[$key] ?? 'FLAT'));
+            if(!in_array($type, ['FLAT', 'PERCENTAGE'], true)){
+                $type = '';
+            }
+
+            $days = $daysByKey[$key] ?? ['ALL'];
+            if(!is_array($days)){
+                $days = [$days];
+            }
+            $days = array_values(array_intersect(array_map('strtoupper', $days), $allowedDays));
+            if(empty($days) || in_array('ALL', $days, true)){
+                $days = ['ALL'];
+            }
+
+            $startDate = $this->normalizeOfferDate($startDates[$key] ?? '');
+            $endDate   = $this->normalizeOfferDate($endDates[$key] ?? '');
+            $noExpiryValue = (array_key_exists($key, $noExpiry) || $endDate === '') ? 1 : 0;
+
+            $rows[] = [
+                'offer_name'                => $offerName,
+                'offer_display_name'        => (($displayName !== '')?$displayName:$offerName),
+                'discount_scope'            => $scope,
+                'offer_start_date'          => (($startDate !== '')?$startDate:date('Y-m-d')),
+                'offer_end_date'            => (($noExpiryValue)?null:$endDate),
+                'offer_no_expiry'           => $noExpiryValue,
+                'offer_start_time'          => $this->normalizeOfferTime($startTimes[$key] ?? ''),
+                'offer_end_time'            => $this->normalizeOfferTime($endTimes[$key] ?? ''),
+                'offer_available_days'      => $days,
+                'product1_min_qty'          => max(1, (int)($minQtys[$key] ?? 1)),
+                'barcode_discount_type'     => $type,
+                'discount_amount'           => round($discountAmount, 2),
+                'status'                    => (array_key_exists($key, $statuses)?1:0),
+            ];
+        }
+
+        return $rows;
+    }
+    private function normalizeOfferDate($value){
+        $value = trim((string)$value);
+        if($value === ''){
+            return '';
+        }
+
+        $timestamp = strtotime($value);
+        return (($timestamp === false)?'':date('Y-m-d', $timestamp));
+    }
+    private function normalizeOfferTime($value){
+        $value = trim((string)$value);
+        if($value === ''){
+            return null;
+        }
+
+        $timestamp = strtotime($value);
+        return (($timestamp === false)?null:date('H:i:s', $timestamp));
+    }
+    private function syncProductDiscountOffers($productId, $postData){
+        ProductMultipleBuy::where('product_id', '=', $productId)->where('status', '!=', 3)->delete();
+        if(!array_key_exists('discount_offers', $postData)){
+            return;
+        }
+
+        $product = Product::select('barcode', 'retail_price_inc_tax')->where('id', '=', $productId)->first();
+        if(!$product){
+            return;
+        }
+
+        $rows = $this->productDiscountOfferRows($postData);
+        foreach($rows as $row){
+            $retailPrice = (float)$product->retail_price_inc_tax;
+            $discountValue = ($row['barcode_discount_type'] === 'PERCENTAGE')
+                                ? (($retailPrice * $row['discount_amount']) / 100)
+                                : $row['discount_amount'];
+            $discountedAmount = max(0, ($retailPrice - $discountValue));
+
+            ProductMultipleBuy::insert([
+                'product_id'                => $productId,
+                'offer_name'                => $row['offer_name'],
+                'offer_display_name'        => $row['offer_display_name'],
+                'discount_scope'            => $row['discount_scope'],
+                'first_barcode'             => $product->barcode,
+                'product1_min_qty'          => $row['product1_min_qty'],
+                'second_barcode'            => null,
+                'product2_id'               => 0,
+                'product2_min_qty'          => 0,
+                'barcode_discount_type'     => $row['barcode_discount_type'],
+                'discount_amount'           => $row['discount_amount'],
+                'discounted_amount'         => $discountedAmount,
+                'offer_start_date'          => $row['offer_start_date'],
+                'offer_end_date'            => $row['offer_end_date'],
+                'offer_no_expiry'           => $row['offer_no_expiry'],
+                'offer_start_time'          => $row['offer_start_time'],
+                'offer_end_time'            => $row['offer_end_time'],
+                'offer_available_days'      => json_encode($row['offer_available_days']),
+                'offer_availability'        => 'ALL',
+                'status'                    => $row['status'],
+            ]);
+        }
     }
     private function isEmptyCsvRow($row){
         foreach($row as $cell){
@@ -1839,7 +1907,7 @@ class ProductController extends Controller
 
         return response()->json([
             'success' => $updated,
-            'message' => 'Multibuy status updated successfully'
+            'message' => 'Discount offer status updated successfully'
         ]);
     }
 }

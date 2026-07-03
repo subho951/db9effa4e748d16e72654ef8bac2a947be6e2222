@@ -395,6 +395,7 @@ class BillingController extends Controller
                                 ]);
                         }
                     /* END */
+                    \App\Services\ProductDiscountOfferService::applyToOrder($order_id);
                     /* orders table */
                         $getTotalAmount     = OrderDetail::where('order_id', '=', $order_id)->sum('subtotal');
                         $getDiscountAmount  = OrderDetail::where('order_id', '=', $order_id)->sum('discount_amount');
@@ -806,6 +807,7 @@ class BillingController extends Controller
                                     ]);
                             }
                         /* END */
+                        \App\Services\ProductDiscountOfferService::applyToOrder($order_id);
                         /* orders table */
                             $getTotalAmount     = OrderDetail::where('order_id', '=', $order_id)->sum('subtotal');
                             $getDiscountAmount  = OrderDetail::where('order_id', '=', $order_id)->sum('discount_amount');

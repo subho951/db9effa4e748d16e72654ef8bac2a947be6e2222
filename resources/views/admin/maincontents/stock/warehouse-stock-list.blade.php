@@ -60,6 +60,42 @@ foreach ($rows as $summaryRow) {
     align-items: center;
     gap: 6px;
   }
+  .warehouse-page-actions a:hover,
+  .warehouse-page-actions button:hover {
+    color: #0e5f8c;
+  }
+  .warehouse-export-wrap {
+    position: relative;
+    display: inline-flex;
+  }
+  .warehouse-export-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 30;
+    min-width: 132px;
+    display: none;
+    padding: 6px 0;
+    border: 1px solid #dce3e9;
+    background: #fff;
+    box-shadow: 0 8px 18px rgba(36, 49, 63, .14);
+  }
+  .warehouse-export-wrap.is-open .warehouse-export-menu {
+    display: block;
+  }
+  .warehouse-page-actions .warehouse-export-menu button {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 8px 12px;
+    color: #314252;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .warehouse-page-actions .warehouse-export-menu button:hover {
+    background: #eef8fc;
+    color: #0e5f8c;
+  }
   .warehouse-reference-shell {
     background: #fff;
     border: 1px solid #dce3e9;
@@ -620,8 +656,14 @@ foreach ($rows as $summaryRow) {
     </div>
     <div class="warehouse-page-actions">
       <a href="<?=url('admin/dashboard')?>" title="Dashboard"><i class="fa fa-graduation-cap"></i></a>
-      <button type="button" title="Settings"><i class="fa fa-gear"></i></button>
-      <button type="button" title="Export">EXPORT <i class="fa fa-angle-down"></i></button>
+      <a href="<?=url('admin/settings')?>" title="Settings"><i class="fa fa-gear"></i></a>
+      <div class="warehouse-export-wrap" id="warehouse-export-wrap">
+        <button type="button" id="warehouse-export-toggle" title="Export" aria-expanded="false">EXPORT <i class="fa fa-angle-down"></i></button>
+        <div class="warehouse-export-menu" id="warehouse-export-menu">
+          <button type="button" id="warehouse-print-stock"><i class="fa fa-print"></i> Print</button>
+          <button type="button" id="warehouse-export-csv"><i class="fa fa-file-csv"></i> CSV</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -706,6 +748,9 @@ foreach ($rows as $summaryRow) {
                 id="product-row-<?=$row->id?>"
                 data-product-id="<?=$row->id?>"
                 data-search="<?=$escape($searchText)?>"
+                data-product-name="<?=$escape($row->name)?>"
+                data-product-sku="<?=$escape($row->sku)?>"
+                data-product-barcode="<?=$escape($row->barcode)?>"
                 data-brand="<?=$escape(strtolower($row->brand_name))?>"
                 data-supplier="<?=$escape(strtolower($row->supplier_name))?>"
                 data-warehouse-stock="<?=$warehouseStock?>"
@@ -851,6 +896,14 @@ foreach ($rows as $summaryRow) {
       return date.getFullYear() + '-' + month + '-' + day;
     }
 
+    function escapeHtml(value) {
+      return $('<div>').text(value == null ? '' : String(value)).html();
+    }
+
+    function csvCell(value) {
+      return '"' + String(value == null ? '' : value).replace(/\r?\n|\r/g, ' ').replace(/"/g, '""') + '"';
+    }
+
     function rowMatchesFilters($row) {
       var keyword = ($('#myInput').val() || '').toLowerCase().trim();
       var brand = ($('#warehouse-brand-filter').val() || '').toLowerCase().trim();
@@ -878,6 +931,112 @@ foreach ($rows as $summaryRow) {
       }
 
       return true;
+    }
+
+    function getWarehouseExportRows() {
+      var rows = [];
+
+      $('#item-list .warehouse-product-row').each(function() {
+        var $row = $(this);
+        if (!rowMatchesFilters($row)) {
+          return;
+        }
+
+        var warehouseStock = parseStockValue($row.attr('data-warehouse-stock'));
+        var shopStock = parseStockValue($row.attr('data-shop-stock'));
+        var wastageStock = parseStockValue($row.attr('data-wastage-stock'));
+
+        rows.push({
+          product: String($row.attr('data-product-name') || ''),
+          sku: String($row.attr('data-product-sku') || ''),
+          barcode: String($row.attr('data-product-barcode') || ''),
+          onHand: warehouseStock + shopStock,
+          committed: shopStock,
+          available: warehouseStock,
+          wastage: wastageStock
+        });
+      });
+
+      return rows;
+    }
+
+    function closeWarehouseExportMenu() {
+      $('#warehouse-export-wrap').removeClass('is-open');
+      $('#warehouse-export-toggle').attr('aria-expanded', 'false');
+    }
+
+    function exportWarehouseCsv() {
+      var rows = getWarehouseExportRows();
+      if (!rows.length) {
+        toastAlert('error', 'No inventory items available to export.');
+        return;
+      }
+
+      var csvRows = [
+        ['Inventory Item', 'SKU', 'Barcode', 'On Hand', 'Committed', 'Available', 'Wastage'].map(csvCell).join(',')
+      ];
+
+      rows.forEach(function(row) {
+        csvRows.push([
+          row.product,
+          row.sku,
+          row.barcode,
+          row.onHand,
+          row.committed,
+          row.available,
+          row.wastage
+        ].map(csvCell).join(','));
+      });
+
+      var blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      link.href = url;
+      link.download = 'warehouse-stock-' + todayForStock() + '.csv';
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.setTimeout(function() {
+        URL.revokeObjectURL(url);
+      }, 1000);
+    }
+
+    function printWarehouseStock() {
+      var rows = getWarehouseExportRows();
+      if (!rows.length) {
+        toastAlert('error', 'No inventory items available to print.');
+        return;
+      }
+
+      var tableRows = rows.map(function(row) {
+        return '<tr>'
+          + '<td>' + escapeHtml(row.product) + '</td>'
+          + '<td>' + escapeHtml(row.sku) + '</td>'
+          + '<td>' + escapeHtml(row.barcode) + '</td>'
+          + '<td>' + formatStockValue(row.onHand) + '</td>'
+          + '<td>' + formatStockValue(row.committed) + '</td>'
+          + '<td>' + formatStockValue(row.available) + '</td>'
+          + '<td>' + formatStockValue(row.wastage) + '</td>'
+          + '</tr>';
+      }).join('');
+
+      var printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toastAlert('error', 'Please allow pop-ups to print stock.');
+        return;
+      }
+
+      printWindow.document.write('<!doctype html><html><head><title>Warehouse Stock</title>'
+        + '<style>body{font-family:Arial,sans-serif;color:#24313f;margin:24px;}h2{font-size:20px;margin:0 0 14px;}table{width:100%;border-collapse:collapse;font-size:12px;}th,td{border:1px solid #dce3e9;padding:8px;text-align:left;}th{background:#f4f7fa;}td:nth-child(n+4),th:nth-child(n+4){text-align:right;}</style>'
+        + '</head><body><h2>Warehouse Stock - ' + todayForStock() + '</h2><table><thead><tr><th>Inventory Item</th><th>SKU</th><th>Barcode</th><th>On Hand</th><th>Committed</th><th>Available</th><th>Wastage</th></tr></thead><tbody>'
+        + tableRows
+        + '</tbody></table></body></html>');
+      printWindow.document.close();
+      printWindow.focus();
+      window.setTimeout(function() {
+        printWindow.print();
+      }, 250);
     }
 
     function renderPager(totalPages) {
@@ -1256,6 +1415,35 @@ foreach ($rows as $summaryRow) {
       $panel.toggleClass('is-open', isOpen);
       $(this).attr('aria-expanded', isOpen ? 'true' : 'false');
       $(this).find('i').toggleClass('fa-angle-up', !isOpen).toggleClass('fa-angle-down', isOpen);
+    });
+
+    $(document).on('click', '#warehouse-export-toggle', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var $wrap = $('#warehouse-export-wrap');
+      var isOpen = !$wrap.hasClass('is-open');
+      $wrap.toggleClass('is-open', isOpen);
+      $(this).attr('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    $(document).on('click', '#warehouse-export-menu', function(e) {
+      e.stopPropagation();
+    });
+
+    $(document).on('click', function() {
+      closeWarehouseExportMenu();
+    });
+
+    $(document).on('click', '#warehouse-print-stock', function(e) {
+      e.preventDefault();
+      closeWarehouseExportMenu();
+      printWarehouseStock();
+    });
+
+    $(document).on('click', '#warehouse-export-csv', function(e) {
+      e.preventDefault();
+      closeWarehouseExportMenu();
+      exportWarehouseCsv();
     });
 
     $(document).on('click', '.warehouse-page-btn', function() {

@@ -1,258 +1,889 @@
 <?php
 use App\Helpers\Helper;
-$controllerRoute      = $module['controller_route'];
-$current_url          = url()->current();
+
+$current_url = url()->current();
+$escape = function ($value) {
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+};
+$number = function ($value) {
+    return number_format((float) $value, 0);
+};
+
+$totalItems = count($rows);
+$totalWarehouseStock = 0;
+$totalShopStock = 0;
+foreach ($rows as $summaryRow) {
+    $totalWarehouseStock += (int) $summaryRow->warehouse_stock;
+    $totalShopStock += (int) $summaryRow->shop_stock;
+}
 ?>
-<div class="container-xxl flex-grow-1 container-p-y">
-  <h4 class="py-3 mb-4">
-    <span class="text-muted fw-light"><a href="<?=url('admin/dashboard')?>">Dashboard</a> /</span> <?=$page_header?>
-  </h4>
-  <div class="row">
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">
-            <input type="text" class="form-control" placeholder="Search by product name, SKU, barcode, brand, supplier, size" id="myInput">
-          </h5>
-          <div class="dt-responsive table-responsive">
-            <table class="table table-bordered nowrap">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">SKU</th>
-                  <th scope="col">Barcode</th>
-                  <th scope="col">Brand</th>
-                  <th scope="col">Supplier</th>
-                  <th scope="col">Size</th>
-                  <th scope="col">Shop Stock</th>
-                  <th scope="col">Warehouse Stock</th>
-                  <th scope="col">Action</th>
-                </tr>
-              </thead>
-              <tbody id="item-list">
-                <?php if(count($rows)>0){ $sl=1; foreach($rows as $row){?>
-                  <tr class="productList" id="product-row-<?=$row->id?>">
-                    <th scope="row"><?=$sl++?></th>
-                    <td><?=$row->name?></td>
-                    <td><?=$row->sku?></td>
-                    <td><?=$row->barcode?></td>
-                    <td><?=$row->brand_name?></td>
-                    <td><?=$row->supplier_name?></td>
-                    <td><?=$row->size_name?> <?=$row->unit_name?></td>
-                    <td><span id="shop-stock-<?=$row->id?>"><?=$row->shop_stock?></span></td>
-                    <td><span id="warehouse-stock-<?=$row->id?>"><?=$row->warehouse_stock?></span></td>
-                    <td>
-                      <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="openStockINModal(<?=$row->id?>, '<?=$row->name?>', '<?=$row->sku?>');"><i class="fa fa-arrow-up"></i>&nbsp;IN</a>
-                      <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="openStockOUTModal(<?=$row->id?>, '<?=$row->name?>', '<?=$row->sku?>');"><i class="fa fa-arrow-down"></i>&nbsp;OUT</a>
-                      <a href="<?=url('admin/stock/warehouse-stock-history/' . Helper::encoded($row->id))?>" target="_blank" class="btn btn-info btn-sm"><i class="fa fa-history"></i>&nbsp;WH HISTORY</a>
-                      <a href="<?=url('admin/stock/shop-stock-history/' . Helper::encoded($row->id))?>" target="_blank" class="btn btn-info btn-sm"><i class="fa fa-history"></i>&nbsp;SHOP HISTORY</a>
-                    </td>
-                  </tr>
-                <?php } }?>
-              </tbody>
-            </table>
-          </div>
-        </div>
+<style type="text/css">
+  .warehouse-inventory-page {
+    color: #24313f;
+  }
+  .warehouse-inventory-page .page-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .warehouse-inventory-page h4 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+    color: #2b3137;
+  }
+  .warehouse-page-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 22px;
+    color: #2f80b7;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .warehouse-page-actions a,
+  .warehouse-page-actions button {
+    border: 0;
+    background: transparent;
+    color: #2f80b7;
+    padding: 0;
+    font: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .warehouse-reference-shell {
+    background: #fff;
+    border: 1px solid #dce3e9;
+    box-shadow: 0 2px 8px rgba(36, 49, 63, .08);
+  }
+  .warehouse-filter-row {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) auto;
+    border-bottom: 1px solid #dce3e9;
+  }
+  .warehouse-search-field {
+    position: relative;
+    min-height: 38px;
+  }
+  .warehouse-search-field i {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    color: #6f7d89;
+    font-size: 13px;
+    pointer-events: none;
+  }
+  .warehouse-search-field input {
+    width: 100%;
+    height: 38px;
+    border: 0;
+    border-radius: 0;
+    color: #3b4650;
+    font-size: 13px;
+    padding: 0 14px 0 39px;
+    outline: 0;
+  }
+  .warehouse-search-field input::placeholder {
+    color: #8b97a3;
+  }
+  .warehouse-more-filter {
+    min-width: 126px;
+    border: 0;
+    border-left: 1px solid #dce3e9;
+    background: #fff;
+    color: #2f80b7;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 0 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 38px;
+  }
+  .warehouse-filter-panel {
+    display: none;
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e8edf2;
+    background: #fbfcfd;
+  }
+  .warehouse-filter-panel.is-open {
+    display: grid;
+  }
+  .warehouse-filter-panel .form-control,
+  .warehouse-filter-panel .form-select {
+    min-height: 36px;
+    border-radius: 2px;
+    border-color: #cfd8df;
+    font-size: 12px;
+  }
+  .warehouse-summary-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(150px, 1fr));
+    gap: 0;
+    border-bottom: 1px solid #e8edf2;
+    background: #fbfcfd;
+  }
+  .warehouse-summary-item {
+    padding: 12px 14px;
+    border-right: 1px solid #e8edf2;
+  }
+  .warehouse-summary-item:last-child {
+    border-right: 0;
+  }
+  .warehouse-summary-item span {
+    display: block;
+    color: #7b8793;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .warehouse-summary-item strong {
+    display: block;
+    color: #24313f;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .warehouse-tab-row {
+    padding: 42px 14px 18px;
+  }
+  .warehouse-tab {
+    border: 0;
+    background: transparent;
+    color: #4d5863;
+    font-size: 13px;
+    padding: 0 12px 10px;
+    border-bottom: 1px solid #22b8b0;
+  }
+  .warehouse-table-wrap {
+    overflow-x: auto;
+  }
+  .warehouse-inventory-table {
+    width: 100%;
+    min-width: 1080px;
+    margin: 0;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+  .warehouse-inventory-table th {
+    border-top: 1px solid #e2e7ec;
+    border-bottom: 1px solid #e2e7ec;
+    color: #232b34;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 12px 8px;
+    background: #fff;
+    vertical-align: middle;
+  }
+  .warehouse-inventory-table th .sort-hint {
+    float: right;
+    color: #c4ccd3;
+    font-size: 11px;
+    margin-top: 2px;
+  }
+  .warehouse-inventory-table td {
+    border-bottom: 1px solid #e7ebef;
+    color: #1f2a33;
+    font-size: 12px;
+    padding: 10px 8px;
+    vertical-align: middle;
+    min-height: 54px;
+  }
+  .warehouse-col-item {
+    width: 24%;
+  }
+  .warehouse-col-stock,
+  .warehouse-col-committed,
+  .warehouse-col-available {
+    width: 11%;
+  }
+  .warehouse-col-edit {
+    width: 22%;
+  }
+  .warehouse-col-location {
+    width: 12%;
+  }
+  .warehouse-col-awaiting {
+    width: 9%;
+  }
+  .warehouse-col-history {
+    width: 5%;
+  }
+  .inventory-item-name {
+    color: #2d7fab;
+    font-weight: 500;
+    line-height: 1.35;
+    display: inline-block;
+  }
+  .inventory-item-meta {
+    display: block;
+    color: #8a95a1;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+  .stock-cell,
+  .awaiting-cell,
+  .location-cell,
+  .history-cell {
+    text-align: center;
+  }
+  .stock-on-hand {
+    background: #edfafd;
+  }
+  .stock-committed {
+    background: #fff8ed;
+  }
+  .stock-available {
+    background: #f2fbe9;
+  }
+  .awaiting-cell {
+    background: #f2fbe9;
+    color: #2d7fab;
+  }
+  .stock-cell span,
+  .awaiting-cell span {
+    display: inline-block;
+    min-width: 34px;
+    font-weight: 500;
+  }
+  .inventory-edit-control {
+    display: grid;
+    grid-template-columns: auto minmax(64px, 1fr) auto;
+    align-items: center;
+    gap: 0;
+    max-width: 216px;
+  }
+  .stock-mode-group {
+    display: inline-flex;
+    align-items: center;
+  }
+  .stock-mode-btn,
+  .stock-save-btn {
+    height: 28px;
+    border: 1px solid #c5ccd2;
+    background: #fff;
+    color: #2c353d;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 0 12px;
+    border-radius: 0;
+  }
+  .stock-mode-btn:first-child {
+    background: #e7e7e7;
+  }
+  .stock-mode-btn.active {
+    background: #d8d8d8;
+    border-color: #aeb7bf;
+  }
+  .stock-mode-btn + .stock-mode-btn {
+    border-left: 0;
+  }
+  .stock-qty-input {
+    height: 28px;
+    min-width: 64px;
+    border: 1px solid #cfd6dc;
+    border-left: 0;
+    border-right: 0;
+    text-align: center;
+    color: #26313b;
+    outline: 0;
+    font-size: 12px;
+    padding: 0 6px;
+  }
+  .stock-save-btn {
+    min-width: 49px;
+    color: #a0a9b1;
+    background: #eef1f4;
+  }
+  .stock-save-btn:not(:disabled) {
+    color: #fff;
+    background: #2f80b7;
+    border-color: #2f80b7;
+  }
+  .stock-save-btn.is-saving {
+    opacity: .75;
+  }
+  .location-cell strong,
+  .location-cell small {
+    display: block;
+    line-height: 1.35;
+  }
+  .location-cell strong {
+    color: #1f2a33;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .location-cell small {
+    color: #7b8793;
+    font-size: 11px;
+  }
+  .history-cell {
+    white-space: nowrap;
+  }
+  .history-link {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #2d7fab;
+    border: 0;
+    background: transparent;
+    border-radius: 50%;
+    margin: 0 1px;
+  }
+  .history-link:hover {
+    background: #eaf4fa;
+    color: #0e5f8c;
+  }
+  .warehouse-row-success td {
+    animation: warehouseSuccess 2.8s ease forwards;
+  }
+  .warehouse-row-error td {
+    animation: warehouseError 2.8s ease forwards;
+  }
+  @keyframes warehouseSuccess {
+    0% { box-shadow: inset 0 0 0 999px rgba(34, 184, 176, .14); }
+    100% { box-shadow: inset 0 0 0 999px rgba(34, 184, 176, 0); }
+  }
+  @keyframes warehouseError {
+    0% { box-shadow: inset 0 0 0 999px rgba(220, 53, 69, .13); }
+    100% { box-shadow: inset 0 0 0 999px rgba(220, 53, 69, 0); }
+  }
+  .warehouse-pagination-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px 18px;
+    color: #8a95a1;
+    font-size: 12px;
+  }
+  .warehouse-page-size {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .warehouse-page-size select {
+    width: 54px;
+    height: 28px;
+    border: 1px solid #cfd8df;
+    border-radius: 2px;
+    color: #1f2a33;
+    font-size: 12px;
+    padding: 0 7px;
+  }
+  .warehouse-pager {
+    display: inline-flex;
+    align-items: center;
+  }
+  .warehouse-page-btn {
+    min-width: 28px;
+    height: 28px;
+    border: 1px solid #d9e0e6;
+    border-left: 0;
+    background: #fff;
+    color: #61707e;
+    font-size: 12px;
+  }
+  .warehouse-page-btn:first-child {
+    border-left: 1px solid #d9e0e6;
+  }
+  .warehouse-page-btn.active {
+    background: #22384d;
+    border-color: #22384d;
+    color: #fff;
+  }
+  .warehouse-page-btn:disabled {
+    color: #b6bec7;
+    background: #f8fafb;
+  }
+  .warehouse-formula {
+    text-align: center;
+    padding: 0 16px 24px;
+    color: #1f2a33;
+    font-size: 12px;
+  }
+  .warehouse-formula span {
+    display: inline-block;
+    margin: 0 6px;
+  }
+  .warehouse-empty-row td {
+    text-align: center;
+    padding: 30px 14px;
+    color: #7b8793;
+  }
+  @media (max-width: 991px) {
+    .warehouse-summary-strip,
+    .warehouse-filter-panel {
+      grid-template-columns: 1fr;
+    }
+    .warehouse-summary-item {
+      border-right: 0;
+      border-bottom: 1px solid #e8edf2;
+    }
+    .warehouse-summary-item:last-child {
+      border-bottom: 0;
+    }
+  }
+  @media (max-width: 767px) {
+    .warehouse-inventory-page .page-heading-row,
+    .warehouse-pagination-row {
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .warehouse-filter-row {
+      grid-template-columns: 1fr;
+    }
+    .warehouse-more-filter {
+      border-left: 0;
+      border-top: 1px solid #dce3e9;
+      justify-content: flex-start;
+    }
+    .warehouse-page-actions {
+      justify-content: space-between;
+      gap: 12px;
+    }
+  }
+</style>
+
+<div class="container-xxl flex-grow-1 container-p-y warehouse-inventory-page">
+  <div class="page-heading-row">
+    <div>
+      <h4>My inventory</h4>
+    </div>
+    <div class="warehouse-page-actions">
+      <a href="<?=url('admin/dashboard')?>" title="Dashboard"><i class="fa fa-graduation-cap"></i></a>
+      <button type="button" title="Settings"><i class="fa fa-gear"></i></button>
+      <button type="button" title="Export">EXPORT <i class="fa fa-angle-down"></i></button>
+    </div>
+  </div>
+
+  <div class="warehouse-reference-shell">
+    <div class="warehouse-filter-row">
+      <div class="warehouse-search-field">
+        <i class="fa fa-filter"></i>
+        <input type="text" placeholder="Filter by product name, brand, product type, supplier, season, tag..." id="myInput" autocomplete="off">
       </div>
+      <button type="button" class="warehouse-more-filter" id="warehouse-more-filter" aria-expanded="false">
+        MORE FILTERS <i class="fa fa-angle-up"></i>
+      </button>
+    </div>
+
+    <div class="warehouse-filter-panel" id="warehouse-filter-panel">
+      <select class="form-select" id="warehouse-stock-filter" aria-label="Filter by stock level">
+        <option value="all" selected>All stock levels</option>
+        <option value="in_stock">Available stock</option>
+        <option value="low_stock">Low stock (1-5)</option>
+        <option value="out_stock">No warehouse stock</option>
+      </select>
+      <input type="text" class="form-control" id="warehouse-brand-filter" placeholder="Brand">
+      <input type="text" class="form-control" id="warehouse-supplier-filter" placeholder="Supplier">
+    </div>
+
+    <div class="warehouse-summary-strip">
+      <div class="warehouse-summary-item">
+        <span>Inventory items</span>
+        <strong><?=number_format($totalItems)?></strong>
+      </div>
+      <div class="warehouse-summary-item">
+        <span>Warehouse available</span>
+        <strong id="warehouse-total-available"><?=$number($totalWarehouseStock)?></strong>
+      </div>
+      <div class="warehouse-summary-item">
+        <span>Shop stock</span>
+        <strong id="warehouse-total-shop"><?=$number($totalShopStock)?></strong>
+      </div>
+    </div>
+
+    <div class="warehouse-tab-row">
+      <button type="button" class="warehouse-tab">All</button>
+    </div>
+
+    <div class="warehouse-table-wrap">
+      <table class="warehouse-inventory-table">
+        <colgroup>
+          <col class="warehouse-col-item">
+          <col class="warehouse-col-stock">
+          <col class="warehouse-col-committed">
+          <col class="warehouse-col-available">
+          <col class="warehouse-col-edit">
+          <col class="warehouse-col-location">
+          <col class="warehouse-col-awaiting">
+          <col class="warehouse-col-history">
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">Inventory items <i class="fa fa-sort sort-hint"></i></th>
+            <th scope="col">On hand <i class="fa fa-sort sort-hint"></i></th>
+            <th scope="col">Committed <i class="fa fa-sort sort-hint"></i></th>
+            <th scope="col">Available <i class="fa fa-sort sort-hint"></i></th>
+            <th scope="col">Edit available qty</th>
+            <th scope="col">Location/s</th>
+            <th scope="col">Awaiting <i class="fa fa-sort sort-hint"></i></th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody id="item-list">
+          <?php if ($totalItems > 0) { foreach ($rows as $row) {
+              $warehouseStock = (int) $row->warehouse_stock;
+              $shopStock = (int) $row->shop_stock;
+              $onHandStock = $warehouseStock + $shopStock;
+              $searchText = strtolower(trim($row->name . ' ' . $row->sku . ' ' . $row->barcode . ' ' . $row->brand_name . ' ' . $row->supplier_name . ' ' . $row->size_name . ' ' . $row->unit_name));
+          ?>
+            <tr class="warehouse-product-row productList"
+                id="product-row-<?=$row->id?>"
+                data-product-id="<?=$row->id?>"
+                data-search="<?=$escape($searchText)?>"
+                data-brand="<?=$escape(strtolower($row->brand_name))?>"
+                data-supplier="<?=$escape(strtolower($row->supplier_name))?>"
+                data-warehouse-stock="<?=$warehouseStock?>"
+                data-shop-stock="<?=$shopStock?>">
+              <td>
+                <span class="inventory-item-name"><?=$escape($row->name)?></span>
+                <span class="inventory-item-meta">SKU: <?=$escape($row->sku)?></span>
+                <?php if ($row->barcode != '') { ?>
+                  <span class="inventory-item-meta">Barcode: <?=$escape($row->barcode)?></span>
+                <?php } ?>
+              </td>
+              <td class="stock-cell stock-on-hand"><span id="on-hand-<?=$row->id?>"><?=$number($onHandStock)?></span></td>
+              <td class="stock-cell stock-committed"><span id="shop-stock-<?=$row->id?>"><?=$number($shopStock)?></span></td>
+              <td class="stock-cell stock-available"><span id="warehouse-stock-<?=$row->id?>"><?=$number($warehouseStock)?></span></td>
+              <td>
+                <div class="inventory-edit-control"
+                     data-product-id="<?=$row->id?>"
+                     data-product-name="<?=$escape($row->name)?>"
+                     data-product-sku="<?=$escape($row->sku)?>">
+                  <div class="stock-mode-group">
+                    <button type="button" class="stock-mode-btn js-stock-mode active" data-mode="ADD" title="Add warehouse stock">ADD</button>
+                    <button type="button" class="stock-mode-btn js-stock-mode" data-mode="SET" title="Set warehouse available quantity">SET</button>
+                  </div>
+                  <input type="number" class="stock-qty-input js-stock-qty" min="1" step="1" inputmode="numeric" aria-label="Stock quantity">
+                  <button type="button" class="stock-save-btn js-stock-save" disabled>SAVE</button>
+                </div>
+              </td>
+              <td class="location-cell">
+                <strong>Warehouse</strong>
+                <small>Shop: <span id="location-shop-<?=$row->id?>"><?=$number($shopStock)?></span></small>
+              </td>
+              <td class="awaiting-cell"><span>0</span></td>
+              <td class="history-cell">
+                <a href="<?=url('admin/stock/warehouse-stock-history/' . Helper::encoded($row->id))?>" target="_blank" class="history-link" title="Warehouse history"><i class="fa fa-clock"></i></a>
+                <a href="<?=url('admin/stock/shop-stock-history/' . Helper::encoded($row->id))?>" target="_blank" class="history-link" title="Shop history"><i class="fa fa-shop"></i></a>
+              </td>
+            </tr>
+          <?php } } ?>
+          <tr class="warehouse-empty-row" id="warehouse-empty-row" style="display: none;">
+            <td colspan="8">No inventory items found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warehouse-pagination-row">
+      <label class="warehouse-page-size">
+        <select id="warehouse-page-size">
+          <option value="8" selected>8</option>
+          <option value="16">16</option>
+          <option value="32">32</option>
+          <option value="64">64</option>
+        </select>
+        <span>per page</span>
+      </label>
+      <div class="warehouse-range" id="warehouse-range">0 of 0</div>
+      <div class="warehouse-pager" id="warehouse-pager"></div>
+    </div>
+
+    <div class="warehouse-formula">
+      On hand <span>-</span> Committed <span>=</span> Available inventory <i class="fa fa-circle-info"></i>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="open-stock-in-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-  
-</div>
-<div class="modal fade" id="open-stock-out-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-  
-</div>
 <script type="text/javascript">
-  $(document).ready(function() {
-    $("#myInput").on("input", function() {
-      var value = $(this).val().toLowerCase();
-      //alert(value);
-      $("#item-list .productList").filter(function() {
-        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+  (function($) {
+    var currentPage = 1;
+    var baseUrl = <?=json_encode(url('/'))?>;
+    var projectKey = <?=json_encode(env('PROJECT_KEY'))?>;
+
+    function parseStockValue(value) {
+      var number = parseInt(value, 10);
+      return isNaN(number) ? 0 : number;
+    }
+
+    function formatStockValue(value) {
+      return parseStockValue(value).toLocaleString('en-US');
+    }
+
+    function todayForStock() {
+      var date = new Date();
+      var month = String(date.getMonth() + 1).padStart(2, '0');
+      var day = String(date.getDate()).padStart(2, '0');
+      return date.getFullYear() + '-' + month + '-' + day;
+    }
+
+    function rowMatchesFilters($row) {
+      var keyword = ($('#myInput').val() || '').toLowerCase().trim();
+      var brand = ($('#warehouse-brand-filter').val() || '').toLowerCase().trim();
+      var supplier = ($('#warehouse-supplier-filter').val() || '').toLowerCase().trim();
+      var stockFilter = $('#warehouse-stock-filter').val() || 'all';
+      var warehouseStock = parseStockValue($row.attr('data-warehouse-stock'));
+
+      if (keyword && String($row.attr('data-search') || '').indexOf(keyword) === -1) {
+        return false;
+      }
+      if (brand && String($row.attr('data-brand') || '').indexOf(brand) === -1) {
+        return false;
+      }
+      if (supplier && String($row.attr('data-supplier') || '').indexOf(supplier) === -1) {
+        return false;
+      }
+      if (stockFilter === 'in_stock' && warehouseStock <= 0) {
+        return false;
+      }
+      if (stockFilter === 'low_stock' && (warehouseStock <= 0 || warehouseStock > 5)) {
+        return false;
+      }
+      if (stockFilter === 'out_stock' && warehouseStock > 0) {
+        return false;
+      }
+
+      return true;
+    }
+
+    function renderPager(totalPages) {
+      var pagerHtml = '';
+      var startPage = Math.max(1, currentPage - 2);
+      var endPage = Math.min(totalPages, startPage + 4);
+      startPage = Math.max(1, endPage - 4);
+
+      function pageButton(page, label, disabled, active) {
+        var classes = 'warehouse-page-btn' + (active ? ' active' : '');
+        return '<button type="button" class="' + classes + '" data-page="' + page + '"' + (disabled ? ' disabled' : '') + '>' + label + '</button>';
+      }
+
+      pagerHtml += pageButton(1, '&laquo;', currentPage === 1, false);
+      pagerHtml += pageButton(Math.max(1, currentPage - 1), '&lsaquo;', currentPage === 1, false);
+      for (var page = startPage; page <= endPage; page++) {
+        pagerHtml += pageButton(page, page, false, page === currentPage);
+      }
+      pagerHtml += pageButton(Math.min(totalPages, currentPage + 1), '&rsaquo;', currentPage === totalPages, false);
+      pagerHtml += pageButton(totalPages, '&raquo;', currentPage === totalPages, false);
+
+      $('#warehouse-pager').html(pagerHtml);
+    }
+
+    function renderWarehouseRows() {
+      var $rows = $('#item-list .warehouse-product-row');
+      var pageSize = parseStockValue($('#warehouse-page-size').val()) || 8;
+      var $matchedRows = $rows.filter(function() {
+        return rowMatchesFilters($(this));
       });
-    });
-  });
-  function refreshStockColumns(productID, responseData) {
-    var warehouseClosingQty = responseData.warehouse_closing_qty;
-    if (typeof warehouseClosingQty === 'undefined') {
-      warehouseClosingQty = responseData.closing_qty;
-    }
-    if (typeof warehouseClosingQty !== 'undefined') {
-      $('#warehouse-stock-' + productID).text(warehouseClosingQty);
-    }
-    if (typeof responseData.shop_closing_qty !== 'undefined') {
-      $('#shop-stock-' + productID).text(responseData.shop_closing_qty);
-    }
-  }
-  function openStockINModal(productID, productName, productSKU){
-    var modalHTML = '';
-    modalHTML = `<div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title" id="xCloseModalLabel">Stock IN : ${productName} (${productSKU})</h5>
-                        <!-- X Close Button -->
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><i class="fa fa-times"></i></button>
-                      </div>
-                      <div class="modal-body">
-                        <form method="POST" action="" id="stockINForm">
-                          @csrf
-                          <input type="hidden" class="form-control" name="product_id" id="product_id" value="${productID}" required>
-                          <input type="hidden" class="form-control" name="txn_type" id="txn_type" value="IN" required>
-                          <input type="hidden" class="form-control" name="key" id="key" value="db9effa4e748d16e72654ef8bac2a947be6e2222" required>
-                          <div class="row">
-                            <div class="col-md-6 mb-3">
-                              <label for="stock_date">Stock Date</label>
-                              <input type="date" class="form-control" name="stock_date" id="stock_date" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                              <label for="txn_qty">Stock Qty</label>
-                              <input type="number" class="form-control" name="txn_qty" id="txn_qty" min="1" required>
-                            </div>
-                            <div class="col-md-12 mb-3">
-                              <label for="note">Note</label>
-                              <textarea class="form-control" name="note" id="note"></textarea>
-                            </div>
-                            <div class="col-md-4">&nbsp;</div>
-                            <div class="col-md-4">
-                              <button type="submit" class="btn btn-success btn-sm">SUBMIT</button>
-                            </div>
-                            <div class="col-md-4">&nbsp;</div>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>`;
-    $('#open-stock-in-modal').html(modalHTML).modal('show');
+      var totalRows = $matchedRows.length;
+      var totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
 
+      if (currentPage > totalPages) {
+        currentPage = totalPages;
+      }
 
-    // Attach AJAX submit handler
-    $('#stockINForm').on('submit', function(e) {
-      e.preventDefault();
+      var startIndex = (currentPage - 1) * pageSize;
+      var endIndex = startIndex + pageSize;
 
-      let formData = $(this).serialize();
-      var url = '<?=url('/')?>';
+      $rows.hide();
+      $matchedRows.slice(startIndex, endIndex).show();
+      $('#warehouse-empty-row').toggle(totalRows === 0);
+
+      if (totalRows === 0) {
+        $('#warehouse-range').text('0 of 0');
+      } else {
+        $('#warehouse-range').text((startIndex + 1) + ' - ' + Math.min(endIndex, totalRows) + ' of ' + totalRows);
+      }
+
+      renderPager(totalPages);
+    }
+
+    function updateSaveState($control) {
+      var rawQuantity = String($control.find('.js-stock-qty').val() || '').trim();
+      var quantity = parseStockValue(rawQuantity);
+      var mode = $control.find('.js-stock-mode.active').data('mode') || 'ADD';
+      var canSave = rawQuantity !== '' && (mode === 'SET' ? quantity >= 0 : quantity > 0);
+      $control.find('.js-stock-save').prop('disabled', !canSave);
+    }
+
+    function syncModeInput($control) {
+      var mode = $control.find('.js-stock-mode.active').data('mode') || 'ADD';
+      $control.find('.js-stock-qty').attr('min', mode === 'SET' ? '0' : '1');
+      updateSaveState($control);
+    }
+
+    function setInlineControlBusy($control, isBusy) {
+      $control.toggleClass('is-busy', isBusy);
+      $control.find('button, input').prop('disabled', isBusy);
+      $control.find('.js-stock-save').toggleClass('is-saving', isBusy).text(isBusy ? '...' : 'SAVE');
+      if (!isBusy) {
+        updateSaveState($control);
+      }
+    }
+
+    function highlightRow(productID, statusClass) {
+      var $row = $('#product-row-' + productID);
+      $row.removeClass('warehouse-row-success warehouse-row-error');
+      window.setTimeout(function() {
+        $row.addClass(statusClass);
+      }, 10);
+      window.setTimeout(function() {
+        $row.removeClass(statusClass);
+      }, 3000);
+    }
+
+    function updateTotals() {
+      var totalWarehouse = 0;
+      var totalShop = 0;
+
+      $('#item-list .warehouse-product-row').each(function() {
+        var $row = $(this);
+        totalWarehouse += parseStockValue($row.attr('data-warehouse-stock'));
+        totalShop += parseStockValue($row.attr('data-shop-stock'));
+      });
+
+      $('#warehouse-total-available').text(formatStockValue(totalWarehouse));
+      $('#warehouse-total-shop').text(formatStockValue(totalShop));
+    }
+
+    function refreshStockColumns(productID, responseData) {
+      var $row = $('#product-row-' + productID);
+      var warehouseClosingQty = responseData.warehouse_closing_qty;
+      var shopClosingQty = responseData.shop_closing_qty;
+
+      if (typeof warehouseClosingQty === 'undefined') {
+        warehouseClosingQty = responseData.closing_qty;
+      }
+      if (typeof warehouseClosingQty !== 'undefined') {
+        $row.attr('data-warehouse-stock', parseStockValue(warehouseClosingQty));
+      }
+      if (typeof shopClosingQty !== 'undefined') {
+        $row.attr('data-shop-stock', parseStockValue(shopClosingQty));
+      }
+
+      var warehouseStock = parseStockValue($row.attr('data-warehouse-stock'));
+      var shopStock = parseStockValue($row.attr('data-shop-stock'));
+      var onHandStock = warehouseStock + shopStock;
+
+      $('#on-hand-' + productID).text(formatStockValue(onHandStock));
+      $('#warehouse-stock-' + productID).text(formatStockValue(warehouseStock));
+      $('#shop-stock-' + productID).text(formatStockValue(shopStock));
+      $('#location-shop-' + productID).text(formatStockValue(shopStock));
+      updateTotals();
+    }
+
+    function submitInlineWarehouseStock($control) {
+      var productID = $control.data('product-id');
+      var rawQuantity = String($control.find('.js-stock-qty').val() || '').trim();
+      var quantity = parseStockValue(rawQuantity);
+      var selectedMode = $control.find('.js-stock-mode.active').data('mode') || 'ADD';
+      var currentWarehouseStock = parseStockValue($('#product-row-' + productID).attr('data-warehouse-stock'));
+      var txnType = 'IN';
+      var note = 'Inline warehouse stock add';
+
+      if (rawQuantity === '' || (selectedMode === 'ADD' && quantity <= 0)) {
+        toastAlert('error', 'Please enter stock quantity.');
+        return;
+      }
+
+      if (selectedMode === 'SET') {
+        if (quantity === currentWarehouseStock) {
+          toastAlert('info', 'Warehouse stock already matches this quantity.');
+          return;
+        }
+
+        txnType = quantity > currentWarehouseStock ? 'IN' : 'OUT';
+        note = 'Inline warehouse stock set to ' + quantity;
+        quantity = Math.abs(quantity - currentWarehouseStock);
+      }
+
+      setInlineControlBusy($control, true);
+
       $.ajax({
-        url: url + '/admin/stock/manage-warehouse-stock', // 👈 Change this to your actual Laravel route URL
+        url: baseUrl + '/admin/stock/manage-warehouse-stock',
         type: 'POST',
-        data: formData,
+        data: {
+          _token: $('meta[name="csrf-token"]').attr('content'),
+          key: projectKey,
+          product_id: productID,
+          txn_type: txnType,
+          stock_date: todayForStock(),
+          txn_qty: quantity,
+          note: note
+        },
         headers: {
           'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         success: function(response) {
-          if(response.status){
-            // Handle success (e.g. show toast, reload data, close modal)
-            toastAlert("success", response.message);
-            $('#open-stock-in-modal').modal('hide');
+          if (response.status) {
+            toastAlert('success', response.message);
             refreshStockColumns(productID, response.data);
-
-            // Highlight the row
-            let rowID = '#product-row-' + productID; // assuming product_id is returned
-            $(rowID).css('background-color', '#e5d63745'); // light green
-
-            // Optional: Remove highlight after 2 seconds
-            setTimeout(function() {
-              $(rowID).css('background-color', '');
-            }, 3000);
+            $control.find('.js-stock-qty').val('');
+            highlightRow(productID, 'warehouse-row-success');
+            renderWarehouseRows();
           } else {
-            toastAlert("error", response.message);
+            toastAlert('error', response.message);
+            highlightRow(productID, 'warehouse-row-error');
           }
         },
-        error: function(xhr) {
-          // Handle error (e.g. show validation errors)
-          toastAlert("error", 'Error occurred. Please try again.');
+        error: function() {
+          toastAlert('error', 'Error occurred. Please try again.');
+          highlightRow(productID, 'warehouse-row-error');
+        },
+        complete: function() {
+          setInlineControlBusy($control, false);
         }
       });
+    }
+
+    $(document).ready(function() {
+      renderWarehouseRows();
     });
-  }
-  function openStockOUTModal(productID, productName, productSKU){
-    var modalHTML = '';
-    modalHTML = `<div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title" id="xCloseModalLabel">Stock OUT : ${productName} (${productSKU})</h5>
-                        <!-- X Close Button -->
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><i class="fa fa-times"></i></button>
-                      </div>
-                      <div class="modal-body">
-                        <form method="POST" action="" id="stockOUTForm">
-                          @csrf
-                          <input type="hidden" class="form-control" name="product_id" id="product_id" value="${productID}" required>
-                          <input type="hidden" class="form-control" name="txn_type" id="txn_type" value="OUT" required>
-                          <input type="hidden" class="form-control" name="key" id="key" value="db9effa4e748d16e72654ef8bac2a947be6e2222" required>
-                          <div class="row">
-                            <div class="col-md-6 mb-3">
-                              <label for="stock_date">Stock Date</label>
-                              <input type="date" class="form-control" name="stock_date" id="stock_date" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                              <label for="txn_qty">Stock Qty</label>
-                              <input type="number" class="form-control" name="txn_qty" id="txn_qty" min="1" required>
-                            </div>
-                            <div class="col-md-12 mb-3">
-                              <label for="note">Note</label>
-                              <textarea class="form-control" name="note" id="note"></textarea>
-                            </div>
-                            <div class="col-md-4">&nbsp;</div>
-                            <div class="col-md-4">
-                              <button type="submit" class="btn btn-success btn-sm">SUBMIT</button>
-                            </div>
-                            <div class="col-md-4">&nbsp;</div>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>`;
-    $('#open-stock-out-modal').html(modalHTML).modal('show');
 
-
-    // Attach AJAX submit handler
-    $('#stockOUTForm').on('submit', function(e) {
-      e.preventDefault();
-
-      let formData = $(this).serialize();
-      var url = '<?=url('/')?>';
-      $.ajax({
-        url: url + '/admin/stock/manage-warehouse-stock', // 👈 Change this to your actual Laravel route URL
-        type: 'POST',
-        data: formData,
-        headers: {
-          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-          if(response.status){
-            // Handle success (e.g. show toast, reload data, close modal)
-            toastAlert("success", response.message);
-            $('#open-stock-out-modal').modal('hide');
-            refreshStockColumns(productID, response.data);
-
-            // Highlight the row
-            let rowID = '#product-row-' + productID; // assuming product_id is returned
-            $(rowID).css('background-color', '#e5d63745'); // light green
-
-            // Optional: Remove highlight after 2 seconds
-            setTimeout(function() {
-              $(rowID).css('background-color', '');
-            }, 3000);
-          } else {
-            toastAlert("error", response.message);
-            // Highlight the row
-            let rowID = '#product-row-' + productID; // assuming product_id is returned
-            $(rowID).css('background-color', '#ff000029'); // light green
-
-            // Optional: Remove highlight after 2 seconds
-            setTimeout(function() {
-              $(rowID).css('background-color', '');
-            }, 3000);
-          }
-        },
-        error: function(xhr) {
-          // Handle error (e.g. show validation errors)
-          toastAlert("error", 'Error occurred. Please try again.');
-        }
-      });
+    $(document).on('input change', '#myInput, #warehouse-brand-filter, #warehouse-supplier-filter, #warehouse-stock-filter, #warehouse-page-size', function() {
+      currentPage = 1;
+      renderWarehouseRows();
     });
-  }
+
+    $(document).on('click', '#warehouse-more-filter', function() {
+      var $panel = $('#warehouse-filter-panel');
+      var isOpen = !$panel.hasClass('is-open');
+      $panel.toggleClass('is-open', isOpen);
+      $(this).attr('aria-expanded', isOpen ? 'true' : 'false');
+      $(this).find('i').toggleClass('fa-angle-up', !isOpen).toggleClass('fa-angle-down', isOpen);
+    });
+
+    $(document).on('click', '.warehouse-page-btn', function() {
+      var page = parseStockValue($(this).data('page'));
+      if (!page || $(this).prop('disabled')) {
+        return;
+      }
+      currentPage = page;
+      renderWarehouseRows();
+    });
+
+    $(document).on('click', '.js-stock-mode', function() {
+      var $control = $(this).closest('.inventory-edit-control');
+      $control.find('.js-stock-mode').removeClass('active');
+      $(this).addClass('active');
+      syncModeInput($control);
+    });
+
+    $(document).on('input', '.js-stock-qty', function() {
+      updateSaveState($(this).closest('.inventory-edit-control'));
+    });
+
+    $(document).on('click', '.js-stock-save', function() {
+      submitInlineWarehouseStock($(this).closest('.inventory-edit-control'));
+    });
+  })(jQuery);
 </script>

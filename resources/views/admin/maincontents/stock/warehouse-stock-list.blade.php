@@ -969,6 +969,58 @@ foreach ($rows as $summaryRow) {
       $('#return_stock_submit').text(isBusy ? '...' : 'RETURN');
     }
 
+    function showReturnStockModal() {
+      var modalElement = document.getElementById('return-stock-modal');
+      if (!modalElement) {
+        return;
+      }
+
+      if (window.bootstrap && window.bootstrap.Modal) {
+        window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+        return;
+      }
+
+      if ($.fn && typeof $.fn.modal === 'function') {
+        $('#return-stock-modal').modal('show');
+        return;
+      }
+
+      modalElement.style.display = 'block';
+      modalElement.removeAttribute('aria-hidden');
+      modalElement.setAttribute('aria-modal', 'true');
+      modalElement.classList.add('show');
+      document.body.classList.add('modal-open');
+      if (!document.querySelector('.modal-backdrop.stock-return-backdrop')) {
+        var backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show stock-return-backdrop';
+        document.body.appendChild(backdrop);
+      }
+    }
+
+    function hideReturnStockModal() {
+      var modalElement = document.getElementById('return-stock-modal');
+      if (!modalElement) {
+        return;
+      }
+
+      if (window.bootstrap && window.bootstrap.Modal) {
+        window.bootstrap.Modal.getOrCreateInstance(modalElement).hide();
+        return;
+      }
+
+      if ($.fn && typeof $.fn.modal === 'function') {
+        $('#return-stock-modal').modal('hide');
+        return;
+      }
+
+      modalElement.style.display = 'none';
+      modalElement.setAttribute('aria-hidden', 'true');
+      modalElement.removeAttribute('aria-modal');
+      modalElement.classList.remove('show');
+      document.body.classList.remove('modal-open');
+      $('.stock-return-backdrop').remove();
+    }
+
     function openReturnStockModal($button) {
       var productID = $button.data('product-id');
       var productName = String($button.data('product-name') || 'Product');
@@ -985,7 +1037,7 @@ foreach ($rows as $summaryRow) {
       $('#return_product_stock').text('Shop stock: ' + formatStockValue(shopStock));
       $('#return_txn_qty').attr('max', shopStock).val('');
       $('#return_note').val('');
-      $('#return-stock-modal').modal('show');
+      showReturnStockModal();
       window.setTimeout(function() {
         $('#return_txn_qty').focus();
       }, 300);
@@ -1032,7 +1084,7 @@ foreach ($rows as $summaryRow) {
           if (response.status) {
             toastAlert('success', response.message);
             refreshStockColumns(productID, response.data);
-            $('#return-stock-modal').modal('hide');
+            hideReturnStockModal();
             highlightRow(productID, 'warehouse-row-success');
             renderWarehouseRows();
           } else {
@@ -1155,8 +1207,13 @@ foreach ($rows as $summaryRow) {
       submitInlineWarehouseStock($(this).closest('.inventory-edit-control'));
     });
 
-    $(document).on('click', '.js-open-return-stock', function() {
+    $(document).on('click', '.js-open-return-stock', function(e) {
+      e.preventDefault();
       openReturnStockModal($(this));
+    });
+
+    $(document).on('click', '#return-stock-modal [data-bs-dismiss="modal"]', function() {
+      hideReturnStockModal();
     });
 
     $(document).on('submit', '#returnStockForm', function(e) {

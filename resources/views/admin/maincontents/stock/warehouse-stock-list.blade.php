@@ -12,9 +12,11 @@ $number = function ($value) {
 $totalItems = count($rows);
 $totalWarehouseStock = 0;
 $totalShopStock = 0;
+$totalWastageStock = 0;
 foreach ($rows as $summaryRow) {
     $totalWarehouseStock += (int) $summaryRow->warehouse_stock;
     $totalShopStock += (int) $summaryRow->shop_stock;
+    $totalWastageStock += (int) ($summaryRow->wastage_stock ?? 0);
 }
 ?>
 <style type="text/css">
@@ -129,7 +131,7 @@ foreach ($rows as $summaryRow) {
   }
   .warehouse-summary-strip {
     display: grid;
-    grid-template-columns: repeat(3, minmax(150px, 1fr));
+    grid-template-columns: repeat(4, minmax(130px, 1fr));
     gap: 0;
     border-bottom: 1px solid #e8edf2;
     background: #fbfcfd;
@@ -213,7 +215,7 @@ foreach ($rows as $summaryRow) {
   .warehouse-col-location {
     width: 15%;
   }
-  .warehouse-col-awaiting {
+  .warehouse-col-wastage {
     width: 7%;
   }
   .warehouse-col-history {
@@ -250,8 +252,14 @@ foreach ($rows as $summaryRow) {
     background: #f2fbe9;
     color: #2d7fab;
   }
+  .wastage-cell {
+    background: #fff1f1;
+    color: #c53030;
+    text-align: center;
+  }
   .stock-cell span,
-  .awaiting-cell span {
+  .awaiting-cell span,
+  .wastage-cell span {
     display: inline-block;
     min-width: 34px;
     font-weight: 500;
@@ -494,6 +502,22 @@ foreach ($rows as $summaryRow) {
   .stock-return-modal .modal-body {
     padding: 16px;
   }
+  .stock-return-modal .return-qty-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .stock-return-modal .return-calculation {
+    border: 1px solid #e8edf2;
+    background: #fbfcfd;
+    color: #4d5863;
+    font-size: 12px;
+    padding: 9px 10px;
+    margin-bottom: 14px;
+  }
+  .stock-return-modal .return-calculation strong {
+    color: #24313f;
+  }
   .stock-return-modal .return-product-meta {
     background: #fbfcfd;
     border: 1px solid #e8edf2;
@@ -553,7 +577,7 @@ foreach ($rows as $summaryRow) {
   @media (max-width: 991px) {
     .warehouse-summary-strip,
     .warehouse-filter-panel {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(130px, 1fr));
     }
     .warehouse-summary-item {
       border-right: 0;
@@ -580,6 +604,11 @@ foreach ($rows as $summaryRow) {
     .warehouse-page-actions {
       justify-content: space-between;
       gap: 12px;
+    }
+    .warehouse-summary-strip,
+    .warehouse-filter-panel,
+    .stock-return-modal .return-qty-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>
@@ -631,6 +660,10 @@ foreach ($rows as $summaryRow) {
         <span>Shop stock</span>
         <strong id="warehouse-total-shop"><?=$number($totalShopStock)?></strong>
       </div>
+      <div class="warehouse-summary-item">
+        <span>Wastage</span>
+        <strong id="warehouse-total-wastage"><?=$number($totalWastageStock)?></strong>
+      </div>
     </div>
 
     <div class="warehouse-tab-row">
@@ -646,7 +679,7 @@ foreach ($rows as $summaryRow) {
           <col class="warehouse-col-available">
           <col class="warehouse-col-edit">
           <col class="warehouse-col-location">
-          <col class="warehouse-col-awaiting">
+          <col class="warehouse-col-wastage">
           <col class="warehouse-col-history">
         </colgroup>
         <thead>
@@ -657,7 +690,7 @@ foreach ($rows as $summaryRow) {
             <th scope="col">Available <i class="fa fa-sort sort-hint"></i></th>
             <th scope="col">Edit available qty</th>
             <th scope="col">Location/s</th>
-            <th scope="col">Awaiting <i class="fa fa-sort sort-hint"></i></th>
+            <th scope="col">Wastage <i class="fa fa-sort sort-hint"></i></th>
             <th scope="col"></th>
           </tr>
         </thead>
@@ -665,6 +698,7 @@ foreach ($rows as $summaryRow) {
           <?php if ($totalItems > 0) { foreach ($rows as $row) {
               $warehouseStock = (int) $row->warehouse_stock;
               $shopStock = (int) $row->shop_stock;
+              $wastageStock = (int) ($row->wastage_stock ?? 0);
               $onHandStock = $warehouseStock + $shopStock;
               $searchText = strtolower(trim($row->name . ' ' . $row->sku . ' ' . $row->barcode . ' ' . $row->brand_name . ' ' . $row->supplier_name . ' ' . $row->size_name . ' ' . $row->unit_name));
           ?>
@@ -675,7 +709,8 @@ foreach ($rows as $summaryRow) {
                 data-brand="<?=$escape(strtolower($row->brand_name))?>"
                 data-supplier="<?=$escape(strtolower($row->supplier_name))?>"
                 data-warehouse-stock="<?=$warehouseStock?>"
-                data-shop-stock="<?=$shopStock?>">
+                data-shop-stock="<?=$shopStock?>"
+                data-wastage-stock="<?=$wastageStock?>">
               <td>
                 <span class="inventory-item-name"><?=$escape($row->name)?></span>
                 <span class="inventory-item-meta">SKU: <?=$escape($row->sku)?></span>
@@ -712,7 +747,7 @@ foreach ($rows as $summaryRow) {
                   <i class="fa fa-rotate-left"></i> RETURN
                 </button>
               </td>
-              <td class="awaiting-cell"><span>0</span></td>
+              <td class="wastage-cell"><span id="wastage-stock-<?=$row->id?>"><?=$number($wastageStock)?></span></td>
               <td class="history-cell">
                 <a href="<?=url('admin/stock/warehouse-stock-history/' . Helper::encoded($row->id))?>" target="_blank" class="history-link" title="Warehouse history"><i class="fa fa-clock"></i></a>
                 <a href="<?=url('admin/stock/shop-stock-history/' . Helper::encoded($row->id))?>" target="_blank" class="history-link" title="Shop history"><i class="fa fa-shop"></i></a>
@@ -766,9 +801,19 @@ foreach ($rows as $summaryRow) {
             <strong id="return_product_name">Product</strong>
             <span id="return_product_stock">Shop stock: 0</span>
           </div>
-          <div class="mb-3">
-            <label for="return_txn_qty">Return Qty</label>
-            <input type="number" class="form-control" id="return_txn_qty" name="txn_qty" min="1" step="1" inputmode="numeric" required>
+          <div class="return-qty-grid mb-3">
+            <div>
+              <label for="return_txn_qty">Return Qty</label>
+              <input type="number" class="form-control" id="return_txn_qty" name="txn_qty" min="0" step="1" inputmode="numeric">
+            </div>
+            <div>
+              <label for="return_wastage_qty">Wastage Qty</label>
+              <input type="number" class="form-control" id="return_wastage_qty" name="wastage_qty" min="0" step="1" inputmode="numeric" value="0">
+            </div>
+          </div>
+          <div class="return-calculation">
+            Shop stock deduction: <strong id="return_total_deduct">0</strong>
+            <span class="text-muted">= Return <span id="return_calc_return">0</span> + Wastage <span id="return_calc_wastage">0</span></span>
           </div>
           <div class="mb-0">
             <label for="return_note">Return Note</label>
@@ -923,21 +968,25 @@ foreach ($rows as $summaryRow) {
     function updateTotals() {
       var totalWarehouse = 0;
       var totalShop = 0;
+      var totalWastage = 0;
 
       $('#item-list .warehouse-product-row').each(function() {
         var $row = $(this);
         totalWarehouse += parseStockValue($row.attr('data-warehouse-stock'));
         totalShop += parseStockValue($row.attr('data-shop-stock'));
+        totalWastage += parseStockValue($row.attr('data-wastage-stock'));
       });
 
       $('#warehouse-total-available').text(formatStockValue(totalWarehouse));
       $('#warehouse-total-shop').text(formatStockValue(totalShop));
+      $('#warehouse-total-wastage').text(formatStockValue(totalWastage));
     }
 
     function refreshStockColumns(productID, responseData) {
       var $row = $('#product-row-' + productID);
       var warehouseClosingQty = responseData.warehouse_closing_qty;
       var shopClosingQty = responseData.shop_closing_qty;
+      var wastageClosingQty = responseData.wastage_closing_qty;
 
       if (typeof warehouseClosingQty === 'undefined') {
         warehouseClosingQty = responseData.closing_qty;
@@ -948,15 +997,20 @@ foreach ($rows as $summaryRow) {
       if (typeof shopClosingQty !== 'undefined') {
         $row.attr('data-shop-stock', parseStockValue(shopClosingQty));
       }
+      if (typeof wastageClosingQty !== 'undefined') {
+        $row.attr('data-wastage-stock', parseStockValue(wastageClosingQty));
+      }
 
       var warehouseStock = parseStockValue($row.attr('data-warehouse-stock'));
       var shopStock = parseStockValue($row.attr('data-shop-stock'));
+      var wastageStock = parseStockValue($row.attr('data-wastage-stock'));
       var onHandStock = warehouseStock + shopStock;
 
       $('#on-hand-' + productID).text(formatStockValue(onHandStock));
       $('#warehouse-stock-' + productID).text(formatStockValue(warehouseStock));
       $('#shop-stock-' + productID).text(formatStockValue(shopStock));
       $('#location-shop-' + productID).text(formatStockValue(shopStock));
+      $('#wastage-stock-' + productID).text(formatStockValue(wastageStock));
       $row.find('.js-open-return-stock')
         .attr('data-shop-stock', shopStock)
         .data('shop-stock', shopStock)
@@ -967,6 +1021,22 @@ foreach ($rows as $summaryRow) {
     function setReturnModalBusy(isBusy) {
       $('#returnStockForm').find('button, input, textarea').prop('disabled', isBusy);
       $('#return_stock_submit').text(isBusy ? '...' : 'RETURN');
+      if (!isBusy) {
+        updateReturnCalculation();
+      }
+    }
+
+    function updateReturnCalculation() {
+      var productID = $('#return_product_id').val();
+      var shopStock = parseStockValue($('#product-row-' + productID).attr('data-shop-stock'));
+      var returnQty = parseStockValue($('#return_txn_qty').val());
+      var wastageQty = parseStockValue($('#return_wastage_qty').val());
+      var totalDeductQty = returnQty + wastageQty;
+
+      $('#return_total_deduct').text(formatStockValue(totalDeductQty));
+      $('#return_calc_return').text(formatStockValue(returnQty));
+      $('#return_calc_wastage').text(formatStockValue(wastageQty));
+      $('#return_stock_submit').prop('disabled', totalDeductQty <= 0 || totalDeductQty > shopStock);
     }
 
     function showReturnStockModal() {
@@ -1036,7 +1106,9 @@ foreach ($rows as $summaryRow) {
       $('#return_product_name').text(productName + (productSKU ? ' (' + productSKU + ')' : ''));
       $('#return_product_stock').text('Shop stock: ' + formatStockValue(shopStock));
       $('#return_txn_qty').attr('max', shopStock).val('');
+      $('#return_wastage_qty').attr('max', shopStock).val('0');
       $('#return_note').val('');
+      updateReturnCalculation();
       showReturnStockModal();
       window.setTimeout(function() {
         $('#return_txn_qty').focus();
@@ -1048,14 +1120,16 @@ foreach ($rows as $summaryRow) {
       var $row = $('#product-row-' + productID);
       var shopStock = parseStockValue($row.attr('data-shop-stock'));
       var quantity = parseStockValue($('#return_txn_qty').val());
+      var wastageQty = parseStockValue($('#return_wastage_qty').val());
+      var totalDeductQty = quantity + wastageQty;
       var note = String($('#return_note').val() || '').trim();
 
-      if (quantity <= 0) {
-        toastAlert('error', 'Please enter return quantity.');
+      if (totalDeductQty <= 0) {
+        toastAlert('error', 'Please enter return or wastage quantity.');
         return;
       }
-      if (quantity > shopStock) {
-        toastAlert('error', 'You have only ' + formatStockValue(shopStock) + ' shop stock to return.');
+      if (totalDeductQty > shopStock) {
+        toastAlert('error', 'You have only ' + formatStockValue(shopStock) + ' shop stock. Return plus wastage can\'t be more than available shop stock.');
         return;
       }
       if (!note) {
@@ -1075,6 +1149,7 @@ foreach ($rows as $summaryRow) {
           txn_type: 'SHOP_TO_WAREHOUSE',
           stock_date: todayForStock(),
           txn_qty: quantity,
+          wastage_qty: wastageQty,
           note: note
         },
         headers: {
@@ -1210,6 +1285,10 @@ foreach ($rows as $summaryRow) {
     $(document).on('click', '.js-open-return-stock', function(e) {
       e.preventDefault();
       openReturnStockModal($(this));
+    });
+
+    $(document).on('input', '#return_txn_qty, #return_wastage_qty', function() {
+      updateReturnCalculation();
     });
 
     $(document).on('click', '#return-stock-modal [data-bs-dismiss="modal"]', function() {

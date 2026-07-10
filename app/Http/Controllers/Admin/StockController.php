@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Schema;
 use App\Models\GeneralSetting;
 use App\Models\Product;
 use App\Models\Unit;
@@ -56,6 +57,9 @@ class StockController extends Controller
                 $txn_type       = $postData['txn_type'];
                 $stock_date     = $postData['stock_date'];
                 $txn_qty        = (int)$postData['txn_qty'];
+                $txn_qty        = (($txn_qty > 0)?$txn_qty:0);
+                $wastage_qty    = ((isset($postData['wastage_qty']))?(int)$postData['wastage_qty']:0);
+                $wastage_qty    = (($wastage_qty > 0)?$wastage_qty:0);
                 $note           = trim((string)$postData['note']);
                 $getProduct     = Product::where('id', $product_id)->first();
                 if($getProduct){
@@ -86,10 +90,11 @@ class StockController extends Controller
                         $apiExtraField                      = 'response_code';
                         $apiExtraData                       = http_response_code();
                     } elseif($txn_type == 'SHOP_TO_WAREHOUSE'){
-                        if($txn_qty <= 0){
+                        $shopDeductQty = ($txn_qty + $wastage_qty);
+                        if($shopDeductQty <= 0){
                             $apiStatus          = FALSE;
                             http_response_code(200);
-                            $apiMessage         = 'Please enter valid return stock quantity';
+                            $apiMessage         = 'Please enter return or wastage quantity';
                             $apiExtraField      = 'response_code';
                             $apiExtraData       = http_response_code();
                         } elseif($note == ''){
@@ -98,58 +103,72 @@ class StockController extends Controller
                             $apiMessage         = 'Please enter return note';
                             $apiExtraField      = 'response_code';
                             $apiExtraData       = http_response_code();
-                        } elseif($getProduct->shop_stock < $txn_qty){
+                        } elseif($getProduct->shop_stock < $shopDeductQty){
                             $apiStatus          = FALSE;
                             http_response_code(200);
-                            $apiMessage         = 'You have only '.$getProduct->shop_stock.' shop stock. Can\'t return more than '.$getProduct->shop_stock.'';
+                            $apiMessage         = 'You have only '.$getProduct->shop_stock.' shop stock. Return plus wastage can\'t be more than '.$getProduct->shop_stock.'';
                             $apiExtraField      = 'response_code';
                             $apiExtraData       = http_response_code();
                         } else {
                             try {
-                                DB::transaction(function() use ($product_id, $stock_date, $txn_qty, $note, &$apiResponse) {
+                                DB::transaction(function() use ($product_id, $stock_date, $txn_qty, $wastage_qty, $shopDeductQty, $note, &$apiResponse) {
                                     $product = Product::where('id', $product_id)->lockForUpdate()->first();
                                     if(!$product){
                                         throw new \Exception('Product not found');
                                     }
-                                    if($product->shop_stock < $txn_qty){
-                                        throw new \Exception('You have only '.$product->shop_stock.' shop stock. Can\'t return more than '.$product->shop_stock.'');
+                                    if($product->shop_stock < $shopDeductQty){
+                                        throw new \Exception('You have only '.$product->shop_stock.' shop stock. Return plus wastage can\'t be more than '.$product->shop_stock.'');
                                     }
 
                                     $stockDate = date_format(date_create($stock_date), "Y-m-d");
 
                                     $shopOpening = (int)$product->shop_stock;
-                                    $shopClosing = ($shopOpening - $txn_qty);
-                                    $shopStockId = ShopStock::insertGetId([
+                                    $shopClosing = ($shopOpening - $shopDeductQty);
+                                    $shopFields = [
                                         'txn_type'      => 'OUT',
                                         'stock_date'    => $stockDate,
                                         'product_id'    => $product_id,
                                         'opening_qty'   => $shopOpening,
-                                        'txn_qty'       => $txn_qty,
+                                        'txn_qty'       => $shopDeductQty,
                                         'closing_qty'   => $shopClosing,
                                         'note'          => $note,
-                                    ]);
+                                    ];
+                                    if(Schema::hasColumn('shop_stocks', 'wastage_qty')){
+                                        $shopFields['wastage_qty'] = $wastage_qty;
+                                    }
+                                    $shopStockId = ShopStock::insertGetId($shopFields);
 
                                     $warehouseOpening = (int)$product->warehouse_stock;
                                     $warehouseClosing = ($warehouseOpening + $txn_qty);
-                                    WarehouseStock::insert([
-                                        'txn_type'      => 'IN',
-                                        'stock_date'    => $stockDate,
-                                        'product_id'    => $product_id,
-                                        'opening_qty'   => $warehouseOpening,
-                                        'txn_qty'       => $txn_qty,
-                                        'closing_qty'   => $warehouseClosing,
-                                        'note'          => $note,
-                                    ]);
+                                    if($txn_qty > 0){
+                                        WarehouseStock::insert([
+                                            'txn_type'      => 'IN',
+                                            'stock_date'    => $stockDate,
+                                            'product_id'    => $product_id,
+                                            'opening_qty'   => $warehouseOpening,
+                                            'txn_qty'       => $txn_qty,
+                                            'closing_qty'   => $warehouseClosing,
+                                            'note'          => $note.(($wastage_qty > 0)?' | Wastage: '.$wastage_qty:''),
+                                        ]);
+                                    }
 
-                                    Product::where('id', $product_id)->update([
+                                    $wastageClosing = ((int)($product->wastage_stock ?? 0) + $wastage_qty);
+                                    $productFields = [
                                         'warehouse_stock' => $warehouseClosing,
                                         'shop_stock'      => $shopClosing,
-                                    ]);
+                                    ];
+                                    if(Schema::hasColumn('products', 'wastage_stock')){
+                                        $productFields['wastage_stock'] = $wastageClosing;
+                                    }
+                                    Product::where('id', $product_id)->update($productFields);
 
                                     $apiResponse = [
                                         'closing_qty'            => $warehouseClosing,
                                         'warehouse_closing_qty'  => $warehouseClosing,
                                         'shop_closing_qty'       => $shopClosing,
+                                        'wastage_closing_qty'    => $wastageClosing,
+                                        'wastage_qty'            => $wastage_qty,
+                                        'shop_deduct_qty'        => $shopDeductQty,
                                         'shop_stock_id'          => $shopStockId,
                                     ];
                                 });

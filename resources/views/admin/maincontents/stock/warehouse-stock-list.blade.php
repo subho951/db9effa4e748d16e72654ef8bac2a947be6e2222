@@ -20,6 +20,11 @@ foreach ($rows as $summaryRow) {
 <style type="text/css">
   .warehouse-inventory-page {
     color: #24313f;
+    max-width: none !important;
+    width: 100%;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    padding-top: 12px !important;
   }
   .warehouse-inventory-page .page-heading-row {
     display: flex;
@@ -161,11 +166,11 @@ foreach ($rows as $summaryRow) {
     border-bottom: 1px solid #22b8b0;
   }
   .warehouse-table-wrap {
-    overflow-x: auto;
+    overflow-x: hidden;
   }
   .warehouse-inventory-table {
     width: 100%;
-    min-width: 1140px;
+    min-width: 0;
     margin: 0;
     table-layout: fixed;
     border-collapse: collapse;
@@ -176,7 +181,7 @@ foreach ($rows as $summaryRow) {
     color: #232b34;
     font-size: 12px;
     font-weight: 700;
-    padding: 12px 8px;
+    padding: 10px 6px;
     background: #fff;
     vertical-align: middle;
   }
@@ -190,29 +195,29 @@ foreach ($rows as $summaryRow) {
     border-bottom: 1px solid #e7ebef;
     color: #1f2a33;
     font-size: 12px;
-    padding: 10px 8px;
+    padding: 9px 6px;
     vertical-align: middle;
     min-height: 54px;
   }
   .warehouse-col-item {
-    width: 24%;
+    width: 23%;
   }
   .warehouse-col-stock,
   .warehouse-col-committed,
   .warehouse-col-available {
-    width: 11%;
+    width: 10%;
   }
   .warehouse-col-edit {
-    width: 22%;
+    width: 18%;
   }
   .warehouse-col-location {
-    width: 13%;
+    width: 15%;
   }
   .warehouse-col-awaiting {
     width: 7%;
   }
   .warehouse-col-history {
-    width: 4%;
+    width: 7%;
   }
   .inventory-item-name {
     color: #2d7fab;
@@ -253,10 +258,10 @@ foreach ($rows as $summaryRow) {
   }
   .inventory-edit-control {
     display: grid;
-    grid-template-columns: auto minmax(64px, 1fr) auto;
+    grid-template-columns: auto minmax(44px, 1fr) auto;
     align-items: center;
     gap: 0;
-    max-width: 216px;
+    max-width: 198px;
   }
   .stock-mode-group {
     display: inline-flex;
@@ -270,7 +275,7 @@ foreach ($rows as $summaryRow) {
     color: #2c353d;
     font-size: 11px;
     font-weight: 700;
-    padding: 0 12px;
+    padding: 0 9px;
     border-radius: 0;
   }
   .stock-mode-btn:first-child {
@@ -285,7 +290,7 @@ foreach ($rows as $summaryRow) {
   }
   .stock-qty-input {
     height: 28px;
-    min-width: 64px;
+    min-width: 44px;
     border: 1px solid #cfd6dc;
     border-left: 0;
     border-right: 0;
@@ -296,7 +301,7 @@ foreach ($rows as $summaryRow) {
     padding: 0 6px;
   }
   .stock-save-btn {
-    min-width: 49px;
+    min-width: 45px;
     color: #a0a9b1;
     background: #eef1f4;
   }
@@ -333,7 +338,7 @@ foreach ($rows as $summaryRow) {
     justify-content: center;
     gap: 5px;
     margin-top: 7px;
-    padding: 0 9px;
+    padding: 0 7px;
     font-size: 10px;
     font-weight: 800;
   }
@@ -350,8 +355,8 @@ foreach ($rows as $summaryRow) {
     white-space: nowrap;
   }
   .history-link {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -359,7 +364,7 @@ foreach ($rows as $summaryRow) {
     border: 0;
     background: transparent;
     border-radius: 50%;
-    margin: 0 1px;
+    margin: 0;
   }
   .history-link:hover {
     background: #eaf4fa;

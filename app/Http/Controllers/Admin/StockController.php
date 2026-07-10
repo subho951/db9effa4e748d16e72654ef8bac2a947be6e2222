@@ -55,8 +55,8 @@ class StockController extends Controller
                 $product_id     = $postData['product_id'];
                 $txn_type       = $postData['txn_type'];
                 $stock_date     = $postData['stock_date'];
-                $txn_qty        = $postData['txn_qty'];
-                $note           = $postData['note'];
+                $txn_qty        = (int)$postData['txn_qty'];
+                $note           = trim((string)$postData['note']);
                 $getProduct     = Product::where('id', $product_id)->first();
                 if($getProduct){
                     if($txn_type == 'IN'){
@@ -85,6 +85,88 @@ class StockController extends Controller
                         $apiMessage                         = $getProduct->name . ' Stock IN successfully';
                         $apiExtraField                      = 'response_code';
                         $apiExtraData                       = http_response_code();
+                    } elseif($txn_type == 'SHOP_TO_WAREHOUSE'){
+                        if($txn_qty <= 0){
+                            $apiStatus          = FALSE;
+                            http_response_code(200);
+                            $apiMessage         = 'Please enter valid return stock quantity';
+                            $apiExtraField      = 'response_code';
+                            $apiExtraData       = http_response_code();
+                        } elseif($note == ''){
+                            $apiStatus          = FALSE;
+                            http_response_code(200);
+                            $apiMessage         = 'Please enter return note';
+                            $apiExtraField      = 'response_code';
+                            $apiExtraData       = http_response_code();
+                        } elseif($getProduct->shop_stock < $txn_qty){
+                            $apiStatus          = FALSE;
+                            http_response_code(200);
+                            $apiMessage         = 'You have only '.$getProduct->shop_stock.' shop stock. Can\'t return more than '.$getProduct->shop_stock.'';
+                            $apiExtraField      = 'response_code';
+                            $apiExtraData       = http_response_code();
+                        } else {
+                            try {
+                                DB::transaction(function() use ($product_id, $stock_date, $txn_qty, $note, &$apiResponse) {
+                                    $product = Product::where('id', $product_id)->lockForUpdate()->first();
+                                    if(!$product){
+                                        throw new \Exception('Product not found');
+                                    }
+                                    if($product->shop_stock < $txn_qty){
+                                        throw new \Exception('You have only '.$product->shop_stock.' shop stock. Can\'t return more than '.$product->shop_stock.'');
+                                    }
+
+                                    $stockDate = date_format(date_create($stock_date), "Y-m-d");
+
+                                    $shopOpening = (int)$product->shop_stock;
+                                    $shopClosing = ($shopOpening - $txn_qty);
+                                    $shopStockId = ShopStock::insertGetId([
+                                        'txn_type'      => 'OUT',
+                                        'stock_date'    => $stockDate,
+                                        'product_id'    => $product_id,
+                                        'opening_qty'   => $shopOpening,
+                                        'txn_qty'       => $txn_qty,
+                                        'closing_qty'   => $shopClosing,
+                                        'note'          => $note,
+                                    ]);
+
+                                    $warehouseOpening = (int)$product->warehouse_stock;
+                                    $warehouseClosing = ($warehouseOpening + $txn_qty);
+                                    WarehouseStock::insert([
+                                        'txn_type'      => 'IN',
+                                        'stock_date'    => $stockDate,
+                                        'product_id'    => $product_id,
+                                        'opening_qty'   => $warehouseOpening,
+                                        'txn_qty'       => $txn_qty,
+                                        'closing_qty'   => $warehouseClosing,
+                                        'note'          => $note,
+                                    ]);
+
+                                    Product::where('id', $product_id)->update([
+                                        'warehouse_stock' => $warehouseClosing,
+                                        'shop_stock'      => $shopClosing,
+                                    ]);
+
+                                    $apiResponse = [
+                                        'closing_qty'            => $warehouseClosing,
+                                        'warehouse_closing_qty'  => $warehouseClosing,
+                                        'shop_closing_qty'       => $shopClosing,
+                                        'shop_stock_id'          => $shopStockId,
+                                    ];
+                                });
+
+                                $apiStatus                          = TRUE;
+                                http_response_code(200);
+                                $apiMessage                         = $getProduct->name . ' returned to warehouse successfully';
+                                $apiExtraField                      = 'response_code';
+                                $apiExtraData                       = http_response_code();
+                            } catch(\Exception $e) {
+                                $apiStatus          = FALSE;
+                                http_response_code(200);
+                                $apiMessage         = $e->getMessage();
+                                $apiExtraField      = 'response_code';
+                                $apiExtraData       = http_response_code();
+                            }
+                        }
                     } else {
                         if($getProduct->warehouse_stock < $txn_qty){
                             $apiStatus          = FALSE;
@@ -167,7 +249,7 @@ class StockController extends Controller
                                                 ->where('products.id', '=', $id)
                                                 ->first();
 
-            $data['stocks']                 = WarehouseStock::select('txn_type', 'opening_qty', 'txn_qty', 'closing_qty', 'note', 'created_at')->where('status', 1)->where('product_id', $id)->orderBy('id', 'DESC')->get();
+            $data['stocks']                 = WarehouseStock::select('txn_type', 'opening_qty', 'txn_qty', 'closing_qty', 'note', 'stock_date', 'created_at')->where('status', 1)->where('product_id', $id)->orderBy('id', 'DESC')->get();
             $title                          = 'Warehouse ' . $this->data['title'].' IN/OUT History : ' . (($data['product'])?$data['product']->name . ' (' . $data['product']->sku . ')':'');
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
@@ -189,7 +271,7 @@ class StockController extends Controller
                                                 ->where('products.id', '=', $id)
                                                 ->first();
 
-            $data['stocks']                 = ShopStock::select('txn_type', 'opening_qty', 'txn_qty', 'closing_qty', 'note', 'created_at')->where('status', 1)->where('product_id', $id)->orderBy('id', 'DESC')->get();
+            $data['stocks']                 = ShopStock::select('txn_type', 'opening_qty', 'txn_qty', 'closing_qty', 'note', 'stock_date', 'created_at')->where('status', 1)->where('product_id', $id)->orderBy('id', 'DESC')->get();
             $title                          = 'Shop ' . $this->data['title'].' IN/OUT History : ' . (($data['product'])?$data['product']->name . ' (' . $data['product']->sku . ')':'');
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }

@@ -165,7 +165,7 @@ foreach ($rows as $summaryRow) {
   }
   .warehouse-inventory-table {
     width: 100%;
-    min-width: 1080px;
+    min-width: 1140px;
     margin: 0;
     table-layout: fixed;
     border-collapse: collapse;
@@ -206,13 +206,13 @@ foreach ($rows as $summaryRow) {
     width: 22%;
   }
   .warehouse-col-location {
-    width: 12%;
+    width: 13%;
   }
   .warehouse-col-awaiting {
-    width: 9%;
+    width: 7%;
   }
   .warehouse-col-history {
-    width: 5%;
+    width: 4%;
   }
   .inventory-item-name {
     color: #2d7fab;
@@ -321,6 +321,30 @@ foreach ($rows as $summaryRow) {
   .location-cell small {
     color: #7b8793;
     font-size: 11px;
+  }
+  .return-stock-btn {
+    height: 24px;
+    border: 1px solid #c5ccd2;
+    background: #fff;
+    color: #2f80b7;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 7px;
+    padding: 0 9px;
+    font-size: 10px;
+    font-weight: 800;
+  }
+  .return-stock-btn:hover {
+    background: #eef8fc;
+    color: #0e5f8c;
+  }
+  .return-stock-btn:disabled {
+    background: #f8fafb;
+    color: #b6bec7;
+    cursor: not-allowed;
   }
   .history-cell {
     white-space: nowrap;
@@ -438,6 +462,88 @@ foreach ($rows as $summaryRow) {
     text-align: center;
     padding: 30px 14px;
     color: #7b8793;
+  }
+  .stock-return-modal .modal-dialog {
+    max-width: 480px;
+  }
+  .stock-return-modal .modal-content {
+    border: 1px solid #dce3e9;
+    border-radius: 2px;
+    box-shadow: 0 18px 42px rgba(36, 49, 63, .18);
+  }
+  .stock-return-modal .modal-header {
+    border-bottom: 1px solid #e8edf2;
+    padding: 14px 16px;
+  }
+  .stock-return-modal .modal-title {
+    color: #24313f;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .stock-return-modal .btn-close {
+    background: transparent;
+    border: 0;
+    color: #6f7d89;
+    opacity: 1;
+  }
+  .stock-return-modal .modal-body {
+    padding: 16px;
+  }
+  .stock-return-modal .return-product-meta {
+    background: #fbfcfd;
+    border: 1px solid #e8edf2;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+  }
+  .stock-return-modal .return-product-meta strong {
+    display: block;
+    color: #2d7fab;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  .stock-return-modal .return-product-meta span {
+    display: block;
+    color: #7b8793;
+    font-size: 12px;
+    margin-top: 3px;
+  }
+  .stock-return-modal label {
+    color: #4d5863;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .stock-return-modal .form-control {
+    border-radius: 2px;
+    border-color: #cfd8df;
+    font-size: 13px;
+  }
+  .stock-return-modal .modal-footer {
+    border-top: 1px solid #e8edf2;
+    padding: 12px 16px;
+  }
+  .stock-return-modal .return-submit-btn {
+    height: 34px;
+    border: 1px solid #2f80b7;
+    background: #2f80b7;
+    color: #fff;
+    border-radius: 2px;
+    padding: 0 16px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .stock-return-modal .return-submit-btn:disabled {
+    opacity: .72;
+  }
+  .stock-return-modal .return-cancel-btn {
+    height: 34px;
+    border: 1px solid #cfd8df;
+    background: #fff;
+    color: #4d5863;
+    border-radius: 2px;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 700;
   }
   @media (max-width: 991px) {
     .warehouse-summary-strip,
@@ -591,6 +697,15 @@ foreach ($rows as $summaryRow) {
               <td class="location-cell">
                 <strong>Warehouse</strong>
                 <small>Shop: <span id="location-shop-<?=$row->id?>"><?=$number($shopStock)?></span></small>
+                <button type="button"
+                        class="return-stock-btn js-open-return-stock"
+                        data-product-id="<?=$row->id?>"
+                        data-product-name="<?=$escape($row->name)?>"
+                        data-product-sku="<?=$escape($row->sku)?>"
+                        data-shop-stock="<?=$shopStock?>"
+                        <?=($shopStock <= 0 ? 'disabled' : '')?>>
+                  <i class="fa fa-rotate-left"></i> RETURN
+                </button>
               </td>
               <td class="awaiting-cell"><span>0</span></td>
               <td class="history-cell">
@@ -627,6 +742,39 @@ foreach ($rows as $summaryRow) {
       <span>=</span>
       <span class="legend-item"><span class="legend-swatch legend-available"></span>Available inventory</span>
       <i class="fa fa-circle-info"></i>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade stock-return-modal" id="return-stock-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="returnStockForm">
+        @csrf
+        <input type="hidden" id="return_product_id" name="product_id">
+        <div class="modal-header">
+          <h5 class="modal-title">Return shop stock to warehouse</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><i class="fa fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="return-product-meta">
+            <strong id="return_product_name">Product</strong>
+            <span id="return_product_stock">Shop stock: 0</span>
+          </div>
+          <div class="mb-3">
+            <label for="return_txn_qty">Return Qty</label>
+            <input type="number" class="form-control" id="return_txn_qty" name="txn_qty" min="1" step="1" inputmode="numeric" required>
+          </div>
+          <div class="mb-0">
+            <label for="return_note">Return Note</label>
+            <textarea class="form-control" id="return_note" name="note" rows="3" placeholder="Reason or reference for returning stock" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="return-cancel-btn" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="return-submit-btn" id="return_stock_submit">RETURN</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -804,7 +952,97 @@ foreach ($rows as $summaryRow) {
       $('#warehouse-stock-' + productID).text(formatStockValue(warehouseStock));
       $('#shop-stock-' + productID).text(formatStockValue(shopStock));
       $('#location-shop-' + productID).text(formatStockValue(shopStock));
+      $row.find('.js-open-return-stock')
+        .attr('data-shop-stock', shopStock)
+        .data('shop-stock', shopStock)
+        .prop('disabled', shopStock <= 0);
       updateTotals();
+    }
+
+    function setReturnModalBusy(isBusy) {
+      $('#returnStockForm').find('button, input, textarea').prop('disabled', isBusy);
+      $('#return_stock_submit').text(isBusy ? '...' : 'RETURN');
+    }
+
+    function openReturnStockModal($button) {
+      var productID = $button.data('product-id');
+      var productName = String($button.data('product-name') || 'Product');
+      var productSKU = String($button.data('product-sku') || '');
+      var shopStock = parseStockValue($('#product-row-' + productID).attr('data-shop-stock'));
+
+      if (shopStock <= 0) {
+        toastAlert('error', 'No shop stock available to return.');
+        return;
+      }
+
+      $('#return_product_id').val(productID);
+      $('#return_product_name').text(productName + (productSKU ? ' (' + productSKU + ')' : ''));
+      $('#return_product_stock').text('Shop stock: ' + formatStockValue(shopStock));
+      $('#return_txn_qty').attr('max', shopStock).val('');
+      $('#return_note').val('');
+      $('#return-stock-modal').modal('show');
+      window.setTimeout(function() {
+        $('#return_txn_qty').focus();
+      }, 300);
+    }
+
+    function submitReturnStock() {
+      var productID = $('#return_product_id').val();
+      var $row = $('#product-row-' + productID);
+      var shopStock = parseStockValue($row.attr('data-shop-stock'));
+      var quantity = parseStockValue($('#return_txn_qty').val());
+      var note = String($('#return_note').val() || '').trim();
+
+      if (quantity <= 0) {
+        toastAlert('error', 'Please enter return quantity.');
+        return;
+      }
+      if (quantity > shopStock) {
+        toastAlert('error', 'You have only ' + formatStockValue(shopStock) + ' shop stock to return.');
+        return;
+      }
+      if (!note) {
+        toastAlert('error', 'Please enter return note.');
+        return;
+      }
+
+      setReturnModalBusy(true);
+
+      $.ajax({
+        url: baseUrl + '/admin/stock/manage-warehouse-stock',
+        type: 'POST',
+        data: {
+          _token: $('meta[name="csrf-token"]').attr('content'),
+          key: projectKey,
+          product_id: productID,
+          txn_type: 'SHOP_TO_WAREHOUSE',
+          stock_date: todayForStock(),
+          txn_qty: quantity,
+          note: note
+        },
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+          if (response.status) {
+            toastAlert('success', response.message);
+            refreshStockColumns(productID, response.data);
+            $('#return-stock-modal').modal('hide');
+            highlightRow(productID, 'warehouse-row-success');
+            renderWarehouseRows();
+          } else {
+            toastAlert('error', response.message);
+            highlightRow(productID, 'warehouse-row-error');
+          }
+        },
+        error: function() {
+          toastAlert('error', 'Error occurred. Please try again.');
+          highlightRow(productID, 'warehouse-row-error');
+        },
+        complete: function() {
+          setReturnModalBusy(false);
+        }
+      });
     }
 
     function submitInlineWarehouseStock($control) {
@@ -910,6 +1148,15 @@ foreach ($rows as $summaryRow) {
 
     $(document).on('click', '.js-stock-save', function() {
       submitInlineWarehouseStock($(this).closest('.inventory-edit-control'));
+    });
+
+    $(document).on('click', '.js-open-return-stock', function() {
+      openReturnStockModal($(this));
+    });
+
+    $(document).on('submit', '#returnStockForm', function(e) {
+      e.preventDefault();
+      submitReturnStock();
     });
   })(jQuery);
 </script>

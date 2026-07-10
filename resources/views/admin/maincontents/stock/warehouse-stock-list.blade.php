@@ -413,6 +413,27 @@ foreach ($rows as $summaryRow) {
     display: inline-block;
     margin: 0 6px;
   }
+  .warehouse-formula .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+  }
+  .warehouse-formula .legend-swatch {
+    width: 18px;
+    height: 12px;
+    border: 1px solid rgba(36, 49, 63, .1);
+    border-radius: 2px;
+  }
+  .warehouse-formula .legend-on-hand {
+    background: #edfafd;
+  }
+  .warehouse-formula .legend-committed {
+    background: #fff8ed;
+  }
+  .warehouse-formula .legend-available {
+    background: #f2fbe9;
+  }
   .warehouse-empty-row td {
     text-align: center;
     padding: 30px 14px;
@@ -600,7 +621,12 @@ foreach ($rows as $summaryRow) {
     </div>
 
     <div class="warehouse-formula">
-      On hand <span>-</span> Committed <span>=</span> Available inventory <i class="fa fa-circle-info"></i>
+      <span class="legend-item"><span class="legend-swatch legend-on-hand"></span>On hand</span>
+      <span>-</span>
+      <span class="legend-item"><span class="legend-swatch legend-committed"></span>Committed</span>
+      <span>=</span>
+      <span class="legend-item"><span class="legend-swatch legend-available"></span>Available inventory</span>
+      <i class="fa fa-circle-info"></i>
     </div>
   </div>
 </div>

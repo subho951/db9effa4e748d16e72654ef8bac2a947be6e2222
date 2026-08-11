@@ -236,6 +236,7 @@ Route::get('/db-test', function () {
                 Route::match(['get', 'post'], 'purchase-orders/add', 'PurchaseOrderController@add');
                 Route::match(['get', 'post'], 'purchase-orders/edit/{id}', 'PurchaseOrderController@edit');
                 Route::match(['get', 'post'], 'purchase-orders/receive/{id}', 'PurchaseOrderController@receive');
+                Route::get('purchase-orders/supplier-items', 'PurchaseOrderController@getSupplierItems');
                 Route::get('/get-item-info', 'PurchaseOrderController@getItemInfo');
             /* purchase orders */
             /* customer */

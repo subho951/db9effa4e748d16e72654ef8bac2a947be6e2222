@@ -22,12 +22,17 @@ $user_type = session('type');
       background: linear-gradient(180deg, #111827 0%, #172033 48%, #0f172a 100%) !important;
       border-right: 1px solid rgba(255, 255, 255, .08);
       box-shadow: 14px 0 35px rgba(15, 23, 42, .16);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
    }
    #layout-menu .app-brand {
       min-height: 84px;
       padding: 18px 18px 14px;
       margin-bottom: 4px;
       border-bottom: 1px solid rgba(255, 255, 255, .08);
+      flex: 0 0 auto;
    }
    #layout-menu .app-brand-link {
       width: 100%;
@@ -81,6 +86,12 @@ $user_type = session('type');
    }
    #layout-menu .menu-inner {
       padding: 10px 12px 18px !important;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      scrollbar-color: rgba(148, 163, 184, .5) transparent;
+      scrollbar-width: thin;
    }
    #layout-menu .menu-inner-shadow {
       display: none;
@@ -271,7 +282,7 @@ $user_type = session('type');
   }
 </style>
 <div class="app-brand demo">
-   <a href="<?=url('admin/dashboard')?>" class="app-brand-link">
+   <a href="<?=url('admin/billing/list')?>" class="app-brand-link" target="_blank">
       <!-- <span class="app-brand-logo demo">
          <img src="<?=env('UPLOADS_URL')?><?=$generalSetting->site_logo?>">
       </span> -->
@@ -292,14 +303,6 @@ $user_type = session('type');
       <a href="<?=url('admin/dashboard')?>" class="menu-link">
          <i class="menu-icon tf-icons fa fa-home"></i>
          <div data-i18n="Dashboard">Dashboard</div>
-      </a>
-   </li>
-   <!-- POS Application -->
-   <li class="menu-item <?=(($pageFunction == 'list')?'active':'')?>">
-      <a href="<?=url('admin/billing/list')?>" class="menu-link" target="_blank">
-         <!-- <i class="menu-icon tf-icons fa fa-home"></i> -->
-         <i class="menu-icon fa-solid fa-file-invoice"></i>
-         <div data-i18n="POS Application">POS Application</div>
       </a>
    </li>
    <!-- Access & Permission -->

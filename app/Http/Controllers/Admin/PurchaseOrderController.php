@@ -60,6 +60,10 @@ class PurchaseOrderController extends Controller
                     's_country'                         => 'required',
                 ];
                 if($this->validate($request, $rules)){
+                    if(!$this->itemsBelongToSupplier($postData['item_id'] ?? [], $postData['supplier_id'])){
+                        return redirect()->back()->withInput()->with('error_message', 'Only products from the selected supplier can be added to this purchase order !!!');
+                    }
+
                     /* purchase order no generate */
                         $getLastOrder = PurchaseOrder::orderBy('id', 'DESC')->first();                       
                         if($getLastOrder){
@@ -138,11 +142,10 @@ class PurchaseOrderController extends Controller
             $data['row']                    = [];
             $data['suppliers']              = Supplier::select('id', 'name', 'supplier_code', 'phone')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $data['deliveryLocations']      = DeliveryLocation::select('id', 'name', 'address', 'phone')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
-            $itemsQuery                     = Product::select('id', 'name')->where('status', '=', 1);
+            $data['items']                  = collect();
             if($selectedSupplierId != ''){
-                $itemsQuery->where('supplier_id', '=', $selectedSupplierId);
+                $data['items']              = $this->supplierItems($selectedSupplierId);
             }
-            $data['items']                  = $itemsQuery->orderBy('name', 'ASC')->get();
             $data['supplierProducts']       = collect();
             if($selectedSupplierId != '' && count($prefillItems) <= 0){
                 $data['supplierProducts']   = Product::select(
@@ -180,7 +183,7 @@ class PurchaseOrderController extends Controller
             $data['suppliers']              = Supplier::select('id', 'name', 'supplier_code', 'phone')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $data['deliveryLocations']      = DeliveryLocation::select('id', 'name', 'address', 'phone')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $supplier_id                    = $data['row']->supplier_id;
-            $data['items']                  = Product::select('id', 'name')->where('status', '=', 1)->where('supplier_id', '=', $supplier_id)->orderBy('name', 'ASC')->get();
+            $data['items']                  = $this->supplierItems($supplier_id);
             $data['couns']                  = Country::select('country', 'currency_name', 'currency_code')->where('status', '=', 1)->orderBy('country', 'ASC')->get();
 
             if($request->isMethod('post')){
@@ -197,6 +200,10 @@ class PurchaseOrderController extends Controller
                     'total_inc_tax'                     => 'required',
                 ];
                 if($this->validate($request, $rules)){
+                    if(!$this->itemsBelongToSupplier($postData['item_id'] ?? [], $postData['supplier_id'])){
+                        return redirect()->back()->withInput()->with('error_message', 'Only products from the selected supplier can be added to this purchase order !!!');
+                    }
+
                     $getSupplier              = Supplier::select('id', 'name', 'phone', 'b_street_address1', 'b_street_address2', 'b_city', 'b_state', 'b_postcode', 'b_country')->where('id', '=', $postData['supplier_id'])->first();
                     $getDeliveryLocation      = DeliveryLocation::select('id', 'name', 'address', 'phone')->where('id', '=', $postData['delivery_id'])->first();
 
@@ -244,9 +251,27 @@ class PurchaseOrderController extends Controller
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
     /* edit */
+    public function getSupplierItems(Request $request)
+    {
+        $supplierId = $this->parseSupplierId($request->query('supplier_id', ''));
+
+        if($supplierId === ''){
+            return response()->json([]);
+        }
+
+        return response()->json($this->supplierItems($supplierId));
+    }
     public function getItemInfo(Request $request)
     {
-        $item = Product::find($request->item_id);
+        $supplierId = $this->parseSupplierId($request->query('supplier_id', ''));
+        if($supplierId === ''){
+            return response()->json([], 422);
+        }
+
+        $item = Product::where('id', '=', $request->item_id)
+                        ->where('supplier_id', '=', $supplierId)
+                        ->where('status', '=', 1)
+                        ->first();
 
         if (!$item) {
             return response()->json([], 404);
@@ -479,6 +504,33 @@ class PurchaseOrderController extends Controller
         }
 
         return Supplier::where('id', '=', $supplierId)->where('status', '=', 1)->exists() ? $supplierId : '';
+    }
+    private function supplierItems($supplierId){
+        return Product::select('id', 'name')
+                        ->where('status', '=', 1)
+                        ->where('supplier_id', '=', $supplierId)
+                        ->orderBy('name', 'ASC')
+                        ->get();
+    }
+    private function itemsBelongToSupplier($itemIds, $supplierId){
+        if(!is_array($itemIds) || count($itemIds) === 0){
+            return true;
+        }
+
+        $validItemIds = collect($itemIds)->map(function($itemId){
+            $itemId = trim((string)$itemId);
+            return ctype_digit($itemId) && (int)$itemId > 0 ? (int)$itemId : null;
+        });
+
+        if($validItemIds->contains(null)){
+            return false;
+        }
+
+        $validItemIds = $validItemIds->unique()->values();
+        return Product::whereIn('id', $validItemIds)
+                        ->where('supplier_id', '=', $supplierId)
+                        ->where('status', '=', 1)
+                        ->count() === $validItemIds->count();
     }
     private function insertPurchaseOrderItems($purchase_order_id, $postData){
         $item_id                = $postData['item_id'];

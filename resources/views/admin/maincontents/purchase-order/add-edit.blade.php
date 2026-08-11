@@ -470,15 +470,63 @@ $hasPrefillItems                = (count($prefillItems) > 0);
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
   const purchaseOrderAddUrl = '<?= url('admin/' . $controllerRoute . '/add') ?>';
+  const supplierItemsUrl = '<?= url('admin/' . $controllerRoute . '/supplier-items') ?>';
   const purchaseOrderIsEdit = <?=($row?'true':'false')?>;
+  let supplierItems = <?=json_encode($items->map(function($item){
+    return ['id' => $item->id, 'name' => $item->name];
+  })->values(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)?>;
+
+  function clearPurchaseOrderItemRow(row) {
+    row.find('span[id^="supplier_sku_text_"], span[id^="merchant_sku_text_"], span[id^="item_name_text_"], span[id^="tax_percent_text_"], span[id^="total_inc_tax_text_"]').text('');
+    row.find('input[name="supplier_sku[]"], input[name="merchant_sku[]"], input[name="item_name[]"], input[name="qty[]"], input[name="cost_price[]"], input[name="tax_percent[]"], input[name="tax_amount[]"], input[name="total_inc_tax[]"]').val('');
+  }
+
+  function populateSupplierItemSelect(select, selectedItemId) {
+    const itemSelect = $(select);
+    const selectedId = String(selectedItemId || '');
+    itemSelect.empty().append(new Option('Select Items', ''));
+
+    supplierItems.forEach(function(item) {
+      itemSelect.append(new Option(item.name, item.id, false, String(item.id) === selectedId));
+    });
+
+    if (selectedId && itemSelect.val() !== selectedId) {
+      clearPurchaseOrderItemRow(itemSelect.closest('.row'));
+    }
+  }
+
+  function refreshSupplierItemSelects() {
+    $('select[name="item_id[]"]').each(function() {
+      populateSupplierItemSelect(this, this.value);
+    });
+    recalculateInvoiceFooter();
+  }
 
   document.getElementById('supplier_id').addEventListener('change', function() {
-    if (purchaseOrderIsEdit) {
+    if (!purchaseOrderIsEdit) {
+      window.location.href = this.value
+        ? purchaseOrderAddUrl + '?supplier_id=' + encodeURIComponent(this.value)
+        : purchaseOrderAddUrl;
       return;
     }
-    if (this.value) {
-      window.location.href = purchaseOrderAddUrl + '?supplier_id=' + encodeURIComponent(this.value);
+
+    const supplierId = this.value;
+    if (!supplierId) {
+      supplierItems = [];
+      refreshSupplierItemSelects();
+      return;
     }
+
+    $.getJSON(supplierItemsUrl, { supplier_id: supplierId })
+      .done(function(items) {
+        supplierItems = items;
+        refreshSupplierItemSelects();
+      })
+      .fail(function() {
+        supplierItems = [];
+        refreshSupplierItemSelects();
+        showSupplierProductMessage('error', 'Unable to load products for the selected supplier.');
+      });
   });
 
   function showSupplierProductMessage(type, message) {
@@ -528,11 +576,6 @@ $hasPrefillItems                = (count($prefillItems) > 0);
                           <div class="mb-3 col-md-2">
                             <select name="item_id[]" class="form-select" id="item_id_${x}" required onchange="getItemInfo(this.value, ${x});">
                               <option value="" selected>Select Items</option>
-                              <?php if ($items) {
-                                foreach ($items as $item) { ?>
-                                <option value="<?= $item->id ?>"><?= $item->name ?></option>
-                              <?php }
-                              } ?>
                             </select>
                             <span class="row-loader d-none" id="loader_${x}">
                               <i class="fa fa-spinner fa-spin"></i>
@@ -572,8 +615,9 @@ $hasPrefillItems                = (count($prefillItems) > 0);
                           </div>
                         </div>`; //New input field html
 
-        x++; //Increase field counter
         $(wrapper).append(fieldHTML); //Add field html
+        populateSupplierItemSelect($(wrapper).find('select[name="item_id[]"]').last(), '');
+        x++; //Increase field counter
       } else {
         alert('A maximum of ' + maxField + ' fields are allowed to be added. ');
       }
@@ -605,7 +649,10 @@ $hasPrefillItems                = (count($prefillItems) > 0);
     $.ajax({
         url: base_url + "/get-item-info",
         type: "GET",
-        data: { item_id: item_id },
+        data: {
+          item_id: item_id,
+          supplier_id: $('#supplier_id').val()
+        },
         dataType: "json",
 
         success: function (res) {
@@ -634,6 +681,14 @@ $hasPrefillItems                = (count($prefillItems) > 0);
             // 🔥 force row calc + footer update
             $('#qty_val_' + row).trigger('change');
             recalculateInvoiceFooter();
+        },
+
+        error: function () {
+            const itemSelect = $('#item_id_' + row);
+            itemSelect.val('');
+            clearPurchaseOrderItemRow(itemSelect.closest('.row'));
+            recalculateInvoiceFooter();
+            showSupplierProductMessage('error', 'That product is not available for the selected supplier.');
         },
 
         complete: function () {

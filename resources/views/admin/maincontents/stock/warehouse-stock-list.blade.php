@@ -758,7 +758,7 @@ foreach ($rows as $summaryRow) {
                 data-wastage-stock="<?=$wastageStock?>">
               <td>
                 <span class="inventory-item-name"><?=$escape($row->name)?></span>
-                <span class="inventory-item-meta">SKU: <?=$escape($row->sku)?></span>
+                <span class="inventory-item-meta">SKU: <a href="<?=url('admin/products/edit/' . Helper::encoded($row->id))?>" title="Edit <?=$escape($row->name)?>"><?=$escape($row->sku)?></a></span>
                 <?php if ($row->barcode != '') { ?>
                   <span class="inventory-item-meta">Barcode: <?=$escape($row->barcode)?></span>
                 <?php } ?>

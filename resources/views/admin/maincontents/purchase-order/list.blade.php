@@ -2,6 +2,9 @@
 use App\Helpers\Helper;
 $controllerRoute      = $module['controller_route'];
 $current_url          = url()->current();
+$escape               = function($value){
+  return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+};
 ?>
 <div class="container-xxl flex-grow-1 container-p-y">
   <h4 class="py-3 mb-4">
@@ -34,10 +37,18 @@ $current_url          = url()->current();
               </thead>
               <tbody>
                 <?php if(count($rows)>0){ $sl=1; foreach($rows as $row){?>
+                  <?php
+                    $isClosed = ((int)$row->status === 2);
+                    $currencySymbol = (($row->currency_symbol ?? '') != ''?$row->currency_symbol:'$');
+                  ?>
                   <tr>
                     <th scope="row"><?=$sl++?></th>
                     <td>
-                      <a href="<?= url('admin/purchase-orders/edit/' . Helper::encoded($row->id)) ?>"><?=$row->po_no?></a>
+                      <?php if($isClosed){?>
+                        <?=$row->po_no?> <span class="badge bg-label-secondary">Closed</span>
+                      <?php } else {?>
+                        <a href="<?= url('admin/purchase-orders/edit/' . Helper::encoded($row->id)) ?>"><?=$row->po_no?></a>
+                      <?php }?>
                     </td>
                     <td>
                       <?=$row->supplier_name?><br>
@@ -52,16 +63,20 @@ $current_url          = url()->current();
                     <td><?=$row->order_date?></td>
                     <td><?=$row->total_lines?></td>
                     <td><?=$row->total_quantity?></td>
-                    <td>$<?=$row->subtotal?></td>
-                    <td>$<?=$row->tax_total?></td>
-                    <td>$<?=$row->total_inc_tax?></td>
+                    <td><?=$escape($currencySymbol)?><?=number_format((float)$row->subtotal, 2)?></td>
+                    <td><?=$escape($currencySymbol)?><?=number_format((float)$row->tax_total, 2)?></td>
+                    <td><?=$escape($currencySymbol)?><?=number_format((float)$row->total_inc_tax, 2)?></td>
                     <td>
                       <?php if($row->invoice_file){?>
                         <a target="_blank" href="<?=env('UPLOADS_URL').'/purchase-order/'.$row->invoice_file?>" class="btn btn-outline-primary btn-sm" title="<?=$row->po_no?>">PO File</a>
                       <?php }?>
                     </td>
                     <td>
-                      <a href="<?=url('admin/purchase-orders/receive/' . Helper::encoded($row->id))?>" class="btn btn-outline-success btn-sm" title="Receive <?=$row->po_no?>"><i class="fa fa-truck-loading"></i>&nbsp;Receive</a>
+                      <?php if($isClosed){?>
+                        <span class="badge bg-success">Received</span>
+                      <?php } elseif((int)$row->total_lines > 0){?>
+                        <a href="<?=url('admin/purchase-orders/receive/' . Helper::encoded($row->id))?>" class="btn btn-outline-success btn-sm" title="Receive <?=$row->po_no?>"><i class="fa fa-truck-loading"></i>&nbsp;Receive</a>
+                      <?php }?>
                     </td>
                   </tr>
                 <?php } }?>

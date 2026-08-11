@@ -39,6 +39,7 @@ $hasPrefillItems                = (count($prefillItems) > 0);
     <?php
     if ($row) {
       $order_date           = $row->order_date;
+      $currency_symbol      = (($row->currency_symbol ?? '') != ''?$row->currency_symbol:'$');
       $delivery_id          = $row->delivery_id;
       $supplier_id          = $row->supplier_id;
 
@@ -58,6 +59,7 @@ $hasPrefillItems                = (count($prefillItems) > 0);
       $note                 = $row->note;
     } else {
       $order_date           = '';
+      $currency_symbol      = $currencySymbol ?? '$';
       $delivery_id          = '';
       $supplier_id          = $selectedSupplierId;
 
@@ -104,6 +106,12 @@ $hasPrefillItems                = (count($prefillItems) > 0);
               <div class="mb-3 col-md-6">
                 <label for="order_date" class="form-label">Order Date <small class="text-danger">*</small></label>
                 <input class="form-control" type="date" id="order_date" name="order_date" value="<?= $order_date ?>" required autofocus />
+              </div>
+
+              <div class="mb-3 col-md-6">
+                <label for="currency_symbol" class="form-label">Currency Symbol or Code <small class="text-danger">*</small></label>
+                <input class="form-control" type="text" id="currency_symbol" name="currency_symbol" maxlength="3" value="<?=htmlspecialchars((string)$currency_symbol, ENT_QUOTES, 'UTF-8')?>" required>
+                <small class="text-muted">Up to 3 characters, for example $, USD, GBP or JPY.</small>
               </div>
               <div class="mb-3 col-md-6">
                 <label for="username" class="form-label d-block">Status <small class="text-danger">*</small></label>
@@ -214,7 +222,7 @@ $hasPrefillItems                = (count($prefillItems) > 0);
                             <td><?= htmlspecialchars((string)$supplierSku, ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars((string)$supplierProduct->sku, ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars((string)$supplierProduct->barcode, ENT_QUOTES, 'UTF-8') ?></td>
-                            <td>$<?= number_format((float)$supplierProduct->cost_price_ex_tax, 2) ?></td>
+                            <td><span class="currency-symbol"><?=htmlspecialchars((string)$currency_symbol, ENT_QUOTES, 'UTF-8')?></span><?= number_format((float)$supplierProduct->cost_price_ex_tax, 2) ?></td>
                             <td><?= number_format((float)$supplierProduct->cost_price_tax, 2) ?>%</td>
                             <td><?= $stockTotal ?></td>
                           </tr>
@@ -253,13 +261,13 @@ $hasPrefillItems                = (count($prefillItems) > 0);
                   <h6 style="font-weight: bold;">Order QTY</h6>
                 </div>
                 <div class="mb-3 col-md-1">
-                  <h6 style="font-weight: bold;">Unit price ($)</h6>
+                  <h6 style="font-weight: bold;">Unit price (<span class="currency-symbol"><?=htmlspecialchars((string)$currency_symbol, ENT_QUOTES, 'UTF-8')?></span>)</h6>
                 </div>
                 <div class="mb-3 col-md-1">
-                  <h6 style="font-weight: bold;">Tax rate ($)</h6>
+                  <h6 style="font-weight: bold;">Tax rate (%)</h6>
                 </div>
                 <div class="mb-3 col-md-1">
-                  <h6 style="font-weight: bold;">Line total ($)</h6>
+                  <h6 style="font-weight: bold;">Line total (<span class="currency-symbol"><?=htmlspecialchars((string)$currency_symbol, ENT_QUOTES, 'UTF-8')?></span>)</h6>
                 </div>
                 <div class="mb-3 col-md-1">
                   <h6 style="font-weight: bold;">Action</h6>
@@ -419,7 +427,7 @@ $hasPrefillItems                = (count($prefillItems) > 0);
                   <h6 style="font-weight: bold;">Ex GST</h6>
                 </div>
                 <div class="invoice-footer mb-3 col-md-2 text-center">
-                  <span id="subtotal_text">$<?= $subtotal ?></span>
+                  <span id="subtotal_text"><span class="currency-symbol"><?=htmlspecialchars((string)$currency_symbol, ENT_QUOTES, 'UTF-8')?></span><?= $subtotal ?></span>
                   <input type="hidden" name="subtotal" id="subtotal_val" value="<?= $subtotal ?>">
                 </div>
               </div>
@@ -432,7 +440,7 @@ $hasPrefillItems                = (count($prefillItems) > 0);
                   <h6 style="font-weight: bold;">GST</h6>
                 </div>
                 <div class="invoice-footer mb-3 col-md-2 text-center">
-                  <span id="tax_total_text">$<?= $tax_total ?></span>
+                  <span id="tax_total_text"><span class="currency-symbol"><?=htmlspecialchars((string)$currency_symbol, ENT_QUOTES, 'UTF-8')?></span><?= $tax_total ?></span>
                   <input type="hidden" name="tax_total" id="tax_total_val" value="<?= $tax_total ?>">
                 </div>
               </div>
@@ -445,7 +453,7 @@ $hasPrefillItems                = (count($prefillItems) > 0);
                   <h6 style="font-weight: bold;">Total inc GST</h6>
                 </div>
                 <div class="invoice-footer mb-3 col-md-2 text-center">
-                  <span id="total_inc_tax_text">$<?= $total_inc_tax ?></span>
+                  <span id="total_inc_tax_text"><span class="currency-symbol"><?=htmlspecialchars((string)$currency_symbol, ENT_QUOTES, 'UTF-8')?></span><?= $total_inc_tax ?></span>
                   <input type="hidden" name="total_inc_tax_val" id="total_inc_tax_val" value="<?= $total_inc_tax ?>">
                 </div>
               </div>
@@ -505,7 +513,7 @@ $hasPrefillItems                = (count($prefillItems) > 0);
   document.getElementById('supplier_id').addEventListener('change', function() {
     if (!purchaseOrderIsEdit) {
       window.location.href = this.value
-        ? purchaseOrderAddUrl + '?supplier_id=' + encodeURIComponent(this.value)
+        ? purchaseOrderAddUrl + '?supplier_id=' + encodeURIComponent(this.value) + '&currency_symbol=' + encodeURIComponent($('#currency_symbol').val() || '$')
         : purchaseOrderAddUrl;
       return;
     }
@@ -557,7 +565,7 @@ $hasPrefillItems                = (count($prefillItems) > 0);
       return;
     }
 
-    window.location.href = purchaseOrderAddUrl + '?product_ids=' + encodeURIComponent(productIds.join(','));
+    window.location.href = purchaseOrderAddUrl + '?product_ids=' + encodeURIComponent(productIds.join(',')) + '&currency_symbol=' + encodeURIComponent($('#currency_symbol').val() || '$');
   });
 </script>
 <script>
@@ -764,11 +772,17 @@ function recalculateInvoiceFooter() {
 }
 
 function formatCurrency(amount) {
-    return '$' + amount.toLocaleString('en-IN', {
+    return ($('#currency_symbol').val() || '$') + amount.toLocaleString('en-IN', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
 }
+
+$(document).on('input', '#currency_symbol', function() {
+    const symbol = this.value || '$';
+    $('.currency-symbol').text(symbol);
+    recalculateInvoiceFooter();
+});
 </script>
 <script>
   const fieldOrder = [

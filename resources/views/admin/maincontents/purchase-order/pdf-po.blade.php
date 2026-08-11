@@ -3,6 +3,8 @@
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 // $poData                 = PurchaseOrderItem::where('id', '=', $id)->first();
+$currencySymbol = (($poData->currency_symbol ?? '') != ''?$poData->currency_symbol:'$');
+$currencySymbol = htmlspecialchars((string)$currencySymbol, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 
@@ -256,7 +258,7 @@ use App\Models\PurchaseOrderItem;
                     <th class="text-right">Order QTY</th>
                     <th class="text-right">Unit price</th>
                     <!-- <th class="text-right">Tax rate</th> -->
-                    <th class="text-right">Line total<br>ex GST</th>
+                    <th class="text-right">Line total<br>inc GST</th>
                 </tr>
             </thead>
             <tbody>
@@ -271,9 +273,9 @@ use App\Models\PurchaseOrderItem;
                             <td><?= $po_item->merchant_sku ?></td>
                             <td><?= strtoupper($po_item->item_name) ?></td>
                             <td class="text-right"><?= $po_item->qty ?></td>
-                            <td class="text-right">$<?= number_format($po_item->cost_price, 2) ?></td>
+                            <td class="text-right"><?= $currencySymbol ?><?= number_format($po_item->cost_price, 2) ?></td>
                             <!-- <td class="text-right"><?= $po_item->tax_percent ?>%</td> -->
-                            <td class="text-right">$<?= number_format($po_item->total_inc_tax, 2) ?></td>
+                            <td class="text-right"><?= $currencySymbol ?><?= number_format($po_item->total_inc_tax, 2) ?></td>
                         </tr>
                 <?php $sl++;
                     }
@@ -309,15 +311,15 @@ use App\Models\PurchaseOrderItem;
                     </tr>
                     <tr>
                         <td>Ex GST</td>
-                        <td>$<?= number_format($poData->subtotal, 2) ?></td>
+                        <td><?= $currencySymbol ?><?= number_format($poData->subtotal, 2) ?></td>
                     </tr>
                     <tr>
                         <td>GST</td>
-                        <td>$<?= number_format($poData->tax_total, 2) ?></td>
+                        <td><?= $currencySymbol ?><?= number_format($poData->tax_total, 2) ?></td>
                     </tr>
                     <tr>
                         <td><strong>Total inc GST</strong></td>
-                        <td><strong>$<?= number_format($poData->total_inc_tax, 2) ?></strong></td>
+                        <td><strong><?= $currencySymbol ?><?= number_format($poData->total_inc_tax, 2) ?></strong></td>
                     </tr>
                 </table>
             </div>

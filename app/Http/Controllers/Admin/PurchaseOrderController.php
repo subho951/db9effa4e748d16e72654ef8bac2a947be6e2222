@@ -58,6 +58,7 @@ class PurchaseOrderController extends Controller
                     's_state'                           => 'required',
                     's_postcode'                        => 'required',
                     's_country'                         => 'required',
+                    'currency_symbol'                   => 'required|string|max:3',
                 ];
                 if($this->validate($request, $rules)){
                     if(!$this->itemsBelongToSupplier($postData['item_id'] ?? [], $postData['supplier_id'])){
@@ -100,6 +101,7 @@ class PurchaseOrderController extends Controller
                         'delivery_address'              => (($getDeliveryLocation)?$getDeliveryLocation->address:''),
                         'order_date'                    => $postData['order_date'],
                         'order_time'                    => date('Y-m-d'),
+                        'currency_symbol'               => $this->normalizeCurrencySymbol($postData['currency_symbol'] ?? '$'),
                         'total_lines'                   => ($postData['total_lines'] ?? 0),
                         'total_quantity'                => ($postData['total_quantity'] ?? 0),
                         'subtotal'                      => ($postData['subtotal'] ?? 0),
@@ -169,6 +171,7 @@ class PurchaseOrderController extends Controller
             $data['prefillItems']           = $prefillItems;
             $data['prefillSupplierId']      = $prefillSupplierId;
             $data['selectedSupplierId']     = $selectedSupplierId;
+            $data['currencySymbol']         = $this->normalizeCurrencySymbol($request->query('currency_symbol', '$'));
             echo $this->admin_after_login_layout($title,$page_name,$data);
         }
     /* add */
@@ -180,6 +183,12 @@ class PurchaseOrderController extends Controller
             $page_name                      = 'purchase-order.add-edit';
             $data['id']                     = $id;
             $data['row']                    = PurchaseOrder::where($this->data['primary_key'], '=', $id)->first();
+            if(!$data['row']){
+                return redirect("admin/" . $this->data['controller_route'] . "/list/")->with('error_message', 'Purchase order not found !!!');
+            }
+            if($this->purchaseOrderHasReceivedStock($data['row'])){
+                return redirect("admin/" . $this->data['controller_route'] . "/list/")->with('error_message', 'This purchase order is closed and can no longer be edited !!!');
+            }
             $data['suppliers']              = Supplier::select('id', 'name', 'supplier_code', 'phone')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $data['deliveryLocations']      = DeliveryLocation::select('id', 'name', 'address', 'phone')->where('status', '=', 1)->orderBy('name', 'ASC')->get();
             $supplier_id                    = $data['row']->supplier_id;
@@ -197,7 +206,8 @@ class PurchaseOrderController extends Controller
                     'total_quantity'                    => 'required',
                     'subtotal'                          => 'required',
                     'tax_total'                         => 'required',
-                    'total_inc_tax'                     => 'required',
+                    'total_inc_tax_val'                 => 'required',
+                    'currency_symbol'                   => 'required|string|max:3',
                 ];
                 if($this->validate($request, $rules)){
                     if(!$this->itemsBelongToSupplier($postData['item_id'] ?? [], $postData['supplier_id'])){
@@ -224,6 +234,7 @@ class PurchaseOrderController extends Controller
                         'delivery_address'              => (($getDeliveryLocation)?$getDeliveryLocation->address:''),
                         'order_date'                    => $postData['order_date'],
                         'order_time'                    => date('Y-m-d'),
+                        'currency_symbol'               => $this->normalizeCurrencySymbol($postData['currency_symbol'] ?? '$'),
                         'status'                        => $postData['status'],
                         'total_lines'                   => $postData['total_lines'],
                         'total_quantity'                => $postData['total_quantity'],
@@ -304,54 +315,54 @@ class PurchaseOrderController extends Controller
                 return redirect("admin/" . $this->data['controller_route'] . "/list/")->with('error_message', 'Stock has already been received for this purchase order !!!');
             }
 
-            $postData       = $request->all();
-            $itemIds        = $postData['item_id'] ?? [];
-            $qtys           = $postData['qty'] ?? [];
-            $costPrices     = $postData['cost_price'] ?? [];
-            $shopQtys       = $postData['shop_qty'] ?? [];
-            $warehouseQtys  = $postData['warehouse_qty'] ?? [];
-            $deliveryCost   = (float)($postData['delivery_cost'] ?? 0);
-            $receiveDate    = (($request->receive_date)?date_format(date_create($request->receive_date), "Y-m-d"):date('Y-m-d'));
-            $errors         = [];
-            $receiveRows    = [];
-            $totalQty       = 0;
-
-            if($deliveryCost < 0){
-                $errors[] = 'Delivery cost can not be negative';
+            $postData = $request->all();
+            $validator = Validator::make($postData, [
+                'receive_date'          => 'required|date',
+                'delivery_cost'         => 'required|numeric|min:0',
+                'qty'                   => 'required|array',
+                'qty.*'                 => 'required|integer|min:1',
+                'base_cost_price'       => 'required|array',
+                'base_cost_price.*'     => 'required|numeric|min:0',
+            ]);
+            if($validator->fails()){
+                return redirect()->back()->withInput()->with('error_message', implode('<br>', $validator->errors()->all()));
             }
 
-            $poItems = PurchaseOrderItem::where('purchase_order_id', '=', $id)->get()->keyBy('id');
+            $qtys               = $postData['qty'];
+            $baseCostPrices     = $postData['base_cost_price'];
+            $deliveryCost       = (float)$postData['delivery_cost'];
+            $receiveDate        = Carbon::parse($postData['receive_date'])->format('Y-m-d');
+            $errors             = [];
+            $receiveRows        = [];
+            $totalQty           = 0;
+            $poItems            = PurchaseOrderItem::where('purchase_order_id', '=', $id)->orderBy('id', 'ASC')->get();
+
+            if($poItems->isEmpty()){
+                $errors[] = 'This purchase order does not contain any items';
+            }
             foreach($poItems as $poItem){
                 $poItemId       = $poItem->id;
-                $productId      = (int)($itemIds[$poItemId] ?? $poItem->item_id);
                 $qty            = (int)($qtys[$poItemId] ?? 0);
-                $costPrice      = (float)($costPrices[$poItemId] ?? 0);
-                $shopQty        = (int)($shopQtys[$poItemId] ?? 0);
-                $warehouseQty   = (int)($warehouseQtys[$poItemId] ?? 0);
+                $baseCostPrice  = (float)($baseCostPrices[$poItemId] ?? -1);
 
-                if(!Product::where('id', '=', $productId)->where('status', '!=', 3)->exists()){
+                if(!Product::where('id', '=', $poItem->item_id)
+                            ->where('supplier_id', '=', $data['row']->supplier_id)
+                            ->where('status', '!=', 3)
+                            ->exists()){
                     $errors[] = $poItem->item_name.' product was not found';
                 }
                 if($qty <= 0){
                     $errors[] = $poItem->item_name.' quantity must be greater than zero';
                 }
-                if($costPrice < 0){
+                if($baseCostPrice < 0){
                     $errors[] = $poItem->item_name.' cost price can not be negative';
-                }
-                if($shopQty < 0 || $warehouseQty < 0){
-                    $errors[] = $poItem->item_name.' shop and warehouse quantities can not be negative';
-                }
-                if(($shopQty + $warehouseQty) != $qty){
-                    $errors[] = $poItem->item_name.' shop + warehouse quantity must equal PO quantity';
                 }
 
                 $receiveRows[] = [
-                    'po_item'       => $poItem,
-                    'product_id'    => $productId,
-                    'qty'           => $qty,
-                    'cost_price'    => $costPrice,
-                    'shop_qty'      => $shopQty,
-                    'warehouse_qty' => $warehouseQty,
+                    'po_item'           => $poItem,
+                    'product_id'        => (int)$poItem->item_id,
+                    'qty'               => $qty,
+                    'base_cost_price'   => $baseCostPrice,
                 ];
                 $totalQty += $qty;
             }
@@ -363,101 +374,96 @@ class PurchaseOrderController extends Controller
                 return redirect()->back()->withInput()->with('error_message', implode('<br>', $errors));
             }
 
-            $deliveryCostPerItem = ($deliveryCost / $totalQty);
-            DB::transaction(function() use ($id, $data, $receiveRows, $deliveryCost, $deliveryCostPerItem, $receiveDate) {
-                $subtotal = 0;
-                $taxTotal = 0;
-                $totalQty = 0;
-                $totalLines = 0;
-
-                foreach($receiveRows as $receiveRow){
-                    $product = Product::where('id', '=', $receiveRow['product_id'])->lockForUpdate()->first();
-                    if(!$product){
-                        continue;
+            $deliveryCostPerUnit = ($deliveryCost / $totalQty);
+            try {
+                DB::transaction(function() use ($id, $receiveRows, $deliveryCost, $deliveryCostPerUnit, $receiveDate) {
+                    $purchaseOrder = PurchaseOrder::where('id', '=', $id)->lockForUpdate()->first();
+                    if(!$purchaseOrder || $this->purchaseOrderHasReceivedStock($purchaseOrder)){
+                        throw new \LogicException('Stock has already been received for this purchase order.');
                     }
 
-                    $poItem         = $receiveRow['po_item'];
-                    $qty            = $receiveRow['qty'];
-                    $costPrice      = $receiveRow['cost_price'];
-                    $shopQty        = $receiveRow['shop_qty'];
-                    $warehouseQty   = $receiveRow['warehouse_qty'];
-                    $taxPercent     = (float)$poItem->tax_percent;
-                    $rowSubtotal    = ($qty * $costPrice);
-                    $rowTax         = (($rowSubtotal * $taxPercent) / 100);
-                    $rowTotal       = ($rowSubtotal + $rowTax);
-                    $landedCost     = ($costPrice + $deliveryCostPerItem);
-                    $landedTax      = (($landedCost * $taxPercent) / 100);
-                    $landedIncTax   = ($landedCost + $landedTax);
-                    $note           = 'Received from PO '.$data['row']->po_no;
+                    $subtotal = 0;
+                    $taxTotal = 0;
+                    $totalQty = 0;
+                    $totalLines = 0;
 
-                    PurchaseOrderItem::where('id', '=', $poItem->id)->update([
-                        'item_id'       => $product->id,
-                        'supplier_sku'  => (($product->supplier_sku != '')?$product->supplier_sku:$product->sku),
-                        'merchant_sku'  => $product->sku,
-                        'item_name'     => (($product->supplier_product_name != '')?$product->supplier_product_name:$product->name),
-                        'qty'           => $qty,
-                        'cost_price'    => $costPrice,
-                        'tax_percent'   => $taxPercent,
-                        'tax_amount'    => $rowTax,
-                        'total_inc_tax' => $rowTotal,
-                    ]);
+                    foreach($receiveRows as $receiveRow){
+                        $product = Product::where('id', '=', $receiveRow['product_id'])
+                                            ->where('supplier_id', '=', $purchaseOrder->supplier_id)
+                                            ->where('status', '!=', 3)
+                                            ->lockForUpdate()
+                                            ->first();
+                        if(!$product){
+                            throw new \LogicException('A purchase order product is no longer available.');
+                        }
 
-                    $warehouseStockId = 0;
-                    if($warehouseQty > 0){
-                        $warehouseOpening = $product->warehouse_stock;
-                        $warehouseClosing = ($warehouseOpening + $warehouseQty);
-                        $warehouseStockId = WarehouseStock::insertGetId([
+                        $poItem         = $receiveRow['po_item'];
+                        $qty            = $receiveRow['qty'];
+                        $landedCost     = round($receiveRow['base_cost_price'] + $deliveryCostPerUnit, 2);
+                        $taxPercent     = (float)$poItem->tax_percent;
+                        $rowSubtotal    = ($qty * $landedCost);
+                        $rowTax         = (($rowSubtotal * $taxPercent) / 100);
+                        $rowTotal       = ($rowSubtotal + $rowTax);
+                        $landedTax      = (($landedCost * $taxPercent) / 100);
+                        $landedIncTax   = ($landedCost + $landedTax);
+                        $note           = 'Received from PO '.$purchaseOrder->po_no;
+
+                        PurchaseOrderItem::where('id', '=', $poItem->id)->update([
+                            'item_id'       => $product->id,
+                            'supplier_sku'  => (($product->supplier_sku != '')?$product->supplier_sku:$product->sku),
+                            'merchant_sku'  => $product->sku,
+                            'item_name'     => (($product->supplier_product_name != '')?$product->supplier_product_name:$product->name),
+                            'qty'           => $qty,
+                            'cost_price'    => $landedCost,
+                            'tax_percent'   => $taxPercent,
+                            'tax_amount'    => $rowTax,
+                            'total_inc_tax' => $rowTotal,
+                        ]);
+
+                        $warehouseOpening = (int)$product->warehouse_stock;
+                        $warehouseClosing = ($warehouseOpening + $qty);
+                        WarehouseStock::insert([
                             'txn_type'      => 'IN',
                             'stock_date'    => $receiveDate,
                             'product_id'    => $product->id,
                             'opening_qty'   => $warehouseOpening,
-                            'txn_qty'       => $warehouseQty,
+                            'txn_qty'       => $qty,
                             'closing_qty'   => $warehouseClosing,
                             'note'          => $note,
                             'po_id'         => $id,
                         ]);
-                        $product->warehouse_stock = $warehouseClosing;
+
+                        $product->warehouse_stock      = $warehouseClosing;
+                        $product->cost_price_ex_tax     = $landedCost;
+                        $product->cost_price_tax        = $taxPercent;
+                        $product->cost_price_inc_tax    = $landedIncTax;
+                        $product->save();
+
+                        $totalLines++;
+                        $totalQty += $qty;
+                        $subtotal += $rowSubtotal;
+                        $taxTotal += $rowTax;
                     }
 
-                    if($shopQty > 0){
-                        $shopOpening = $product->shop_stock;
-                        $shopClosing = ($shopOpening + $shopQty);
-                        ShopStock::insert([
-                            'warehouse_stock_id'    => $warehouseStockId,
-                            'txn_type'              => 'IN',
-                            'stock_date'            => $receiveDate,
-                            'product_id'            => $product->id,
-                            'opening_qty'           => $shopOpening,
-                            'txn_qty'               => $shopQty,
-                            'closing_qty'           => $shopClosing,
-                            'note'                  => $note,
-                        ]);
-                        $product->shop_stock = $shopClosing;
-                    }
-
-                    $product->cost_price_ex_tax     = $landedCost;
-                    $product->cost_price_tax        = $taxPercent;
-                    $product->cost_price_inc_tax    = $landedIncTax;
-                    $product->save();
-
-                    $totalLines++;
-                    $totalQty += $qty;
-                    $subtotal += $rowSubtotal;
-                    $taxTotal += $rowTax;
-                }
-
-                $note = trim((string)$data['row']->note);
-                $deliveryNote = 'Delivery cost: $'.number_format($deliveryCost, 2, '.', '');
-                $note = (($note != '')?$note."\n":'').$deliveryNote;
-                PurchaseOrder::where('id', '=', $id)->update([
-                    'total_lines'       => $totalLines,
-                    'total_quantity'    => $totalQty,
-                    'subtotal'          => $subtotal,
-                    'tax_total'         => $taxTotal,
-                    'total_inc_tax'     => ($subtotal + $taxTotal),
-                    'note'              => $note,
-                ]);
-            });
+                    $currencySymbol = $this->normalizeCurrencySymbol($purchaseOrder->currency_symbol ?? '$');
+                    $note = trim((string)$purchaseOrder->note);
+                    $deliveryNote = 'Delivery cost ex GST: '.$currencySymbol.number_format($deliveryCost, 2, '.', '');
+                    $note = (($note != '')?$note."\n":'').$deliveryNote;
+                    PurchaseOrder::where('id', '=', $id)->update([
+                        'total_lines'       => $totalLines,
+                        'total_quantity'    => $totalQty,
+                        'subtotal'          => $subtotal,
+                        'tax_total'         => $taxTotal,
+                        'total_inc_tax'     => ($subtotal + $taxTotal),
+                        'delivery_cost'     => $deliveryCost,
+                        'received_at'       => now(),
+                        'note'              => $note,
+                        'status'            => 2,
+                    ]);
+                });
+            } catch(\LogicException $e) {
+                return redirect()->back()->withInput()->with('error_message', $e->getMessage());
+            }
 
             $this->generatePurchaseOrderPdf($id);
             return redirect("admin/" . $this->data['controller_route'] . "/list/")->with('success_message', 'Purchase order stock received successfully !!!');
@@ -504,6 +510,10 @@ class PurchaseOrderController extends Controller
         }
 
         return Supplier::where('id', '=', $supplierId)->where('status', '=', 1)->exists() ? $supplierId : '';
+    }
+    private function normalizeCurrencySymbol($currencySymbol){
+        $currencySymbol = str_replace(['<', '>'], '', strip_tags(trim((string)$currencySymbol)));
+        return (($currencySymbol != '')?mb_substr($currencySymbol, 0, 3):'$');
     }
     private function supplierItems($supplierId){
         return Product::select('id', 'name')
@@ -560,7 +570,8 @@ class PurchaseOrderController extends Controller
         }
     }
     private function purchaseOrderHasReceivedStock($purchaseOrder){
-        return WarehouseStock::where('po_id', '=', $purchaseOrder->id)->exists()
+        return (int)$purchaseOrder->status === 2
+            || WarehouseStock::where('po_id', '=', $purchaseOrder->id)->exists()
             || ShopStock::where('note', 'LIKE', '%Received from PO '.$purchaseOrder->po_no.'%')->exists();
     }
     private function generatePurchaseOrderPdf($id){

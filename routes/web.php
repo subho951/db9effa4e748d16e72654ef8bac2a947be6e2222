@@ -45,6 +45,7 @@ Route::get('/db-test', function () {
                 Route::get('billing/list', 'App\Http\Controllers\BillingController@list');
                 Route::post('billing/billing-item-return', 'BillingController@billingItemReturn');
                 Route::get('billing/billing-item/{id}', 'App\Http\Controllers\BillingController@billingItem');
+                Route::get('billing/product-suggestions', 'App\Http\Controllers\BillingController@productSuggestions');
                 Route::post('billing/add-to-cart', 'App\Http\Controllers\BillingController@addToCart');
                 Route::post('billing/item-delete', 'App\Http\Controllers\BillingController@itemDelete');
                 Route::post('billing/billing-change-status', 'App\Http\Controllers\BillingController@billingChangeStatus');

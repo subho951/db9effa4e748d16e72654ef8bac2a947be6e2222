@@ -120,61 +120,37 @@ class BillingController extends Controller
         public function productSuggestions(Request $request){
             $q              = trim((string) $request->get('q', ''));
             $suggestions    = [];
-            $added          = [];
 
-            if(strlen($q) < 4 || strlen($q) > 25){
+            if($q === '' || strlen($q) > 100){
                 return response()->json($suggestions);
             }
 
-            $getProducts = Product::select('id', 'name', 'sku', 'barcode')
-                                ->where('status', '=', 1)
-                                ->where(function($query) use ($q) {
-                                    $query->where('barcode', 'LIKE', '%'.$q.'%')
-                                          ->orWhere('sku', 'LIKE', '%'.$q.'%');
-                                })
-                                ->orderByRaw(
-                                    "CASE WHEN barcode LIKE ? OR sku LIKE ? THEN 0 ELSE 1 END",
-                                    [$q.'%', $q.'%']
+            $getProducts = Product::query()
+                                ->posSearch($q)
+                                ->select(
+                                    'products.id',
+                                    'products.name',
+                                    'products.sku',
+                                    'products.barcode',
+                                    'brands.name as brand_name',
+                                    'suppliers.name as supplier_name'
                                 )
-                                ->orderBy('name', 'ASC')
                                 ->limit(10)
                                 ->get();
 
-            if($getProducts){
-                foreach($getProducts as $getProduct){
-                    $barcode = (string) $getProduct->barcode;
-                    $sku     = (string) $getProduct->sku;
+            foreach($getProducts as $getProduct){
+                $barcode = (string) $getProduct->barcode;
+                $sku     = (string) $getProduct->sku;
 
-                    if($barcode != '' && stripos($barcode, $q) !== false && !array_key_exists('Barcode:'.$barcode, $added)){
-                        $suggestions[] = [
-                            'value'     => $barcode,
-                            'type'      => 'Barcode',
-                            'name'      => $getProduct->name,
-                            'sku'       => $sku,
-                            'barcode'   => $barcode,
-                        ];
-                        $added['Barcode:'.$barcode] = true;
-                    }
-
-                    if(count($suggestions) >= 10){
-                        break;
-                    }
-
-                    if($sku != '' && stripos($sku, $q) !== false && !array_key_exists('SKU:'.$sku, $added)){
-                        $suggestions[] = [
-                            'value'     => $sku,
-                            'type'      => 'SKU',
-                            'name'      => $getProduct->name,
-                            'sku'       => $sku,
-                            'barcode'   => $barcode,
-                        ];
-                        $added['SKU:'.$sku] = true;
-                    }
-
-                    if(count($suggestions) >= 10){
-                        break;
-                    }
-                }
+                $suggestions[] = [
+                    'value'     => $barcode !== '' ? $barcode : ($sku !== '' ? $sku : $getProduct->name),
+                    'type'      => 'Product',
+                    'name'      => $getProduct->name,
+                    'sku'       => $sku,
+                    'barcode'   => $barcode,
+                    'brand'     => (string) $getProduct->brand_name,
+                    'supplier'  => (string) $getProduct->supplier_name,
+                ];
             }
 
             return response()->json($suggestions);
@@ -187,33 +163,23 @@ class BillingController extends Controller
             $apiExtraData       = '';
             $requestData        = $request->all();
             if($requestData['key'] == env('PROJECT_KEY')){
-                $barcode            = $requestData['barcode'];
+                $barcode            = trim((string) $requestData['barcode']);
                 $order_id           = $requestData['order_id'];
-                if(strlen($barcode) < 4 || strlen($barcode) > 25){
+                if($barcode === '' || strlen($barcode) > 100){
                     $apiStatus          = FALSE;
                     http_response_code(200);
-                    $apiMessage         = 'Barcode or SKU number length must be between 4 and 25 characters';
+                    $apiMessage         = 'Enter up to 100 characters to search for a product';
                     $apiExtraField      = 'response_code';
                     $apiExtraData       = http_response_code();
                 } else {
-                    // $getProduct         = Product::where('barcode', '=', $barcode)->first();
-                    $getProduct         = Product::select(
-                                                        'id',
-                                                        'name',
-                                                        'sku',
-                                                        'retail_price_inc_tax',
-                                                        'barcode',
-                                                    )
-                                            ->where(function($query) {
-                                                $query->where('status', 1);
-                                            })
-                                            ->where(function($query) use ($barcode) {
-                                                    $query->where('barcode', 'LIKE', '%'.$barcode.'%')
-                                                      ->orWhere('sku', 'LIKE', '%'.$barcode.'%');
-                                            })
-                                            ->orderByRaw(
-                                                "CASE WHEN barcode = ? OR sku = ? THEN 0 WHEN barcode LIKE ? OR sku LIKE ? THEN 1 ELSE 2 END",
-                                                [$barcode, $barcode, $barcode.'%', $barcode.'%']
+                    $getProduct         = Product::query()
+                                            ->posSearch($barcode)
+                                            ->select(
+                                                'products.id',
+                                                'products.name',
+                                                'products.sku',
+                                                'products.retail_price_inc_tax',
+                                                'products.barcode'
                                             )
                                             ->first();
                     if($getProduct){
@@ -1702,27 +1668,21 @@ class BillingController extends Controller
             $requestData        = $request->all();
             if($requestData['key'] == env('PROJECT_KEY')){
                 $order_id           = $requestData['order_id'];
-                $search_keyword     = $requestData['search_keyword'];
+                $search_keyword     = trim((string) $requestData['search_keyword']);
                 $getOrder           = Order::where('id', '=', $order_id)->first();
                 if($getOrder){
-                    $searchProducts   = Product::join('brands', 'products.brand_id', '=', 'brands.id')
-                                            ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                    $searchProducts   = Product::query()
+                                            ->posSearch($search_keyword)
                                             ->select(
                                                         'products.id',
                                                         'products.name',
                                                         'products.sku',
+                                                        'products.barcode',
+                                                        'products.supplier_sku',
+                                                        'brands.name as brand_name',
                                                         'products.retail_price_inc_tax',
                                                     )
-                                            ->where(function($query) {
-                                                $query->where('products.status', 1);
-                                            })
-                                            ->where(function($query) use ($search_keyword) {
-                                                $query->where('products.name', 'LIKE', '%'.$search_keyword.'%')
-                                                      ->orWhere('products.barcode', 'LIKE', '%'.$search_keyword.'%')
-                                                      ->orWhere('brands.name', 'LIKE', '%'.$search_keyword.'%')
-                                                      ->orWhere('suppliers.name', 'LIKE', '%'.$search_keyword.'%');
-                                            })
-                                            ->orderBy('products.name', 'ASC')
+                                            ->limit(100)
                                             ->get();
                     $products = [];
                     if($searchProducts){
@@ -1731,6 +1691,9 @@ class BillingController extends Controller
                                 'id'        => $searchProduct->id,
                                 'name'      => $searchProduct->name,
                                 'sku'       => $searchProduct->sku,
+                                'barcode'   => $searchProduct->barcode,
+                                'brand'     => $searchProduct->brand_name,
+                                'supplier_sku' => $searchProduct->supplier_sku,
                                 'price'     => $searchProduct->retail_price_inc_tax,
                             ];
                         }

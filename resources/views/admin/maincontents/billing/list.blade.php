@@ -162,7 +162,7 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
                     <div class="row">
                         <div class="col-6 d-flex">
                             <div class="barcode-suggestion-wrapper">
-                                <input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan / Enter Barcode Or SKU" minlength="4" maxlength="25" autocomplete="off">
+                                <input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan or search SKU, brand, product" minlength="1" maxlength="100" autocomplete="off">
                                 <div id="barcodeSuggestions" class="barcode-suggestions"></div>
                             </div>
                         </div>
@@ -495,11 +495,18 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
             });
             $("<span>", {
                 "class": "barcode-suggestion-value",
-                "text": item.type + ": " + item.value
+                "text": item.name
             }).appendTo($option);
+            var productDetails = ["SKU: " + item.sku, "Barcode: " + item.barcode];
+            if (item.brand) {
+                productDetails.push("Brand: " + item.brand);
+            }
+            if (item.supplier) {
+                productDetails.push("Supplier: " + item.supplier);
+            }
             $("<span>", {
                 "class": "barcode-suggestion-meta",
-                "text": item.name + " | SKU: " + item.sku + " | Barcode: " + item.barcode
+                "text": productDetails.join(" | ")
             }).appendTo($option);
             $suggestions.append($option);
         });
@@ -531,9 +538,13 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
     }
 
     function addToCart(){
-        var barcode = $('#barcode').val();
+        hideBarcodeSuggestions();
+        if (barcodeSuggestionRequest) {
+            barcodeSuggestionRequest.abort();
+        }
+        var barcode = $.trim($('#barcode').val());
         var order_id = '<?=(($getOrder)?$getOrder->id:0)?>';
-        if(barcode.length >= 4 && barcode.length <= 25){
+        if(barcode.length >= 1 && barcode.length <= 100){
             $.ajax({
                 type: "POST",
                 url: base_url + "/admin/billing/add-to-cart",
@@ -577,7 +588,7 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
                 }
             });
         } else {
-            toastAlert('error', 'Barcode or SKU number length must be between 4 and 25 characters. Please enter right barcode or SKU number');
+            toastAlert('error', 'Enter a barcode, SKU, brand or product name (up to 100 characters)');
             $('#barcode').val('');
             $("#barcode").focus();
         }
@@ -599,7 +610,7 @@ $pickupChecked         = ($hasCartItems && $getOrder && $getOrder->delivery_mode
         var query = $.trim($(this).val());
 
         clearTimeout(barcodeSuggestionTimer);
-        if (query.length < 4 || query.length > 25) {
+        if (query.length < 1 || query.length > 100) {
             hideBarcodeSuggestions();
             if (barcodeSuggestionRequest) {
                 barcodeSuggestionRequest.abort();

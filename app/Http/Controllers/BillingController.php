@@ -114,6 +114,44 @@ class BillingController extends Controller
             $page_name                      = 'billing.list';
             echo $this->user_after_login_billing_layout($title,$page_name,$data);
         }
+        public function productSuggestions(Request $request){
+            $q              = trim((string) $request->get('q', ''));
+            $suggestions    = [];
+
+            if($q === '' || strlen($q) > 100){
+                return response()->json($suggestions);
+            }
+
+            $getProducts = Product::query()
+                                ->posSearch($q)
+                                ->select(
+                                    'products.id',
+                                    'products.name',
+                                    'products.sku',
+                                    'products.barcode',
+                                    'brands.name as brand_name',
+                                    'suppliers.name as supplier_name'
+                                )
+                                ->limit(10)
+                                ->get();
+
+            foreach($getProducts as $getProduct){
+                $barcode = (string) $getProduct->barcode;
+                $sku     = (string) $getProduct->sku;
+
+                $suggestions[] = [
+                    'value'     => $barcode !== '' ? $barcode : ($sku !== '' ? $sku : $getProduct->name),
+                    'type'      => 'Product',
+                    'name'      => $getProduct->name,
+                    'sku'       => $sku,
+                    'barcode'   => $barcode,
+                    'brand'     => (string) $getProduct->brand_name,
+                    'supplier'  => (string) $getProduct->supplier_name,
+                ];
+            }
+
+            return response()->json($suggestions);
+        }
         public function addToCart(Request $request){
             $apiStatus          = TRUE;
             $apiMessage         = '';
@@ -122,23 +160,17 @@ class BillingController extends Controller
             $apiExtraData       = '';
             $requestData        = $request->all();
             if($requestData['key'] == env('PROJECT_KEY')){
-                $barcode            = $requestData['barcode'];
+                $barcode            = trim((string) $requestData['barcode']);
                 $order_id           = $requestData['order_id'];
-                // $getProduct         = Product::where('barcode', '=', $barcode)->first();
-                $getProduct         = Product::select(
-                                                        'id',
-                                                        'name',
-                                                        'sku',
-                                                        'retail_price_inc_tax',
-                                                        'barcode',
-                                                    )
-                                            ->where(function($query) {
-                                                $query->where('status', 1);
-                                            })
-                                            ->where(function($query) use ($barcode) {
-                                                    $query->where('barcode', 'LIKE', '%'.$barcode.'%')
-                                                      ->orWhere('sku', 'LIKE', '%'.$barcode.'%');
-                                            })
+                $getProduct         = Product::query()
+                                            ->posSearch($barcode)
+                                            ->select(
+                                                'products.id',
+                                                'products.name',
+                                                'products.sku',
+                                                'products.retail_price_inc_tax',
+                                                'products.barcode'
+                                            )
                                             ->first();
                 if($getProduct){
                     /* orders details table */
@@ -1459,27 +1491,21 @@ class BillingController extends Controller
             $requestData        = $request->all();
             if($requestData['key'] == env('PROJECT_KEY')){
                 $order_id           = $requestData['order_id'];
-                $search_keyword     = $requestData['search_keyword'];
+                $search_keyword     = trim((string) $requestData['search_keyword']);
                 $getOrder           = Order::where('id', '=', $order_id)->first();
                 if($getOrder){
-                    $searchProducts   = Product::join('brands', 'products.brand_id', '=', 'brands.id')
-                                            ->join('suppliers', 'products.supplier_id', '=', 'suppliers.id')
+                    $searchProducts   = Product::query()
+                                            ->posSearch($search_keyword)
                                             ->select(
                                                         'products.id',
                                                         'products.name',
                                                         'products.sku',
+                                                        'products.barcode',
+                                                        'products.supplier_sku',
+                                                        'brands.name as brand_name',
                                                         'products.retail_price_inc_tax',
                                                     )
-                                            ->where(function($query) {
-                                                $query->where('products.status', 1);
-                                            })
-                                            ->where(function($query) use ($search_keyword) {
-                                                $query->where('products.name', 'LIKE', '%'.$search_keyword.'%')
-                                                      ->orWhere('products.barcode', 'LIKE', '%'.$search_keyword.'%')
-                                                      ->orWhere('brands.name', 'LIKE', '%'.$search_keyword.'%')
-                                                      ->orWhere('suppliers.name', 'LIKE', '%'.$search_keyword.'%');
-                                            })
-                                            ->orderBy('products.name', 'ASC')
+                                            ->limit(100)
                                             ->get();
                     $products = [];
                     if($searchProducts){
@@ -1488,6 +1514,9 @@ class BillingController extends Controller
                                 'id'        => $searchProduct->id,
                                 'name'      => $searchProduct->name,
                                 'sku'       => $searchProduct->sku,
+                                'barcode'   => $searchProduct->barcode,
+                                'brand'     => $searchProduct->brand_name,
+                                'supplier_sku' => $searchProduct->supplier_sku,
                                 'price'     => $searchProduct->retail_price_inc_tax,
                             ];
                         }

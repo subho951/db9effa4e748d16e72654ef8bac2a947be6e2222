@@ -25,7 +25,7 @@ $current_url          = url()->current();
                                     <input type="hidden" name="order_id" id="order_id" value="<?=(($getOrder)?$getOrder->id:0)?>">
                                     <input type="hidden" name="key" id="key" value="db9effa4e748d16e72654ef8bac2a947be6e2222">
                                     <div class="input-group">
-                                        <input type="text" class="form-control me-4" placeholder="Enter Brand, Name, Barcode and By Supplier" aria-label="Recipient's username with two button addons" id="search_keyword" name="search_keyword">
+                                        <input type="text" class="form-control me-4" placeholder="Search SKU, barcode, brand, product name or supplier" aria-label="Search products" id="search_keyword" name="search_keyword" maxlength="100" autocomplete="off">
                                         <button type="submit" class="my-btn btn-sky text-white">Enter</button>
                                     </div>
                                 </form>
@@ -131,9 +131,9 @@ $current_url          = url()->current();
         $("#search_keyword").focus();
         $("#searchForm").submit(function (e) {
             e.preventDefault();
-            var search_keyword    = $('#search_keyword').val();
+            var search_keyword    = $.trim($('#search_keyword').val());
             if(search_keyword != ''){
-                if(search_keyword.length >= 3){
+                if(search_keyword.length <= 100){
                     var formData = new FormData(this);
                     $.ajax({
                         type: "POST",
@@ -149,7 +149,6 @@ $current_url          = url()->current();
                         success: function (res) {
                             $("#loader").hide();
                             if(res.status){
-                                toastAlert("success", res.message);
                                 $('#search-products').empty();
                                 $('#search-products').html(res.data.item_table_html);
                             }else{
@@ -169,7 +168,7 @@ $current_url          = url()->current();
                         }
                     });
                 } else {
-                    toastAlert("error", 'Search keyword needs to be minimum three (3) characters');
+                    toastAlert("error", 'Search text cannot be longer than 100 characters');
                 }
             } else {
                 toastAlert("error", 'Please enter search keyword');
@@ -187,11 +186,11 @@ $current_url          = url()->current();
                 $("#loader").show();
             },
             success: function (res) {
-                $("#loader").hide();
                 if(res.status){
-                    toastAlert("success", res.message, true, res.data.redirect_url);
-                    $('#fast-button-' + fastButtonId).addClass('active');
+                    window.location.replace(res.data.redirect_url);
+                    return;
                 }else{
+                    $("#loader").hide();
                     toastAlert("error", res.message);
                 }
             },

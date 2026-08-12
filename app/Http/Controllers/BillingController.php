@@ -24,6 +24,9 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 class BillingController extends Controller
 {
+    private const BILLING_ADMIN_AUTHORIZATION_SESSION_KEY = 'billing_admin_authorization';
+    private const BILLING_ADMIN_AUTHORIZATION_TTL_SECONDS = 300;
+
     public function __construct()
     {        
         $this->data = array(
@@ -32,6 +35,21 @@ class BillingController extends Controller
             'controller_route'  => 'billing',
             'primary_key'       => 'id',
         );
+    }
+
+    private function hasBillingAdminAuthorization(Request $request, string $action, bool $consume = false): bool
+    {
+        $authorization = $request->session()->get(self::BILLING_ADMIN_AUTHORIZATION_SESSION_KEY);
+        $isAuthorized = is_array($authorization)
+            && ($authorization['action'] ?? '') === $action
+            && isset($authorization['authorized_at'])
+            && ((int) $authorization['authorized_at']) >= (time() - self::BILLING_ADMIN_AUTHORIZATION_TTL_SECONDS);
+
+        if ($consume || !$isAuthorized) {
+            $request->session()->forget(self::BILLING_ADMIN_AUTHORIZATION_SESSION_KEY);
+        }
+
+        return $isAuthorized;
     }
     /* list */
         public function list(){
@@ -122,16 +140,18 @@ class BillingController extends Controller
                 return response()->json($suggestions);
             }
 
+            $escapedBarcode = addcslashes($q, '\\%_');
             $getProducts = Product::query()
-                                ->posSearch($q)
+                                ->where('products.status', '=', 1)
+                                ->where('products.barcode', 'LIKE', $escapedBarcode.'%')
                                 ->select(
                                     'products.id',
                                     'products.name',
                                     'products.sku',
-                                    'products.barcode',
-                                    'brands.name as brand_name',
-                                    'suppliers.name as supplier_name'
+                                    'products.barcode'
                                 )
+                                ->orderByRaw('CASE WHEN products.barcode = ? THEN 0 ELSE 1 END', [$q])
+                                ->orderBy('products.barcode', 'ASC')
                                 ->limit(10)
                                 ->get();
 
@@ -145,8 +165,8 @@ class BillingController extends Controller
                     'name'      => $getProduct->name,
                     'sku'       => $sku,
                     'barcode'   => $barcode,
-                    'brand'     => (string) $getProduct->brand_name,
-                    'supplier'  => (string) $getProduct->supplier_name,
+                    'brand'     => '',
+                    'supplier'  => '',
                 ];
             }
 
@@ -163,7 +183,8 @@ class BillingController extends Controller
                 $barcode            = trim((string) $requestData['barcode']);
                 $order_id           = $requestData['order_id'];
                 $getProduct         = Product::query()
-                                            ->posSearch($barcode)
+                                            ->where('products.status', '=', 1)
+                                            ->where('products.barcode', '=', $barcode)
                                             ->select(
                                                 'products.id',
                                                 'products.name',
@@ -470,6 +491,15 @@ class BillingController extends Controller
             $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
         }
         public function billingItemReturn(Request $request){
+            if(!$this->hasBillingAdminAuthorization($request, 'return', true)){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Admin PIN required',
+                    'data' => [],
+                    'response_code' => 403,
+                ], 403);
+            }
+
             $apiStatus          = TRUE;
             $apiMessage         = '';
             $apiResponse        = [];
@@ -531,7 +561,12 @@ class BillingController extends Controller
                 $apiExtraField      = 'response_code';
                 $apiExtraData       = http_response_code();
             }
-            $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
+            return response()->json([
+                'status' => $apiStatus,
+                'message' => $apiMessage,
+                'data' => $apiResponse,
+                'response_code' => $apiExtraData,
+            ], (int) $apiExtraData);
         }
         public function billingChangeStatus(Request $request){
             $apiStatus          = TRUE;
@@ -1466,7 +1501,11 @@ class BillingController extends Controller
             }
             $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
         }
-        public function billingSearch($order_id){
+        public function billingSearch(Request $request, $order_id){
+            if(!$this->hasBillingAdminAuthorization($request, 'search')){
+                return redirect('user/billing/list')->with('error_message', 'Admin PIN required');
+            }
+
             $order_id                       = Helper::decoded($order_id);
             $data['getOrder']               = Order::where('id', '=', $order_id)->first();
             $data['getOrderItems']          = DB::table('order_details')
@@ -1483,6 +1522,15 @@ class BillingController extends Controller
             echo $this->user_after_login_billing_layout($title,$page_name,$data);
         }
         public function searchResult(Request $request){
+            if(!$this->hasBillingAdminAuthorization($request, 'search')){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Admin PIN required',
+                    'data' => [],
+                    'response_code' => 403,
+                ], 403);
+            }
+
             $apiStatus          = TRUE;
             $apiMessage         = '';
             $apiResponse        = [];
@@ -1557,6 +1605,15 @@ class BillingController extends Controller
             $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
         }
         public function searchProductAddToCart(Request $request){
+            if(!$this->hasBillingAdminAuthorization($request, 'search')){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Admin PIN required',
+                    'data' => [],
+                    'response_code' => 403,
+                ], 403);
+            }
+
             $apiStatus          = TRUE;
             $apiMessage         = '';
             $apiResponse        = [];
@@ -1690,9 +1747,18 @@ class BillingController extends Controller
                 $apiExtraField      = 'response_code';
                 $apiExtraData       = http_response_code();
             }
-            $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
+            return response()->json([
+                'status' => $apiStatus,
+                'message' => $apiMessage,
+                'data' => $apiResponse,
+                'response_code' => $apiExtraData,
+            ], (int) $apiExtraData);
         }
-        public function billingShortcuts($order_id){
+        public function billingShortcuts(Request $request, $order_id){
+            if(!$this->hasBillingAdminAuthorization($request, 'search')){
+                return redirect('user/billing/list')->with('error_message', 'Admin PIN required');
+            }
+
             $order_id                       = Helper::decoded($order_id);
             $data['getOrder']               = Order::where('id', '=', $order_id)->first();
             $data['getOrderItems']          = DB::table('order_details')
@@ -1716,23 +1782,36 @@ class BillingController extends Controller
             $apiExtraData       = '';
             $requestData        = $request->all();
             // Helper::pr($requestData);
-            if($requestData['key'] == env('PROJECT_KEY')){
-                $pin1           = $requestData['pin1'];
-                $pin2           = $requestData['pin2'];
-                $pin3           = $requestData['pin3'];
-                $pin4           = $requestData['pin4'];
-                $completePin    = $pin1.$pin2.$pin3.$pin4;
+            if(($requestData['key'] ?? '') == env('PROJECT_KEY')){
+                $completePin    = (string) ($requestData['pin'] ?? '');
+                if($completePin === ''){
+                    $completePin = (string) ($requestData['pin1'] ?? '')
+                        .(string) ($requestData['pin2'] ?? '')
+                        .(string) ($requestData['pin3'] ?? '')
+                        .(string) ($requestData['pin4'] ?? '');
+                }
+                $action         = (string) ($requestData['action'] ?? 'modify');
                 $getAdmin       = Admin::where('id','=',1)->first();
-                if(Hash::check($completePin, $getAdmin->password)){
+                if(in_array($action, ['modify', 'search', 'return'], true)
+                    && preg_match('/^[0-9]{4}$/', $completePin)
+                    && $getAdmin
+                    && Hash::check($completePin, $getAdmin->password)){
+                    if(in_array($action, ['search', 'return'], true)){
+                        $request->session()->put(self::BILLING_ADMIN_AUTHORIZATION_SESSION_KEY, [
+                            'action' => $action,
+                            'authorized_at' => time(),
+                        ]);
+                    }
                     http_response_code(200);
                     $apiStatus          = TRUE;
                     $apiMessage         = 'Admin PIN matched !!!';
                     $apiExtraField      = 'response_code';
                     $apiExtraData       = http_response_code();
                 } else {
+                    $request->session()->forget(self::BILLING_ADMIN_AUTHORIZATION_SESSION_KEY);
                     http_response_code(200);
                     $apiStatus          = FALSE;
-                    $apiMessage         = 'Admin PIN Doesn\'t match !!!';
+                    $apiMessage         = 'Incorrect';
                     $apiExtraField      = 'response_code';
                     $apiExtraData       = http_response_code();
                 }
@@ -1743,7 +1822,12 @@ class BillingController extends Controller
                 $apiExtraField      = 'response_code';
                 $apiExtraData       = http_response_code();
             }
-            $this->response_to_json($apiStatus, $apiMessage, $apiResponse, $apiExtraField, $apiExtraData);
+            return response()->json([
+                'status' => $apiStatus,
+                'message' => $apiMessage,
+                'data' => $apiResponse,
+                'response_code' => $apiExtraData,
+            ], (int) $apiExtraData);
         }
         public function billingPriceUpdate(Request $request){
             $apiStatus          = TRUE;

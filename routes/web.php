@@ -43,7 +43,7 @@ Route::get('/db-test', function () {
             Route::get('/signout', 'App\Http\Controllers\FrontController@logout');
             /* billing */
                 Route::get('billing/list', 'App\Http\Controllers\BillingController@list');
-                Route::post('billing/billing-item-return', 'BillingController@billingItemReturn');
+                Route::post('billing/billing-item-return', 'App\Http\Controllers\BillingController@billingItemReturn');
                 Route::get('billing/billing-item/{id}', 'App\Http\Controllers\BillingController@billingItem');
                 Route::get('billing/product-suggestions', 'App\Http\Controllers\BillingController@productSuggestions');
                 Route::post('billing/add-to-cart', 'App\Http\Controllers\BillingController@addToCart');

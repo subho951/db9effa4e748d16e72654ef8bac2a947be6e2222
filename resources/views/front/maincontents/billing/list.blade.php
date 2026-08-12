@@ -12,48 +12,11 @@ $current_url          = url()->current();
         opacity: 0.6;         /* Optional: make it look disabled */
         cursor: not-allowed;
     }
-    .barcode-suggestion-wrapper {
-        position: relative;
-        width: 100%;
-    }
-    .barcode-suggestions {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        z-index: 1050;
-        max-height: 220px;
-        overflow-y: auto;
-        background: #fff;
-        border: 1px solid #ddd;
-        border-top: 0;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-    }
-    .barcode-suggestion-item {
-        padding: 8px 10px;
-        cursor: pointer;
-        border-bottom: 1px solid #eee;
-    }
-    .barcode-suggestion-item:hover,
-    .barcode-suggestion-item:focus {
-        background: #f3f8ff;
-    }
-    .barcode-suggestion-item:last-child {
-        border-bottom: 0;
-    }
-    .barcode-suggestion-value {
-        display: block;
-        font-weight: 700;
-        color: #111;
-        line-height: 1.2;
-    }
-    .barcode-suggestion-meta {
-        display: block;
-        margin-top: 2px;
-        font-size: 11px;
-        color: #666;
-        line-height: 1.2;
+    .admin-pin-input {
+        max-width: 220px;
+        margin: 0 auto;
+        text-align: center;
+        letter-spacing: 0.4em;
     }
 </style>
 <div class="row">
@@ -69,10 +32,7 @@ $current_url          = url()->current();
                 <div class="my-1 my-md-4">
                     <div class="row">
                         <div class="col-6 d-flex">
-                            <div class="barcode-suggestion-wrapper">
-                                <input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan or search SKU, brand, product" minlength="1" maxlength="100" autocomplete="off">
-                                <div id="barcodeSuggestions" class="barcode-suggestions"></div>
-                            </div>
+                            <input type="text" class="form-control outline-red scan-input" id="barcode" placeholder="Scan barcode" aria-label="Barcode" minlength="1" maxlength="100" autocomplete="off">
                         </div>
                         <div class="col-6 d-flex justify-content-end"><a href="javascript:void(0);" class="my-btn btn-sky enter-btn" id="addToCartBtn">Enter</a></div>
                     </div>
@@ -92,7 +52,7 @@ $current_url          = url()->current();
                     <div class="col-7">
                         <div class="d-flex justify-content-end">
                             <a href="javascript: void(0);" class="my-btn btn-yellow me-3 disabled-link" type="button" data-bs-toggle="modal" data-bs-target="#cancelSaleModal" id="cancel-item-btn">Cancel Item</a>
-                            <a href="<?=url('user/billing/billing-search/' . Helper::encoded((($getOrder)?$getOrder->id:'')))?>" class="my-btn btn-sky enter-btn">Search</a>
+                            <a href="<?=url('user/billing/billing-search/' . Helper::encoded((($getOrder)?$getOrder->id:'')))?>" class="my-btn btn-sky enter-btn" id="admin-search-btn" data-admin-action="search">Search</a>
                         </div>
                     </div>
                 </div>
@@ -137,9 +97,9 @@ $current_url          = url()->current();
                         </a>
                     </div>
                     <div class="col-7 d-flex justify-content-end">
-                        <a href="javascript:vold(0)" type="button" data-bs-toggle="modal" data-bs-target="#adminpinmodal" class="my-btn btn-yellow d-block Modify-btn" id="price-modify-btn">Modify</a>
+                        <a href="javascript:void(0);" type="button" class="my-btn btn-yellow d-block Modify-btn" id="price-modify-btn" data-admin-action="modify">Modify</a>
                         <a href="javascript:vold(0)" type="button" class="my-btn btn-sky d-block Modify-btn" id="price-update-btn" style="display: none !important;">Update</a>
-                        <a href="javascript:vold(0)" type="button" class="my-btn btn-sky d-block Modify-btn" id="price-return-btn" onclick="itemReturn(<?=(($getOrder)?$getOrder->id:0)?>);">Return</a>
+                        <a href="javascript:void(0);" type="button" class="my-btn btn-sky d-block Modify-btn" id="price-return-btn" data-admin-action="return">Return</a>
                     </div>
                 </div>
             </div>
@@ -240,25 +200,21 @@ $current_url          = url()->current();
 <div class="modal fade" id="adminpinmodal" tabindex="-1" aria-labelledby="adminpinmodalLabel" aria-hidden="true">
     <div class="modal-dialog  modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header p-0">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="" class="otp-form" name="otp-form" id="otp-form">
+            <form action="" class="otp-form" name="otp-form" id="otp-form" novalidate>
                 @csrf
                 <input type="hidden" name="key" id="key" value="db9effa4e748d16e72654ef8bac2a947be6e2222">
+                <input type="hidden" name="action" id="admin_action" value="">
                 <div class="modal-body">
-                    <h1 class="modal-title fs-4 text-center w-100 text-black mb-2" id="adminpinmodalLabel">Enter Your Admin Pin</h1>
-                    <div class="otp-input-fields">
-                        <input type="password" class="otp__digit otp__field__1" autocomplete="off" name="pin1" id="pin1">
-                        <input type="password" class="otp__digit otp__field__2" autocomplete="off" name="pin2" id="pin2">
-                        <input type="password" class="otp__digit otp__field__3" autocomplete="off" name="pin3" id="pin3">
-                        <input type="password" class="otp__digit otp__field__4" autocomplete="off" name="pin4" id="pin4">
+                    <h1 class="modal-title fs-4 text-center w-100 text-black mb-3" id="adminpinmodalLabel">Admin Login</h1>
+                    <div class="mb-3">
+                        <label for="admin_pin" class="form-label d-block text-center text-black">PIN</label>
+                        <input type="password" class="form-control admin-pin-input" autocomplete="new-password" inputmode="numeric" maxlength="4" name="pin" id="admin_pin">
                     </div>
-                    <div class="mt-4 d-flex justify-content-center"> 
-                        <button class="btn btn-green text-black px-4 validate">Submit</button> 
+                    <div class="mt-4 d-flex justify-content-center">
+                        <button type="button" class="btn btn-secondary text-white px-4 mx-1" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-green text-black px-4 mx-1 validate">OK</button>
                     </div>
                 </div>
-                <!-- <div class="result"><p id="_otp" class="_notok"></p></div> -->
             </form>
         </div>
     </div>
@@ -324,79 +280,10 @@ $current_url          = url()->current();
     });
 
     // Get references
-    const skuInput = document.getElementById('barcode');
+    const barcodeInput = document.getElementById('barcode');
     const addToCartBtn = document.getElementById('addToCartBtn');
-    var barcodeSuggestionTimer = null;
-    var barcodeSuggestionRequest = null;
-
-    function hideBarcodeSuggestions() {
-        $("#barcodeSuggestions").hide().empty();
-    }
-
-    function renderBarcodeSuggestions(items) {
-        var $suggestions = $("#barcodeSuggestions");
-        $suggestions.empty();
-
-        if (!items || !items.length) {
-            hideBarcodeSuggestions();
-            return;
-        }
-
-        items.forEach(function(item) {
-            var $option = $("<div>", {
-                "class": "barcode-suggestion-item",
-                "tabindex": 0,
-                "data-value": item.value
-            });
-            $("<span>", {
-                "class": "barcode-suggestion-value",
-                "text": item.name
-            }).appendTo($option);
-            var productDetails = ["SKU: " + item.sku, "Barcode: " + item.barcode];
-            if (item.brand) {
-                productDetails.push("Brand: " + item.brand);
-            }
-            if (item.supplier) {
-                productDetails.push("Supplier: " + item.supplier);
-            }
-            $("<span>", {
-                "class": "barcode-suggestion-meta",
-                "text": productDetails.join(" | ")
-            }).appendTo($option);
-            $suggestions.append($option);
-        });
-
-        $suggestions.show();
-    }
-
-    function getProductSuggestions(query) {
-        if (barcodeSuggestionRequest) {
-            barcodeSuggestionRequest.abort();
-        }
-
-        barcodeSuggestionRequest = $.ajax({
-            url: base_url + "/user/billing/product-suggestions",
-            type: "GET",
-            data: { q: query },
-            dataType: "json",
-            success: function(response) {
-                if ($.trim($("#barcode").val()) === query) {
-                    renderBarcodeSuggestions(response);
-                }
-            },
-            error: function(xhr) {
-                if (xhr.statusText !== "abort") {
-                    hideBarcodeSuggestions();
-                }
-            }
-        });
-    }
 
     function addToCart(){
-        hideBarcodeSuggestions();
-        if (barcodeSuggestionRequest) {
-            barcodeSuggestionRequest.abort();
-        }
         var barcode = $.trim($('#barcode').val());
         var order_id = '<?=(($getOrder)?$getOrder->id:0)?>';
         if(barcode.length >= 1 && barcode.length <= 100){
@@ -433,7 +320,7 @@ $current_url          = url()->current();
                 }
             });
         } else {
-            toastAlert('error', 'Enter a barcode, SKU, brand or product name (up to 100 characters)');
+            toastAlert('error', 'Enter a barcode (up to 100 characters)');
             $('#barcode').val('');
             $("#barcode").focus();
         }
@@ -443,51 +330,11 @@ $current_url          = url()->current();
     addToCartBtn.addEventListener('click', addToCart);
 
     // Bind Enter key on input
-    skuInput.addEventListener('keydown', function(e) {
+    barcodeInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault(); // Prevent form submission if inside a form
-        hideBarcodeSuggestions();
         addToCartBtn.click(); // Simulate button click
       }
-    });
-
-    $(document).on("input", "#barcode", function() {
-        var query = $.trim($(this).val());
-
-        clearTimeout(barcodeSuggestionTimer);
-        if (query.length < 1 || query.length > 100) {
-            hideBarcodeSuggestions();
-            if (barcodeSuggestionRequest) {
-                barcodeSuggestionRequest.abort();
-            }
-            return;
-        }
-
-        barcodeSuggestionTimer = setTimeout(function() {
-            getProductSuggestions(query);
-        }, 250);
-    });
-
-    $(document).on("mousedown touchstart", ".barcode-suggestion-item", function(e) {
-        e.preventDefault();
-        $("#barcode").val($(this).data("value"));
-        hideBarcodeSuggestions();
-        $("#barcode").focus();
-    });
-
-    $(document).on("keydown", ".barcode-suggestion-item", function(e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            $("#barcode").val($(this).data("value"));
-            hideBarcodeSuggestions();
-            $("#barcode").focus();
-        }
-    });
-
-    $(document).on("click", function(e) {
-        if (!$(e.target).closest(".barcode-suggestion-wrapper").length) {
-            hideBarcodeSuggestions();
-        }
     });
     
     function itemDelete(itemId, orderId){
@@ -692,8 +539,16 @@ $current_url          = url()->current();
                 }
             });
         });
+        $(document).on('click', '[data-admin-action]', function (e) {
+            e.preventDefault();
+            $('#otp-form').trigger('reset');
+            $('#admin_action').val($(this).attr('data-admin-action'));
+            $('#adminpinmodal').modal('show');
+        });
+
         $("#otp-form").submit(function (e) {
             e.preventDefault();
+            var requestedAction = $('#admin_action').val();
             var formData = new FormData(this);
             $.ajax({
                 type: "POST",
@@ -709,24 +564,34 @@ $current_url          = url()->current();
                 success: function (res) {
                     $("#loader").hide();
                     if(res.status){
-                        toastAlert("success", res.message);
                         $('#otp-form').trigger("reset");
                         $('#adminpinmodal').modal('hide');
-                        $('.price-text').hide();
-                        $('.price-val').show();
-                        $("#price-modify-btn").addClass("hidden-important");
-                        $('#price-update-btn').show();
+
+                        if(requestedAction === 'search'){
+                            window.location.href = $('#admin-search-btn').attr('href');
+                        }else if(requestedAction === 'return'){
+                            itemReturn(<?=(($getOrder)?$getOrder->id:0)?>);
+                        }else if(requestedAction === 'modify'){
+                            toastAlert("success", res.message);
+                            $('.price-text').hide();
+                            $('.price-val').show();
+                            $("#price-modify-btn").addClass("hidden-important");
+                            $('#price-update-btn').show();
+                        }
                     }else{
-                        toastAlert("error", res.message);
+                        toastAlert("error", "Incorrect");
                         $('#otp-form').trigger("reset");
+                        $('#admin_action').val(requestedAction);
+                        $('#admin_pin').trigger('focus');
                     }
                 },
                 error:function (xhr, ajaxOptions, thrownError){
                     $("#loader").hide();
-                    var res = xhr.responseJSON;
-                    if(!res.status) {
-                        toastAlert("error", res.message);
-                    }
+                    var res = xhr.responseJSON || {};
+                    toastAlert("error", res.message || "Incorrect");
+                    $('#otp-form').trigger("reset");
+                    $('#admin_action').val(requestedAction);
+                    $('#admin_pin').trigger('focus');
                 }
             });
         });
@@ -800,7 +665,7 @@ $current_url          = url()->current();
                 success: function(res) {
                     $("#loader").hide();
                     if(res.status){
-                        var redirectUrl = base_url + '/admin/billing/list';
+                        var redirectUrl = base_url + '/user/billing/list';
                         toastAlert("success", res.message);
                         setTimeout(function() {
                             window.location.href = redirectUrl;
@@ -841,11 +706,14 @@ $current_url          = url()->current();
 
     $(document).ready(function() {
 
-        // Auto focus to first input when modal becomes visible
         $('#adminpinmodal').on('shown.bs.modal', function () {
             setTimeout(function() {
-                $('#pin1').trigger('focus');
+                $('#admin_pin').trigger('focus');
             }, 200);
+        });
+
+        $('#adminpinmodal').on('hidden.bs.modal', function () {
+            $('#otp-form').trigger('reset');
         });
 
     });
